@@ -1,137 +1,486 @@
 import { useState } from 'react';
 import { useApp } from '../App';
-import { ArrowLeft, Edit, Clock, User, Calendar, CheckSquare } from 'lucide-react';
-import { StatusChip, DeptChip, PrioridadChip } from './StatusChip';
+import { ArrowLeft, Edit, Clock, Lock, ExternalLink, CheckCircle2, Circle, Link } from 'lucide-react';
+import { StatusChip, PrioridadChip } from './StatusChip';
 import { formatFecha, isAtrasado } from '../utils/dateHelpers';
-import { getStatusColor, getDeptColor } from '../utils/statusHelpers';
 import ProjectFlow from './ProjectFlow';
 import ProjectForm from './ProjectForm';
-import { getNombresResponsables } from '../utils/settingsStorage';
+import { getNombresResponsables, getResponsablesPorDept } from '../utils/settingsStorage';
 import { crearEntradaHistorial } from '../utils/historyHelpers';
+import { calcularEstadoGeneral } from '../utils/processRules';
 
-const CHECKLIST_LABELS = {
-  arquitectura: { contratoFirmado:'Contrato firmado', medidasIniciales:'Medidas iniciales', requerimientosCliente:'Requerimientos del cliente', estadoObraRegistrado:'Estado de obra registrado', disenoConceptual:'Diseño conceptual', revisionCliente:'Revisión con cliente', aprobacionCliente:'Aprobación del cliente', observacionesCerradas:'Observaciones cerradas' },
-  diseno: { disenoConceptualAprobado:'Diseño conceptual aprobado', medidasVerificadas:'Medidas verificadas', listaEquiposDefinida:'Lista de equipos definida', acabadosConfirmados:'Acabados confirmados', modelado3DRealizado:'Modelado 3D realizado', planoTecnicoGenerado:'Plano técnico generado', planoCorteGenerado:'Plano de corte generado', observacionesCerradas:'Observaciones cerradas', aprobacionProduccion:'Aprobación para producción' },
-  obra: { estadoObraRegistrado:'Estado de obra registrado', visitaRequerida:'Visita requerida', fechaVisitaRegistrada:'Fecha de visita registrada', medidasFinalesTomadas:'Medidas finales tomadas', observacionesObraRegistradas:'Observaciones registradas', aprobacionFabricacion:'Aprobación para fabricación' },
-  produccion: { planosFinalesRecibidos:'Planos finales recibidos', listaMaterialesRecibida:'Lista de materiales recibida', medidasFinalesVerificadas:'Medidas finales verificadas', prioridadDefinida:'Prioridad definida', responsableAsignado:'Responsable asignado', fechaEntregaRegistrada:'Fecha de entrega registrada', produccionTerminada:'Producción terminada', revisionCalidad:'Revisión de calidad' },
-  instalacion: { visitaAgendada:'Visita agendada', responsableAsignado:'Responsable asignado', medidasTomadas:'Medidas tomadas', obraLista:'Obra lista', equiposTerminados:'Equipos terminados', transporteCoordinado:'Transporte coordinado', fechaConfirmadaCliente:'Fecha confirmada con cliente', instalacionesVerificadas:'Instalaciones verificadas', observacionesCerradas:'Observaciones cerradas', instalacionFinalizada:'Instalación finalizada' }
-};
+// ── Sección de Arquitectura ──────────────────────
+function SeccionArquitectura({ proyecto, onUpdate }) {
+  const arch = proyecto.architecture || {};
+  const [contratoInput, setContratoInput] = useState('');
+  const [showContrato, setShowContrato]   = useState(false);
+  const [confirmLib, setConfirmLib]       = useState('');
+  const tieneContrato = !!(proyecto.contratoLink || proyecto.contratoFirmado);
+  const respOpts = getResponsablesPorDept('Arquitectura').map(r => r.nombre);
+  const allResp  = getNombresResponsables();
 
-const ESTADO_OPTIONS = {
-  arquitectura: ['Esperando contrato','Contrato firmado','Diseño conceptual en proceso','En revisión con cliente','Observado por cliente','Aprobado para diseño'],
-  diseno: ['Pendiente de arquitectura','Recibido de arquitectura','Modelado 3D en proceso','Plano técnico en proceso','Plano de corte en proceso','En revisión técnica','Observado','Listo para producción'],
-  obra: ['Obra gris','Pendiente visita','Visita agendada','Medidas tomadas','Medidas observadas','Aprobado para fabricación','Pendiente por cliente'],
-  produccion: ['Pendiente de diseño','Recibido para producción','Programado','En fabricación','En armado','En revisión de calidad','Con novedad','Terminado','Listo para instalación'],
-  instalacion: ['Visita pendiente','Visita agendada','Medidas tomadas','Instalación pendiente','En instalación','Instalado','Con novedad'],
-};
+  function cargarContrato() {
+    if (!contratoInput.trim()) return;
+    const now = new Date().toISOString();
+    onUpdate({
+      ...proyecto,
+      contratoLink: contratoInput, contratoFirmado: true, contratoUploadedAt: now,
+      architecture: { ...arch, status: 'Proyecto confirmado' },
+      installations: { ...proyecto.installations, status: 'Pendiente liberación de Arquitectura' },
+      design3d: { ...proyecto.design3d, status: 'Pendiente liberación de Arquitectura' },
+    });
+    setContratoInput(''); setShowContrato(false);
+  }
 
-function DeptSection({ deptKey, deptName, data, proyecto, onUpdate }) {
-  const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ ...data });
-  const c = getDeptColor(deptName);
-  const checkItems = CHECKLIST_LABELS[deptKey] || {};
-  const checkDone = Object.values(form.checklist || {}).filter(Boolean).length;
-  const checkTotal = Object.keys(checkItems).length;
-  const stateField = { arquitectura:'estadoArquitectura', diseno:'estadoDiseno', obra:'estadoObra', produccion:'estadoProduccion', instalacion:'estadoInstalacion' }[deptKey];
+  function liberar(dest) {
+    if (confirmLib !== dest) { setConfirmLib(dest); return; }
+    const now = new Date().toISOString();
+    if (dest === 'diseno3d') {
+      onUpdate({
+        ...proyecto,
+        releasedToDesign3D: true, releasedToDesign3DAt: now,
+        architecture: { ...arch, status: 'Listo para Diseño 3D' },
+        design3d: { ...proyecto.design3d, status: 'Pendiente de modelado' },
+        history: [{ date: now.slice(0,10), user: 'Usuario', action: 'Liberado a Diseño 3D', previousStatus: proyecto.estadoGeneral, newStatus: 'Listo para Diseño 3D', comment: '' }, ...(proyecto.history||[])],
+      });
+    }
+    setConfirmLib('');
+  }
 
-  const handleSave = () => {
-    onUpdate(deptKey, form);
-    setOpen(false);
-  };
-
-  const setCheck = (key, val) => setForm(f => ({ ...f, checklist: { ...f.checklist, [key]: val } }));
+  function updateField(field, val) {
+    onUpdate({ ...proyecto, architecture: { ...arch, [field]: val } });
+  }
 
   return (
-    <div className={`border ${c.border} rounded-xl overflow-hidden`}>
-      <div className={`${c.light} px-4 py-3 flex items-center justify-between cursor-pointer`} onClick={() => setOpen(!open)}>
-        <div className="flex items-center gap-3">
-          <span className={`${c.bg} text-white text-xs font-bold px-2 py-0.5 rounded`}>{deptName}</span>
-          <StatusChip estado={form[stateField] || '—'} size="xs" />
-          <span className="text-[10px] text-slate-400">{form.responsable || 'Sin responsable'}</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-[10px] text-slate-400">{checkDone}/{checkTotal} checklist</span>
-          <div className="w-16 h-1.5 bg-white/10 rounded-full overflow-hidden">
-            <div className={`h-full ${c.bg} rounded-full`} style={{ width: `${checkTotal > 0 ? (checkDone/checkTotal)*100 : 0}%` }} />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Responsable */}
+      <div>
+        <label style={labelStyle}>Responsable de Arquitectura</label>
+        <select value={arch.responsible || ''} onChange={e => updateField('responsible', e.target.value)} style={selectStyle}>
+          <option value="">Seleccionar...</option>
+          {(respOpts.length > 0 ? respOpts : allResp).map(r => <option key={r}>{r}</option>)}
+        </select>
+      </div>
+
+      {/* Links de trabajo */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        {[
+          { field: 'proposalLink',        label: 'Link propuesta' },
+          { field: 'sketchupLink',        label: 'Link SketchUp' },
+          { field: 'conceptualPlanLink',  label: 'Link plano conceptual' },
+          { field: 'installationPlanLink',label: 'Link plano instalaciones' },
+        ].map(({ field, label }) => (
+          <div key={field}>
+            <label style={labelStyle}>{label}</label>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <input value={arch[field] || ''} onChange={e => updateField(field, e.target.value)}
+                placeholder="https://drive.google.com/..."
+                style={{ ...inputStyle, flex: 1 }} />
+              {arch[field] && (
+                <a href={arch[field]} target="_blank" rel="noopener noreferrer"
+                  style={{ padding: '6px 8px', background: '#1E3A5F', border: '1px solid #2563EB40', borderRadius: 7, color: '#93C5FD', display: 'flex', alignItems: 'center' }}>
+                  <ExternalLink size={12} />
+                </a>
+              )}
+            </div>
           </div>
+        ))}
+      </div>
+
+      {/* Observaciones */}
+      <div>
+        <label style={labelStyle}>Observaciones de Arquitectura</label>
+        <textarea value={arch.observations || ''} onChange={e => updateField('observations', e.target.value)}
+          rows={2} style={{ ...inputStyle, resize: 'none', width: '100%' }} />
+      </div>
+
+      {/* Panel de liberaciones */}
+      <div style={{ background: '#0A0D14', border: '1px solid #1E2433', borderRadius: 10, padding: '14px 16px' }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 14 }}>
+          🔓 Liberaciones del proyecto
+        </div>
+
+        {/* Contrato */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #1E2433' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: tieneContrato ? '#16A34A' : '#D97706' }} />
+            <div>
+              <div style={{ fontSize: 12, color: '#CBD5E1', fontWeight: 600 }}>1. Contrato firmado</div>
+              <div style={{ fontSize: 10, color: '#6B7280' }}>Requerido para liberar a Diseño 3D</div>
+            </div>
+          </div>
+          {tieneContrato
+            ? <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={pillStyle('#052E16', '#86EFAC')}>✓ Cargado</span>
+                {proyecto.contratoLink && <a href={proyecto.contratoLink} target="_blank" rel="noopener noreferrer" style={{ color: '#60A5FA' }}><ExternalLink size={12} /></a>}
+              </div>
+            : <button onClick={() => setShowContrato(f => !f)} style={btnStyle('#D97706')}>Cargar contrato</button>
+          }
+        </div>
+
+        {showContrato && (
+          <div style={{ display: 'flex', gap: 6, padding: '8px 0', borderBottom: '1px solid #1E2433' }}>
+            <input value={contratoInput} onChange={e => setContratoInput(e.target.value)}
+              placeholder="https://drive.google.com/... (link del contrato firmado)"
+              style={{ ...inputStyle, flex: 1 }} />
+            <button onClick={cargarContrato} style={btnStyle('#16A34A')}>✓ Confirmar</button>
+            <button onClick={() => setShowContrato(false)} style={btnStyle('#374151')}>✕</button>
+          </div>
+        )}
+
+        {/* Liberar a Diseño 3D */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #1E2433' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: proyecto.releasedToDesign3D ? '#2563EB' : '#374151' }} />
+            <div>
+              <div style={{ fontSize: 12, color: '#CBD5E1', fontWeight: 600 }}>2. Liberar a Diseño 3D</div>
+              <div style={{ fontSize: 10, color: '#6B7280' }}>
+                {proyecto.releasedToDesign3D
+                  ? `Liberado el ${proyecto.releasedToDesign3DAt?.slice(0,10)}`
+                  : 'Cuando contrato y planos estén listos'}
+              </div>
+            </div>
+          </div>
+          {proyecto.releasedToDesign3D
+            ? <span style={pillStyle('#1E3A5F', '#93C5FD')}>✓ Liberado</span>
+            : <button onClick={() => liberar('diseno3d')} disabled={!tieneContrato}
+                style={btnStyle(confirmLib === 'diseno3d' ? '#DC2626' : tieneContrato ? '#2563EB' : '#1F2937', !tieneContrato)}>
+                {confirmLib === 'diseno3d' ? '¿Confirmar?' : 'Liberar a Diseño 3D'}
+              </button>
+          }
+        </div>
+
+        {/* Producción — automático */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: proyecto.design3d?.releasedToProduction ? '#EA580C' : '#374151' }} />
+            <div>
+              <div style={{ fontSize: 12, color: '#CBD5E1', fontWeight: 600 }}>3. Producción</div>
+              <div style={{ fontSize: 10, color: '#6B7280' }}>Se libera automáticamente cuando Diseño 3D termina</div>
+            </div>
+          </div>
+          <span style={pillStyle(proyecto.design3d?.releasedToProduction ? '#3D1F00' : '#1F2937', proyecto.design3d?.releasedToProduction ? '#FDBA74' : '#4B5563')}>
+            {proyecto.design3d?.releasedToProduction ? '✓ Liberado' : 'Automático'}
+          </span>
+        </div>
+
+        {confirmLib && (
+          <div style={{ marginTop: 8, fontSize: 11, color: '#FCD34D', background: '#451A03', padding: '6px 10px', borderRadius: 6 }}>
+            Haz clic de nuevo en el botón para confirmar.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Sección de Instalaciones ─────────────────────
+function SeccionInstalaciones({ proyecto, onUpdate }) {
+  const inst = proyecto.installations || {};
+  const [reportInput, setReportInput] = useState('');
+  const [showReport, setShowReport]   = useState(false);
+  const respOpts = getResponsablesPorDept('Instalaciones').map(r => r.nombre);
+  const allResp  = getNombresResponsables();
+
+  function updateField(field, val) {
+    onUpdate({ ...proyecto, installations: { ...inst, [field]: val } });
+  }
+
+  function cargarInforme() {
+    if (!reportInput.trim()) return;
+    const now = new Date().toISOString();
+    onUpdate({
+      ...proyecto,
+      estadoGeneral: 'Información técnica recibida',
+      installations: { ...inst, initialTechnicalReportLink: reportInput, status: 'Informe técnico cargado', firstVisitDate: inst.firstVisitDate || now.slice(0,10) },
+      architecture: { ...proyecto.architecture, status: 'Información técnica recibida' },
+      history: [{ date: now.slice(0,10), user: 'Usuario', action: 'Informe técnico cargado', previousStatus: proyecto.estadoGeneral, newStatus: 'Información técnica recibida', comment: '' }, ...(proyecto.history||[])],
+    });
+    setReportInput(''); setShowReport(false);
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ background: '#0F2D1A30', border: '1px solid #16A34A30', borderRadius: 8, padding: '8px 12px', fontSize: 11, color: '#86EFAC' }}>
+        🔧 Instalaciones monitorea la obra durante todo el proyecto e instala cuando Producción termina.
+      </div>
+
+      {/* Responsable */}
+      <div>
+        <label style={labelStyle}>Responsable de Instalaciones</label>
+        <select value={inst.responsible || ''} onChange={e => updateField('responsible', e.target.value)} style={selectStyle}>
+          <option value="">Seleccionar...</option>
+          {(respOpts.length > 0 ? respOpts : allResp).map(r => <option key={r}>{r}</option>)}
+        </select>
+      </div>
+
+      {/* Visitas */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <div>
+          <label style={labelStyle}>Fecha 1ª visita técnica</label>
+          <input type="date" value={inst.firstVisitDate || ''} onChange={e => updateField('firstVisitDate', e.target.value)} style={inputStyle} />
+        </div>
+        <div>
+          <label style={labelStyle}>Fecha 2ª visita técnica</label>
+          <input type="date" value={inst.secondVisitDate || ''} onChange={e => updateField('secondVisitDate', e.target.value)} style={inputStyle} />
+        </div>
+        <div>
+          <label style={labelStyle}>Fecha visita final</label>
+          <input type="date" value={inst.finalVisitDate || ''} onChange={e => updateField('finalVisitDate', e.target.value)} style={inputStyle} />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: 2 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+            <input type="checkbox" checked={!!inst.siteReady} onChange={e => updateField('siteReady', e.target.checked)}
+              style={{ width: 16, height: 16, accentColor: '#16A34A' }} />
+            <span style={{ fontSize: 12, color: inst.siteReady ? '#86EFAC' : '#9CA3AF', fontWeight: 600 }}>
+              ✓ Obra lista para instalar
+            </span>
+          </label>
         </div>
       </div>
 
-      {open && (
-        <div className="px-4 py-4 space-y-4 bg-[#0F1117]">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-slate-400 mb-1 block">Estado</label>
-              <select value={form[stateField] || ''} onChange={e => setForm(f => ({ ...f, [stateField]: e.target.value }))} className="w-full bg-[#161820] border border-white/10 rounded-lg text-sm text-white px-3 py-2 focus:outline-none focus:border-blue-500">
-                {(ESTADO_OPTIONS[deptKey] || []).map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
+      {/* Informe técnico */}
+      <div>
+        <label style={labelStyle}>Informe técnico de visita</label>
+        {inst.initialTechnicalReportLink
+          ? <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 11, color: '#86EFAC' }}>✓ Cargado</span>
+              <a href={inst.initialTechnicalReportLink} target="_blank" rel="noopener noreferrer"
+                style={{ fontSize: 11, color: '#60A5FA', display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none' }}>
+                Ver informe <ExternalLink size={10} />
+              </a>
+              <button onClick={() => updateField('initialTechnicalReportLink', '')}
+                style={{ fontSize: 10, color: '#EF4444', background: 'none', border: 'none', cursor: 'pointer' }}>Cambiar</button>
             </div>
-            <div>
-              <label className="text-xs text-slate-400 mb-1 block">Responsable</label>
-              <select value={form.responsable || ''} onChange={e => setForm(f => ({ ...f, responsable: e.target.value }))} className="w-full bg-[#161820] border border-white/10 rounded-lg text-sm text-white px-3 py-2 focus:outline-none focus:border-blue-500">
-                <option value="">Seleccionar...</option>
-                {(getNombresResponsables() || []).map(u => <option key={u} value={u}>{u}</option>)}
-              </select>
+          : showReport
+            ? <div style={{ display: 'flex', gap: 6 }}>
+                <input value={reportInput} onChange={e => setReportInput(e.target.value)}
+                  placeholder="https://drive.google.com/..." style={{ ...inputStyle, flex: 1 }} />
+                <button onClick={cargarInforme} style={btnStyle('#16A34A')}>✓</button>
+                <button onClick={() => setShowReport(false)} style={btnStyle('#374151')}>✕</button>
+              </div>
+            : <button onClick={() => setShowReport(true)} style={{ ...btnStyle('#16A34A20'), color: '#86EFAC', border: '1px solid #16A34A40', width: '100%' }}>
+                + Cargar informe técnico
+              </button>
+        }
+      </div>
+
+      {/* Observaciones de obra */}
+      <div>
+        <label style={labelStyle}>Novedades y observaciones de la obra</label>
+        <textarea value={inst.observations || ''} onChange={e => updateField('observations', e.target.value)}
+          rows={3} placeholder="Anotar el estado de la obra, novedades, pendientes..."
+          style={{ ...inputStyle, resize: 'none', width: '100%' }} />
+      </div>
+    </div>
+  );
+}
+
+// ── Sección de Diseño 3D ─────────────────────────
+function SeccionDiseno3D({ proyecto, onUpdate }) {
+  const d3 = proyecto.design3d || {};
+  const locked = !proyecto.releasedToDesign3D;
+  const [confirmProd, setConfirmProd] = useState(false);
+  const respOpts = getResponsablesPorDept('Diseño 3D').map(r => r.nombre);
+  const allResp  = getNombresResponsables();
+
+  function toggle(field) {
+    const updated = { ...d3, [field]: !d3[field] };
+    if (field === 'solidworksFinished' && !d3.solidworksFinished)        updated.design3DCompleted = true;
+    if (field === 'autocadBreakdownFinished' && !d3.autocadBreakdownFinished) updated.breakdownCompleted = true;
+    let status = 'Pendiente de modelado';
+    if (updated.breakdownCompleted)      status = 'Despiece terminado';
+    else if (updated.autocadBreakdownStarted) status = 'En despiece AutoCAD';
+    else if (updated.solidworksFinished) status = 'Modelado terminado';
+    else if (updated.solidworksStarted)  status = 'En modelado SolidWorks';
+    onUpdate({ ...proyecto, design3d: { ...updated, status } });
+  }
+
+  function liberarProduccion() {
+    if (!confirmProd) { setConfirmProd(true); return; }
+    const now = new Date().toISOString();
+    onUpdate({
+      ...proyecto,
+      estadoGeneral: 'Listo para producción',
+      design3d: { ...d3, releasedToProduction: true, releasedToProductionAt: now, status: 'Liberado a Producción' },
+      production: { ...proyecto.production, status: 'Listo para producción' },
+      history: [{ date: now.slice(0,10), user: 'Usuario', action: 'Liberado a Producción', previousStatus: proyecto.estadoGeneral, newStatus: 'Listo para producción', comment: '' }, ...(proyecto.history||[])],
+    });
+    setConfirmProd(false);
+  }
+
+  if (locked) return (
+    <div style={{ textAlign: 'center', padding: '30px 20px', color: '#4B5563' }}>
+      <Lock size={32} color="#374151" style={{ margin: '0 auto 12px' }} />
+      <p style={{ fontSize: 13, fontWeight: 600, color: '#6B7280' }}>Diseño 3D está bloqueado</p>
+      <p style={{ fontSize: 11, marginTop: 6 }}>Arquitectura debe cargar el contrato y los planos, y luego liberar a Diseño 3D.</p>
+    </div>
+  );
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div>
+        <label style={labelStyle}>Responsable de Diseño 3D</label>
+        <select value={d3.responsible || ''} onChange={e => onUpdate({ ...proyecto, design3d: { ...d3, responsible: e.target.value } })} style={selectStyle}>
+          <option value="">Seleccionar...</option>
+          {(respOpts.length > 0 ? respOpts : allResp).map(r => <option key={r}>{r}</option>)}
+        </select>
+      </div>
+
+      <div style={{ background: '#0A0D14', border: '1px solid #1E2433', borderRadius: 10, padding: '12px 14px' }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '.5px' }}>Avance del trabajo</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+          {[
+            { key: 'solidworksStarted',        label: 'SolidWorks iniciado' },
+            { key: 'solidworksFinished',       label: 'SolidWorks terminado ✓' },
+            { key: 'autocadBreakdownStarted',  label: 'Despiece AutoCAD iniciado' },
+            { key: 'autocadBreakdownFinished', label: 'Despiece AutoCAD terminado ✓' },
+          ].map(item => (
+            <div key={item.key} onClick={() => toggle(item.key)}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: d3[item.key] ? '#1E3A5F40' : '#141824', border: `1px solid ${d3[item.key] ? '#2563EB40' : '#1E2433'}`, borderRadius: 8, cursor: 'pointer', transition: 'all .15s' }}>
+              {d3[item.key] ? <CheckCircle2 size={14} color="#2563EB" /> : <Circle size={14} color="#374151" />}
+              <span style={{ fontSize: 11, color: d3[item.key] ? '#93C5FD' : '#6B7280', fontWeight: d3[item.key] ? 600 : 400 }}>{item.label}</span>
             </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label style={labelStyle}>Observaciones</label>
+        <textarea value={d3.observations || ''} onChange={e => onUpdate({ ...proyecto, design3d: { ...d3, observations: e.target.value } })}
+          rows={2} style={{ ...inputStyle, resize: 'none', width: '100%' }} />
+      </div>
+
+      {/* Liberar a Producción */}
+      {!d3.releasedToProduction
+        ? <button onClick={liberarProduccion}
+            disabled={!d3.design3DCompleted || !d3.breakdownCompleted}
+            style={btnStyle(
+              confirmProd ? '#DC2626' : (d3.design3DCompleted && d3.breakdownCompleted) ? '#EA580C' : '#1F2937',
+              !d3.design3DCompleted || !d3.breakdownCompleted
+            )}>
+            {confirmProd ? '¿Confirmar liberación a Producción?' : '🏭 Liberar a Producción'}
+          </button>
+        : <div style={{ padding: '10px 14px', background: '#3D1F0040', border: '1px solid #EA580C40', borderRadius: 8, fontSize: 12, color: '#FDBA74', fontWeight: 600 }}>
+            ✓ Producción liberada el {d3.releasedToProductionAt?.slice(0,10)}
           </div>
-          <div>
-            <div className="text-xs text-slate-400 mb-2 font-medium">Checklist</div>
-            <div className="grid grid-cols-2 gap-1">
-              {Object.entries(checkItems).map(([key, label]) => (
-                <label key={key} className="flex items-center gap-2 cursor-pointer py-1">
-                  <input type="checkbox" checked={!!form.checklist?.[key]} onChange={e => setCheck(key, e.target.checked)} className="w-3.5 h-3.5 accent-blue-500 rounded" />
-                  <span className={`text-[11px] ${form.checklist?.[key] ? 'text-green-400 line-through' : 'text-slate-400'}`}>{label}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className="text-xs text-slate-400 mb-1 block">Observaciones</label>
-            <textarea value={form.observaciones || form.observacionesObra || ''} onChange={e => setForm(f => ({ ...f, observaciones: e.target.value, observacionesObra: e.target.value }))} rows={2} className="w-full bg-[#161820] border border-white/10 rounded-lg text-sm text-white px-3 py-2 focus:outline-none focus:border-blue-500 resize-none" />
-          </div>
-          <div className="flex justify-end">
-            <button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2 rounded-lg transition-colors">Guardar cambios</button>
-          </div>
+      }
+      {(!d3.design3DCompleted || !d3.breakdownCompleted) && !d3.releasedToProduction && (
+        <div style={{ fontSize: 11, color: '#6B7280', textAlign: 'center' }}>
+          Marca SolidWorks terminado y Despiece terminado para habilitar la liberación.
         </div>
       )}
     </div>
   );
 }
 
+// ── Sección de Producción ────────────────────────
+function SeccionProduccion({ proyecto, onUpdate }) {
+  const prod   = proyecto.production || {};
+  const locked = !proyecto.design3d?.releasedToProduction;
+  const respOpts = getResponsablesPorDept('Producción').map(r => r.nombre);
+  const allResp  = getNombresResponsables();
+
+  function toggle(field) {
+    const updated = { ...prod, [field]: !prod[field] };
+    let status = 'Listo para producción';
+    if (updated.productionFinished) status = 'Producción terminada';
+    else if (updated.partialProduction) status = 'En producción';
+    onUpdate({
+      ...proyecto,
+      production: { ...updated, status },
+      estadoGeneral: updated.productionFinished ? 'En producción' : updated.partialProduction ? 'En producción' : 'Listo para producción',
+    });
+  }
+
+  if (locked) return (
+    <div style={{ textAlign: 'center', padding: '30px 20px', color: '#4B5563' }}>
+      <Lock size={32} color="#374151" style={{ margin: '0 auto 12px' }} />
+      <p style={{ fontSize: 13, fontWeight: 600, color: '#6B7280' }}>Producción está bloqueada</p>
+      <p style={{ fontSize: 11, marginTop: 6 }}>Se habilitará cuando Diseño 3D termine el modelado y despiece, y libere a Producción.</p>
+    </div>
+  );
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div>
+        <label style={labelStyle}>Responsable de Producción</label>
+        <select value={prod.responsible || ''} onChange={e => onUpdate({ ...proyecto, production: { ...prod, responsible: e.target.value } })} style={selectStyle}>
+          <option value="">Seleccionar...</option>
+          {(respOpts.length > 0 ? respOpts : allResp).map(r => <option key={r}>{r}</option>)}
+        </select>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {[
+          { key: 'partialProduction',  label: 'Producción parcial iniciada',  color: '#EA580C' },
+          { key: 'productionFinished', label: 'Producción terminada ✓',       color: '#16A34A' },
+        ].map(item => (
+          <div key={item.key} onClick={() => toggle(item.key)}
+            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', background: prod[item.key] ? item.color + '15' : '#141824', border: `1px solid ${prod[item.key] ? item.color + '40' : '#1E2433'}`, borderRadius: 10, cursor: 'pointer', transition: 'all .15s' }}>
+            {prod[item.key] ? <CheckCircle2 size={18} color={item.color} /> : <Circle size={18} color="#374151" />}
+            <span style={{ fontSize: 13, color: prod[item.key] ? '#E2E8F0' : '#6B7280', fontWeight: prod[item.key] ? 600 : 400 }}>{item.label}</span>
+          </div>
+        ))}
+      </div>
+
+      <div>
+        <label style={labelStyle}>Observaciones de producción</label>
+        <textarea value={prod.observations || ''} onChange={e => onUpdate({ ...proyecto, production: { ...prod, observations: e.target.value } })}
+          rows={2} style={{ ...inputStyle, resize: 'none', width: '100%' }} />
+      </div>
+
+      {prod.productionFinished && (
+        <div style={{ padding: '10px 14px', background: '#052E1640', border: '1px solid #16A34A40', borderRadius: 8, fontSize: 12, color: '#86EFAC', fontWeight: 600 }}>
+          ✓ Producción terminada — Instalación puede proceder
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Estilos reutilizables ────────────────────────
+const inputStyle  = { background: '#0F1117', border: '1px solid #374151', borderRadius: 8, color: '#E2E8F0', fontSize: 12, padding: '7px 10px', outline: 'none', width: '100%' };
+const selectStyle = { ...inputStyle };
+const labelStyle  = { fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 5 };
+const pillStyle   = (bg, color) => ({ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 99, background: bg, color, display: 'inline-block' });
+const btnStyle    = (bg, disabled = false) => ({ background: bg, color: disabled ? '#4B5563' : '#fff', border: 'none', borderRadius: 8, fontSize: 11, fontWeight: 600, padding: '6px 14px', cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.6 : 1, transition: 'all .15s' });
+
+// ── Componente principal ─────────────────────────
 export default function ProjectDetail({ proyectoId }) {
   const { proyectos, historial, actividades, updateProyecto, addHistorial, currentUser, setPage } = useApp();
-  const [activeTab, setActiveTab] = useState('info');
-  const [editForm, setEditForm] = useState(false);
+  const [activeTab, setActiveTab] = useState('flujo');
+  const [showEditForm, setShowEditForm] = useState(false);
 
   const proyecto = proyectos.find(p => p.id === proyectoId);
-  if (!proyecto) return <div className="p-6 text-slate-400">Proyecto no encontrado</div>;
+  if (!proyecto) return <div style={{ padding: 24, color: '#6B7280' }}>Proyecto no encontrado</div>;
 
-  const pHistorial = historial.filter(h => h.proyectoId === proyectoId);
+  const pHistorial   = historial.filter(h => h.proyectoId === proyectoId);
   const pActividades = actividades.filter(a => a.proyectoId === proyectoId);
-  const atrasado = isAtrasado(proyecto.fechaEntrega, proyecto.estadoGeneral);
+  const atrasado     = isAtrasado(proyecto.fechaEntrega, proyecto.estadoGeneral);
 
-  const handleDeptUpdate = (deptKey, data) => {
-    const updated = { ...proyecto, [deptKey]: data, updatedAt: new Date().toISOString() };
-    updateProyecto(updated);
-    addHistorial(crearEntradaHistorial({ proyectoId: proyecto.id, usuario: currentUser, departamento: deptKey, accion: 'Actualización', campoModificado: deptKey, valorAnterior: '—', valorNuevo: JSON.stringify(data).slice(0, 80), observacion: '' }));
-  };
+  function handleUpdate(updated) {
+    const conEstado = { ...updated, estadoGeneral: calcularEstadoGeneral(updated), updatedAt: new Date().toISOString() };
+    updateProyecto(conEstado);
+  }
 
   const TABS = [
-    { id: 'info', label: 'Info general' },
-    { id: 'flujo', label: 'Flujo' },
-    { id: 'departamentos', label: 'Departamentos' },
-    { id: 'actividades', label: `Actividades (${pActividades.length})` },
-    { id: 'historial', label: `Historial (${pHistorial.length})` },
+    { id: 'flujo',         label: 'Flujo' },
+    { id: 'arquitectura',  label: '✏️ Arquitectura' },
+    { id: 'instalaciones', label: '🔧 Instalaciones / Obra' },
+    { id: 'diseno3d',      label: '🖥️ Diseño 3D' },
+    { id: 'produccion',    label: '🏭 Producción' },
+    { id: 'historial',     label: `Historial (${pHistorial.length})` },
   ];
 
   return (
     <div className="p-6 space-y-4">
-      <div className="flex items-center gap-3">
-        <button onClick={() => setPage('proyectos')} className="text-slate-400 hover:text-white flex items-center gap-1.5 text-sm transition-colors">
-          <ArrowLeft size={15} /> Proyectos
-        </button>
-      </div>
+      {/* Volver */}
+      <button onClick={() => setPage('proyectos')} className="text-slate-400 hover:text-white flex items-center gap-1.5 text-sm transition-colors">
+        <ArrowLeft size={15} /> Proyectos
+      </button>
 
+      {/* Header del proyecto */}
       <div className={`bg-[#161820] border rounded-xl p-4 ${atrasado ? 'border-red-800/70' : 'border-white/5'}`}>
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -139,19 +488,22 @@ export default function ProjectDetail({ proyectoId }) {
               <h1 className="text-xl font-bold text-white">{proyecto.nombre}</h1>
               {atrasado && <span className="text-[9px] bg-red-600 text-white px-2 py-0.5 rounded font-bold">ATRASADO</span>}
             </div>
-            <div className="text-slate-400 text-sm">{proyecto.cliente} · {proyecto.numeroContrato || 'Sin contrato'}</div>
+            <div className="text-slate-400 text-sm">{proyecto.cliente} · {proyecto.numeroContrato || 'Sin número de contrato'}</div>
             <div className="flex items-center gap-2 mt-2 flex-wrap">
               <StatusChip estado={proyecto.estadoGeneral} />
-              <DeptChip dept={proyecto.departamentoActual} />
               <PrioridadChip prioridad={proyecto.prioridad} />
-              <span className={`text-[10px] px-2 py-0.5 rounded ${proyecto.contratoFirmado ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'}`}>{proyecto.contratoFirmado ? '✓ Contrato firmado' : '✗ Sin contrato'}</span>
+              <span className={`text-[10px] px-2 py-0.5 rounded font-medium ${(proyecto.contratoLink || proyecto.contratoFirmado) ? 'bg-green-900 text-green-300' : 'bg-amber-900/60 text-amber-300'}`}>
+                {(proyecto.contratoLink || proyecto.contratoFirmado) ? '✓ Contrato cargado' : '⚠ Sin contrato'}
+              </span>
             </div>
           </div>
           <div className="text-right shrink-0">
-            <div className="text-xs text-slate-500">Entrega</div>
-            <div className={`text-sm font-bold ${atrasado ? 'text-red-400' : 'text-white'}`}>{formatFecha(proyecto.fechaEntrega)}</div>
-            <div className="text-xs text-slate-500 mt-1">Resp: {proyecto.responsableGeneral}</div>
-            <button onClick={() => setEditForm(true)} className="mt-2 text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"><Edit size={11} /> Editar</button>
+            <div className="text-xs text-slate-500">Entrega estimada</div>
+            <div className={`text-sm font-bold ${atrasado ? 'text-red-400' : 'text-white'}`}>{formatFecha(proyecto.fechaEntrega) || '—'}</div>
+            <div className="text-xs text-slate-500 mt-1">Resp: {proyecto.responsableGeneral || '—'}</div>
+            <button onClick={() => setShowEditForm(true)} className="mt-2 text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 ml-auto">
+              <Edit size={11} /> Editar
+            </button>
           </div>
         </div>
         {proyecto.proximaAccion && (
@@ -163,97 +515,57 @@ export default function ProjectDetail({ proyectoId }) {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-white/5">
+      <div className="flex gap-1 border-b border-white/5 overflow-x-auto">
         {TABS.map(t => (
-          <button key={t.id} onClick={() => setActiveTab(t.id)} className={`text-xs px-4 py-2 rounded-t-lg transition-colors ${activeTab === t.id ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white'}`}>{t.label}</button>
+          <button key={t.id} onClick={() => setActiveTab(t.id)}
+            className={`text-xs px-4 py-2 rounded-t-lg transition-colors whitespace-nowrap ${activeTab === t.id ? 'bg-white/10 text-white font-medium' : 'text-slate-400 hover:text-white'}`}>
+            {t.label}
+          </button>
         ))}
       </div>
 
-      {activeTab === 'info' && (
-        <div className="grid grid-cols-2 gap-4">
-          {[['Cliente', proyecto.cliente],['Contrato', proyecto.numeroContrato || '—'],['Inicio', formatFecha(proyecto.fechaInicio)],['Entrega', formatFecha(proyecto.fechaEntrega)],['Responsable', proyecto.responsableGeneral || '—'],['Dpto. actual', proyecto.departamentoActual],['Prioridad', proyecto.prioridad],['Estado', proyecto.estadoGeneral]].map(([k,v]) => (
-            <div key={k} className="bg-[#161820] border border-white/5 rounded-xl p-3">
-              <div className="text-[10px] text-slate-500 mb-1">{k}</div>
-              <div className="text-sm text-white font-medium">{v}</div>
-            </div>
-          ))}
-          {proyecto.observaciones && (
-            <div className="col-span-2 bg-amber-900/20 border border-amber-800/50 rounded-xl p-3">
-              <div className="text-[10px] text-amber-400 mb-1">Observaciones</div>
-              <div className="text-sm text-amber-200">{proyecto.observaciones}</div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {activeTab === 'flujo' && (
-        <div className="bg-[#161820] border border-white/5 rounded-xl p-4">
-          <h3 className="text-sm font-semibold text-white mb-1">Flujo del proyecto</h3>
-          <p className="text-xs text-slate-500 mb-4">Haz clic en cada etapa para ver y marcar sus pasos. Los GATEs deben completarse para desbloquear la siguiente etapa.</p>
-          <ProjectFlow
-            proyecto={proyecto}
-            onUpdateProyecto={(updated) => {
-              updateProyecto({ ...updated, updatedAt: new Date().toISOString() });
-              addHistorial(crearEntradaHistorial({ proyectoId: proyecto.id, usuario: currentUser, departamento: 'Flujo', accion: 'Actualización gate', campoModificado: 'flujo', valorAnterior: '-', valorNuevo: 'Paso actualizado', observacion: '' }));
-            }}
-          />
-        </div>
-      )}
-
-      {activeTab === 'departamentos' && (
-        <div className="space-y-3">
-          {[
-            { key: 'arquitectura', name: 'Arquitectura', data: proyecto.arquitectura },
-            { key: 'diseno', name: 'Diseño', data: proyecto.diseno },
-            { key: 'obra', name: 'Obra', data: proyecto.obra },
-            { key: 'produccion', name: 'Producción', data: proyecto.produccion },
-            { key: 'instalacion', name: 'Instalación', data: proyecto.instalacion },
-          ].map(({ key, name, data }) => (
-            <DeptSection key={key} deptKey={key} deptName={name} data={data} proyecto={proyecto} onUpdate={handleDeptUpdate} />
-          ))}
-        </div>
-      )}
-
-      {activeTab === 'actividades' && (
-        <div className="bg-[#161820] border border-white/5 rounded-xl overflow-hidden">
+      {/* Contenido de tabs */}
+      <div className="bg-[#161820] border border-white/5 rounded-xl p-5">
+        {activeTab === 'flujo' && (
+          <ProjectFlow proyecto={proyecto} onUpdateProyecto={handleUpdate} />
+        )}
+        {activeTab === 'arquitectura' && (
+          <SeccionArquitectura proyecto={proyecto} onUpdate={handleUpdate} />
+        )}
+        {activeTab === 'instalaciones' && (
+          <SeccionInstalaciones proyecto={proyecto} onUpdate={handleUpdate} />
+        )}
+        {activeTab === 'diseno3d' && (
+          <SeccionDiseno3D proyecto={proyecto} onUpdate={handleUpdate} />
+        )}
+        {activeTab === 'produccion' && (
+          <SeccionProduccion proyecto={proyecto} onUpdate={handleUpdate} />
+        )}
+        {activeTab === 'historial' && (
           <div className="divide-y divide-white/5">
-            {pActividades.length === 0 && <div className="py-8 text-center text-slate-500 text-sm">Sin actividades registradas</div>}
-            {pActividades.map(a => (
-              <div key={a.id} className="px-4 py-3 flex items-center gap-3">
-                <DeptChip dept={a.departamento} size="xs" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs font-medium text-white">{a.actividad}</div>
-                  <div className="text-[10px] text-slate-500">{a.responsable} · {formatFecha(a.fechaLimite)}</div>
-                </div>
-                <StatusChip estado={a.estado} size="xs" />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'historial' && (
-        <div className="bg-[#161820] border border-white/5 rounded-xl overflow-hidden">
-          <div className="divide-y divide-white/5">
-            {pHistorial.length === 0 && <div className="py-8 text-center text-slate-500 text-sm">Sin historial</div>}
-            {pHistorial.map(h => (
-              <div key={h.id} className="px-4 py-3">
+            {pHistorial.length === 0 && <div className="py-8 text-center text-slate-500 text-sm">Sin historial registrado</div>}
+            {pHistorial.map((h, i) => (
+              <div key={h.id || i} className="py-3">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-[10px] font-mono text-slate-500">{h.fecha} {h.hora}</span>
-                  <span className="text-[10px] text-white font-medium">{h.usuario}</span>
+                  <span className="text-[10px] text-white font-medium">{h.usuario || h.user}</span>
                   <span className="text-[10px] text-slate-500">·</span>
                   <span className="text-[10px] text-slate-400">{h.departamento}</span>
                 </div>
-                <div className="text-xs text-white">{h.accion}: <span className="text-slate-400">{h.campoModificado}</span></div>
-                {h.valorAnterior !== '—' && <div className="text-[10px] text-slate-500 mt-0.5">{h.valorAnterior} → <span className="text-green-400">{h.valorNuevo}</span></div>}
-                {h.observacion && <div className="text-[10px] text-slate-400 italic mt-0.5">{h.observacion}</div>}
+                <div className="text-xs text-white">{h.accion || h.action}</div>
+                {(h.valorAnterior || h.previousStatus) && (
+                  <div className="text-[10px] text-slate-500 mt-0.5">
+                    {h.valorAnterior || h.previousStatus} → <span className="text-green-400">{h.valorNuevo || h.newStatus}</span>
+                  </div>
+                )}
+                {(h.observacion || h.comment) && <div className="text-[10px] text-slate-400 italic mt-0.5">{h.observacion || h.comment}</div>}
               </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {editForm && <ProjectForm proyecto={proyecto} onClose={() => setEditForm(false)} />}
+      {showEditForm && <ProjectForm proyecto={proyecto} onClose={() => setShowEditForm(false)} />}
     </div>
   );
 }

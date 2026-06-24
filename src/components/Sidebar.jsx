@@ -1,20 +1,19 @@
-import { LayoutDashboard, FolderKanban, Calendar, Columns, Zap, Settings, AlertTriangle, Building2, Ruler, Factory, Wrench, HardHat } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Calendar, Columns, AlertTriangle, Settings, Building2, Monitor, Factory, Wrench } from 'lucide-react';
 
 const NAV = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'proyectos', label: 'Proyectos', icon: FolderKanban },
-  { type: 'divider', label: 'DEPARTAMENTOS' },
+  { id: 'dashboard',    label: 'Dashboard',    icon: LayoutDashboard },
+  { id: 'proyectos',    label: 'Proyectos',    icon: FolderKanban },
+  { type: 'divider',    label: 'DEPARTAMENTOS' },
   { id: 'arquitectura', label: 'Arquitectura', icon: Building2, color: 'text-purple-400' },
-  { id: 'diseno', label: 'Diseño', icon: Ruler, color: 'text-blue-400' },
-  { id: 'obra', label: 'Seguimiento Obra', icon: HardHat, color: 'text-amber-400' },
-  { id: 'produccion', label: 'Producción', icon: Factory, color: 'text-orange-400' },
-  { id: 'instalacion', label: 'Instalación', icon: Wrench, color: 'text-green-400' },
-  { type: 'divider', label: 'VISTAS' },
-  { id: 'calendario', label: 'Calendario', icon: Calendar },
-  { id: 'kanban', label: 'Kanban', icon: Columns },
-  { type: 'divider', label: 'CONTROL' },
-  { id: 'urgencias', label: 'Urgencias', icon: AlertTriangle, color: 'text-red-400', badge: true },
-  { id: 'configuracion', label: 'Configuración', icon: Settings },
+  { id: 'diseno3d',     label: 'Diseño 3D',    icon: Monitor,   color: 'text-blue-400' },
+  { id: 'instalaciones',label: 'Instalaciones',icon: Wrench,    color: 'text-green-400' },
+  { id: 'produccion',   label: 'Producción',   icon: Factory,   color: 'text-orange-400' },
+  { type: 'divider',    label: 'VISTAS' },
+  { id: 'calendario',   label: 'Calendario',   icon: Calendar },
+  { id: 'kanban',       label: 'Kanban',       icon: Columns },
+  { type: 'divider',    label: 'CONTROL' },
+  { id: 'urgencias',    label: 'Urgencias',    icon: AlertTriangle, color: 'text-red-400', badge: true },
+  { id: 'configuracion',label: 'Configuración',icon: Settings },
 ];
 
 export default function Sidebar({ page, setPage, urgentCount, atrasadosCount }) {
@@ -40,7 +39,7 @@ export default function Sidebar({ page, setPage, urgentCount, atrasadosCount }) 
           );
           const Icon = item.icon;
           const active = page === item.id;
-          const total = item.badge ? (urgentCount + atrasadosCount) : 0;
+          const total  = item.badge ? (urgentCount + atrasadosCount) : 0;
           return (
             <button key={item.id} onClick={() => setPage(item.id)}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-all mb-0.5 ${active ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}>
@@ -58,7 +57,7 @@ export default function Sidebar({ page, setPage, urgentCount, atrasadosCount }) 
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-xs text-white font-medium truncate">Juan Peralta</div>
-            <div className="text-[10px] text-slate-500">Diseño</div>
+            <div className="text-[10px] text-slate-500">Administrador</div>
           </div>
         </div>
       </div>
