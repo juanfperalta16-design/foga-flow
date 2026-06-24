@@ -1,0 +1,38 @@
+// ─── Color & Status Utilities ────────────────────────
+
+export const DEPT_COLORS = {
+  "Diseño": { bg: "bg-blue-500", text: "text-blue-700", light: "bg-blue-50", border: "border-blue-300", hex: "#3B82F6" },
+  "Arquitectura": { bg: "bg-purple-500", text: "text-purple-700", light: "bg-purple-50", border: "border-purple-300", hex: "#8B5CF6" },
+  "Producción": { bg: "bg-orange-500", text: "text-orange-700", light: "bg-orange-50", border: "border-orange-300", hex: "#F97316" },
+  "Instalación": { bg: "bg-green-500", text: "text-green-700", light: "bg-green-50", border: "border-green-300", hex: "#22C55E" },
+  "Toma de medidas": { bg: "bg-yellow-500", text: "text-yellow-700", light: "bg-yellow-50", border: "border-yellow-300", hex: "#EAB308" },
+  "Finalizado": { bg: "bg-gray-500", text: "text-gray-700", light: "bg-gray-50", border: "border-gray-300", hex: "#6B7280" },
+};
+
+export const STATUS_COLORS = {
+  "No iniciado": { bg: "bg-gray-100", text: "text-gray-600", dot: "bg-gray-400" },
+  "En proceso": { bg: "bg-blue-100", text: "text-blue-700", dot: "bg-blue-500" },
+  "En revisión": { bg: "bg-cyan-100", text: "text-cyan-700", dot: "bg-cyan-500" },
+  "Con observaciones": { bg: "bg-yellow-100", text: "text-yellow-700", dot: "bg-yellow-500" },
+  "Pausado": { bg: "bg-gray-100", text: "text-gray-500", dot: "bg-gray-400" },
+  "Urgente": { bg: "bg-red-100", text: "text-red-700", dot: "bg-red-500" },
+  "Atrasado": { bg: "bg-red-200", text: "text-red-900", dot: "bg-red-800" },
+  "Finalizado": { bg: "bg-green-100", text: "text-green-700", dot: "bg-green-500" },
+  "Aprobado": { bg: "bg-emerald-100", text: "text-emerald-700", dot: "bg-emerald-500" },
+};
+
+export const PRIORITY_COLORS = {
+  "Baja": { bg: "bg-gray-100", text: "text-gray-600" },
+  "Normal": { bg: "bg-blue-100", text: "text-blue-700" },
+  "Alta": { bg: "bg-orange-100", text: "text-orange-700" },
+  "Urgente": { bg: "bg-red-100", text: "text-red-700" },
+};
+
+export const getDeptColor = (dept) =>
+  DEPT_COLORS[dept] || { bg: "bg-slate-500", text: "text-slate-700", light: "bg-slate-50", border: "border-slate-300", hex: "#64748B" };
+
+export const getStatusColor = (status) =>
+  STATUS_COLORS[status] || { bg: "bg-gray-100", text: "text-gray-600", dot: "bg-gray-400" };
+
+export const getPriorityColor = (priority) =>
+  PRIORITY_COLORS[priority] || { bg: "bg-gray-100", text: "text-gray-600" };
