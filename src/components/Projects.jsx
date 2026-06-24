@@ -1,46 +1,36 @@
 import { useState } from 'react';
 import { useApp } from '../App';
 import { isAtrasado, formatFecha } from '../utils/dateHelpers';
-import { StatusChip, DeptChip, PrioridadChip } from './StatusChip';
+import { StatusChip, PrioridadChip } from './StatusChip';
 import { Search, Plus, ChevronRight, Trash2 } from 'lucide-react';
 import ProjectForm from './ProjectForm';
-import { buildNuevoProyecto } from '../data/mockData';
+import { setProyectos } from '../utils/storage';
+import { calcularEstadoGeneral, generarAlertasAutomaticas } from '../utils/processRules';
 
 export default function Projects() {
-  const { proyectos, goToProject, updateProyecto, loadData } = useApp();
-  const [search, setSearch]               = useState('');
-  const [filterEstado, setFilterEstado]   = useState('');
+  const { proyectos, goToProject, saveAlertas, alertas, loadData } = useApp();
+  const [search, setSearch]                   = useState('');
+  const [filterEstado, setFilterEstado]       = useState('');
   const [filterPrioridad, setFilterPrioridad] = useState('');
-  const [showForm, setShowForm]           = useState(false);
-  const [editando, setEditando]           = useState(null); // proyecto a editar
-  const [confirmDelete, setConfirmDelete] = useState(null); // id a eliminar
+  const [showForm, setShowForm]               = useState(false);
+  const [confirmDelete, setConfirmDelete]     = useState(null);
 
-  // ── Filtros ──
   const filtered = (proyectos || []).filter(p => {
     const matchSearch = !search ||
       (p.nombre || '').toLowerCase().includes(search.toLowerCase()) ||
       (p.cliente || '').toLowerCase().includes(search.toLowerCase());
-    const matchEstado = !filterEstado || p.estadoGeneral === filterEstado;
-    const matchPrio   = !filterPrioridad || p.prioridad === filterPrioridad;
+    const matchEstado = !filterEstado   || p.estadoGeneral === filterEstado;
+    const matchPrio   = !filterPrioridad || p.prioridad    === filterPrioridad;
     return matchSearch && matchEstado && matchPrio;
   });
 
-  // ── Estados únicos para el filtro ──
   const estadosUnicos = [...new Set((proyectos || []).map(p => p.estadoGeneral).filter(Boolean))];
 
-  // ── Eliminar proyecto ──
   function eliminarProyecto(id) {
     const actualizados = (proyectos || []).filter(p => p.id !== id);
-    // Guardar en localStorage directamente
-    try { localStorage.setItem('foga_proyectos', JSON.stringify(actualizados)); } catch(e) {}
+    setProyectos(actualizados);
     loadData();
     setConfirmDelete(null);
-  }
-
-  // ── Nuevo proyecto ──
-  function handleNuevo() {
-    setEditando(null);
-    setShowForm(true);
   }
 
   return (
@@ -51,7 +41,7 @@ export default function Projects() {
           <h1 className="text-2xl font-bold text-white">Proyectos</h1>
           <p className="text-slate-400 text-sm">{filtered.length} de {(proyectos||[]).length} proyectos</p>
         </div>
-        <button onClick={handleNuevo}
+        <button onClick={() => setShowForm(true)}
           className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-sm px-4 py-2 rounded-lg transition-colors font-medium">
           <Plus size={14} /> Nuevo proyecto
         </button>
@@ -92,9 +82,7 @@ export default function Projects() {
               {filtered.map(p => {
                 const atrasado = isAtrasado(p.fechaEntrega, p.estadoGeneral);
                 return (
-                  <tr key={p.id}
-                    className={`hover:bg-white/3 transition-colors ${atrasado ? 'bg-red-950/20' : ''}`}>
-                    {/* Nombre */}
+                  <tr key={p.id} className={`hover:bg-white/3 transition-colors ${atrasado ? 'bg-red-950/20' : ''}`}>
                     <td className="px-3 py-3 cursor-pointer" onClick={() => goToProject(p.id)}>
                       <div className="flex items-center gap-2">
                         {atrasado && <span className="w-1.5 h-1.5 bg-red-500 rounded-full shrink-0" />}
@@ -104,38 +92,31 @@ export default function Projects() {
                         </div>
                       </div>
                     </td>
-                    {/* Contrato */}
                     <td className="px-3 py-3">
                       {p.contratoLink || p.contratoFirmado
                         ? <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-green-900 text-green-300">✓ Firmado</span>
                         : <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-red-900/60 text-red-300">Pendiente</span>
                       }
                     </td>
-                    {/* Estado */}
                     <td className="px-3 py-3 cursor-pointer" onClick={() => goToProject(p.id)}>
                       <StatusChip estado={p.estadoGeneral} size="xs" />
                     </td>
-                    {/* Prioridad */}
                     <td className="px-3 py-3"><PrioridadChip prioridad={p.prioridad} /></td>
-                    {/* Entrega */}
                     <td className="px-3 py-3">
                       <span className={`text-[10px] ${atrasado ? 'text-red-400 font-bold' : 'text-slate-400'}`}>
                         {formatFecha(p.fechaEntrega) || '—'}
                       </span>
                     </td>
-                    {/* Estados por dept */}
-                    <td className="px-3 py-3"><StatusChip estado={p.architecture?.status || p.arquitectura?.estadoArquitectura || '—'} size="xs" /></td>
-                    <td className="px-3 py-3"><StatusChip estado={p.installations?.status || p.instalacion?.estadoInstalacion || '—'} size="xs" /></td>
-                    <td className="px-3 py-3"><StatusChip estado={p.design3d?.status || p.diseno?.estadoDiseno || '—'} size="xs" /></td>
-                    <td className="px-3 py-3"><StatusChip estado={p.production?.status || p.produccion?.estadoProduccion || '—'} size="xs" /></td>
-                    {/* Acciones */}
+                    <td className="px-3 py-3"><StatusChip estado={p.architecture?.status  || '—'} size="xs" /></td>
+                    <td className="px-3 py-3"><StatusChip estado={p.installations?.status || '—'} size="xs" /></td>
+                    <td className="px-3 py-3"><StatusChip estado={p.design3d?.status      || '—'} size="xs" /></td>
+                    <td className="px-3 py-3"><StatusChip estado={p.production?.status    || '—'} size="xs" /></td>
                     <td className="px-3 py-3">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         <button onClick={() => goToProject(p.id)} className="text-slate-600 hover:text-white transition-colors">
                           <ChevronRight size={14} />
                         </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setConfirmDelete(p.id); }}
+                        <button onClick={e => { e.stopPropagation(); setConfirmDelete(p.id); }}
                           className="text-slate-600 hover:text-red-400 transition-colors">
                           <Trash2 size={13} />
                         </button>
@@ -148,23 +129,23 @@ export default function Projects() {
           </table>
           {filtered.length === 0 && (
             <div className="py-12 text-center text-slate-500">
-              {(proyectos||[]).length === 0 ? 'No hay proyectos. Crea el primero.' : 'No se encontraron proyectos con esos filtros.'}
+              {(proyectos||[]).length === 0
+                ? 'No hay proyectos. Crea el primero con el botón de arriba.'
+                : 'No se encontraron proyectos con esos filtros.'}
             </div>
           )}
         </div>
       </div>
 
-      {/* Modal confirmar eliminación */}
+      {/* Modal eliminar */}
       {confirmDelete && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
           <div className="bg-[#161820] border border-white/10 rounded-2xl p-6 w-full max-w-sm">
             <h3 className="text-white font-bold text-lg mb-2">¿Eliminar proyecto?</h3>
-            <p className="text-slate-400 text-sm mb-6">
-              Esta acción no se puede deshacer. El proyecto será eliminado permanentemente.
-            </p>
+            <p className="text-slate-400 text-sm mb-6">Esta acción no se puede deshacer.</p>
             <div className="flex gap-3">
               <button onClick={() => setConfirmDelete(null)}
-                className="flex-1 text-slate-400 hover:text-white text-sm py-2 rounded-lg hover:bg-white/5 transition-colors border border-white/10">
+                className="flex-1 text-slate-400 hover:text-white text-sm py-2 rounded-lg border border-white/10 hover:bg-white/5 transition-colors">
                 Cancelar
               </button>
               <button onClick={() => eliminarProyecto(confirmDelete)}
@@ -176,8 +157,7 @@ export default function Projects() {
         </div>
       )}
 
-      {/* Form nuevo/editar */}
-      {showForm && <ProjectForm onClose={() => { setShowForm(false); setEditando(null); }} proyecto={editando} />}
+      {showForm && <ProjectForm onClose={() => setShowForm(false)} />}
     </div>
   );
 }
