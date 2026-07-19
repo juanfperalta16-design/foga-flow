@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, Power, Users, Building2, Info, RotateCcw } from 'lucide-react';
+import { Plus, Pencil, Trash2, Power, Users, Building2, Info } from 'lucide-react';
 import { useApp } from '../App';
 import { listenToCollection, setWithId, remove, COLLECTIONS } from '../firebase/firestoreService';
-import { resetDatos } from '../firebase/seed';
 import ResponsibleForm from './ResponsibleForm';
 import DepartmentSettings from './DepartmentSettings';
 
@@ -31,7 +30,6 @@ export default function Configuration() {
   const [formOpen, setFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
-  const [resetConfirm, setResetConfirm] = useState(false);
 
   useEffect(() => {
     const unsub1 = listenToCollection(COLLECTIONS.RESPONSABLES, setResp);
@@ -60,14 +58,6 @@ export default function Configuration() {
 
   async function handleUpdateDept(dept) {
     await setWithId(COLLECTIONS.DEPARTAMENTOS_CONFIG, dept.id, dept);
-  }
-
-  // ─── Reset ────────────────────────────────────
-
-  async function handleReset() {
-    if (!resetConfirm) { setResetConfirm(true); return; }
-    await resetDatos();
-    window.location.reload();
   }
 
   // ─── Render ───────────────────────────────────
@@ -231,23 +221,6 @@ export default function Configuration() {
             <InfoRow label="Almacenamiento"  value="Firebase Firestore (en la nube, compartido)" />
             <InfoRow label="Usuario activo"  value={currentUser || '—'} />
             <InfoRow label="Empresa"         value="FOGA S.A. — Cocinas en acero inoxidable" last />
-          </div>
-
-          <div style={{ ...card, background: '#FEF2F2', borderColor: '#FECACA' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <RotateCcw size={15} color="#EF4444" />
-              <h2 style={{ ...cardTitle, color: '#991B1B' }}>Zona peligrosa</h2>
-            </div>
-            <p style={{ fontSize: 13, color: '#B91C1C', marginBottom: 14 }}>
-              Reinicia proyectos, actividades, alertas e historial al estado de ejemplo — para <strong>todo el equipo</strong>, no solo para vos. Esta acción no se puede deshacer.
-            </p>
-            <button onClick={handleReset} style={{
-              padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600,
-              background: resetConfirm ? '#DC2626' : '#FEE2E2', color: resetConfirm ? '#fff' : '#991B1B', transition: 'all .2s',
-            }}>
-              {resetConfirm ? '⚠️ Confirmar — clic para continuar' : 'Reiniciar datos de ejemplo'}
-            </button>
-            {resetConfirm && <p style={{ fontSize: 11, color: '#EF4444', marginTop: 6 }}>Haz clic de nuevo para confirmar. Se recargará la página.</p>}
           </div>
         </div>
       )}

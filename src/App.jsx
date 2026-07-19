@@ -2,7 +2,6 @@ import { useState, useEffect, createContext, useContext } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from './firebase/config';
 import { COLLECTIONS, listenToCollection, setWithId, remove } from './firebase/firestoreService';
-import { seedIfEmpty } from './firebase/seed';
 import { generarAlertasAutomaticas, calcularEstadoGeneral } from './utils/processRules';
 import { isAtrasado } from './utils/dateHelpers';
 import Login from './components/Login';
@@ -44,7 +43,6 @@ export default function App() {
     let unsubs = [];
 
     (async () => {
-      await seedIfEmpty();
       if (cancelled) return;
       unsubs = [
         listenToCollection(COLLECTIONS.PROYECTOS, data =>
