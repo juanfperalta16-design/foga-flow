@@ -6,8 +6,10 @@ import { getResponsablesAgrupados } from '../utils/settingsStorage';
 import { SelectGrupoTailwind } from './SelectGrupo';
 import { crearEntradaHistorial } from '../utils/historyHelpers';
 import { buildNuevoProyecto } from '../data/mockData';
+import { generarCodigoModulo } from '../utils/codigoModulo';
+import { TIPO_MODULO, LADO, AEREO, SUPERIOR, LCA_EQUIPO, COMBUSTIBLE, INFERIOR } from '../data/diccionarioModulos';
 
-const LINEAS = ['Element', 'Santa Ana'];
+const LINEAS = ['Element', 'Santa Ana', 'Equifrigo'];
 
 const FASES = [
   '1. Despacho Materia Prima','2. Corte Láser','3. Plegado',
@@ -23,6 +25,7 @@ function buildModulo(pec, index, maestro = '') {
     pec:    `${pec}-(${num})`,
     nombre: '',
     linea:  'Element',
+    tipoModulo: '', lado: '', aereo: '', superior: [], lcaEquipo: [], combustible: '', inferior: [],
     maestro,
     largo: '', profundidad: '', alto: '',
     fechaEntrega: '',
@@ -71,8 +74,38 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
     }
   }
 
+  // Campos que participan en el código generado — al cambiar cualquiera
+  // de ellos, el nombre del módulo se re-arma automáticamente.
+  const CAMPOS_CODIGO = ['linea','tipoModulo','lado','aereo','superior','lcaEquipo','combustible','inferior','largo','profundidad','alto'];
+
   function actualizarModulo(id, field, val) {
-    setModulos(ms => ms.map(m => m.id === id ? { ...m, [field]: val } : m));
+    setModulos(ms => ms.map(m => {
+      if (m.id !== id) return m;
+      const actualizado = { ...m, [field]: val };
+      if (CAMPOS_CODIGO.includes(field)) {
+        const codigo = generarCodigoModulo(actualizado);
+        if (codigo) actualizado.nombre = codigo;
+      }
+      return actualizado;
+    }));
+  }
+
+  // Marca/desmarca un valor dentro de una categoría de selección múltiple
+  // (superior, línea caliente·equipo, inferior) y regenera el código.
+  function toggleModuloLista(id, field, valor, max) {
+    setModulos(ms => ms.map(m => {
+      if (m.id !== id) return m;
+      const actual = m[field] || [];
+      const yaEsta = actual.includes(valor);
+      let siguiente;
+      if (yaEsta) siguiente = actual.filter(v => v !== valor);
+      else if (max && actual.length >= max) return m; // límite alcanzado, sin cambios
+      else siguiente = [...actual, valor];
+      const actualizado = { ...m, [field]: siguiente };
+      const codigo = generarCodigoModulo(actualizado);
+      if (codigo) actualizado.nombre = codigo;
+      return actualizado;
+    }));
   }
 
   function eliminarModulo(id) {
@@ -288,12 +321,78 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
                             {LINEAS.map(l => <option key={l} value={l}>{l}</option>)}
                           </select>
                         </div>
-                        <div className="col-span-2">
-                          <label className="text-[10px] text-slate-500 mb-1 block">Nombre del módulo *</label>
-                          <input value={mod.nombre} onChange={e => actualizarModulo(mod.id, 'nombre', e.target.value)}
-                            placeholder="Ej: Módulo Lateral Derecho"
-                            className="w-full bg-[#161820] border border-white/10 rounded-lg text-xs text-white px-2 py-1.5 focus:outline-none focus:border-orange-500 placeholder:text-slate-700" />
+                        <div>
+                          <label className="text-[10px] text-slate-500 mb-1 block">Tipo de módulo</label>
+                          <select value={mod.tipoModulo} onChange={e => actualizarModulo(mod.id, 'tipoModulo', e.target.value)}
+                            className="w-full bg-[#161820] border border-white/10 rounded-lg text-xs text-white px-2 py-1.5 focus:outline-none focus:border-orange-500">
+                            <option value="">Seleccionar...</option>
+                            {TIPO_MODULO.map(t => <option key={t.valor} value={t.valor}>{t.valor}</option>)}
+                          </select>
                         </div>
+                        <div>
+                          <label className="text-[10px] text-slate-500 mb-1 block">Lado</label>
+                          <select value={mod.lado} onChange={e => actualizarModulo(mod.id, 'lado', e.target.value)}
+                            className="w-full bg-[#161820] border border-white/10 rounded-lg text-xs text-white px-2 py-1.5 focus:outline-none focus:border-orange-500">
+                            <option value="">Seleccionar...</option>
+                            {LADO.map(l => <option key={l.valor} value={l.valor}>{l.valor}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-slate-500 mb-1 block">Aéreo (si aplica)</label>
+                          <select value={mod.aereo} onChange={e => actualizarModulo(mod.id, 'aereo', e.target.value)}
+                            className="w-full bg-[#161820] border border-white/10 rounded-lg text-xs text-white px-2 py-1.5 focus:outline-none focus:border-orange-500">
+                            <option value="">— Ninguno —</option>
+                            {AEREO.map(a => <option key={a.valor} value={a.valor}>{a.valor}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-slate-500 mb-1 block">Combustible (si aplica)</label>
+                          <select value={mod.combustible} onChange={e => actualizarModulo(mod.id, 'combustible', e.target.value)}
+                            className="w-full bg-[#161820] border border-white/10 rounded-lg text-xs text-white px-2 py-1.5 focus:outline-none focus:border-orange-500">
+                            <option value="">— Ninguno —</option>
+                            {COMBUSTIBLE.map(c => <option key={c.valor} value={c.valor}>{c.valor}</option>)}
+                          </select>
+                        </div>
+
+                        <div className="col-span-2">
+                          <label className="text-[10px] text-slate-500 mb-1 block">Superior (sobre mesón)</label>
+                          <div className="flex flex-wrap gap-1.5">
+                            {SUPERIOR.map(s => (
+                              <button key={s.valor} type="button"
+                                onClick={() => toggleModuloLista(mod.id, 'superior', s.valor)}
+                                className={`text-[10px] px-2 py-1 rounded-full border transition-colors ${(mod.superior||[]).includes(s.valor) ? 'bg-orange-600/30 border-orange-500 text-orange-300' : 'bg-[#161820] border-white/10 text-slate-400 hover:border-white/30'}`}>
+                                {s.valor}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="col-span-2">
+                          <label className="text-[10px] text-slate-500 mb-1 block">Línea caliente · Equipo</label>
+                          <div className="flex flex-wrap gap-1.5">
+                            {LCA_EQUIPO.map(eq => (
+                              <button key={eq.valor} type="button"
+                                onClick={() => toggleModuloLista(mod.id, 'lcaEquipo', eq.valor)}
+                                className={`text-[10px] px-2 py-1 rounded-full border transition-colors ${(mod.lcaEquipo||[]).includes(eq.valor) ? 'bg-orange-600/30 border-orange-500 text-orange-300' : 'bg-[#161820] border-white/10 text-slate-400 hover:border-white/30'}`}>
+                                {eq.valor}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="col-span-2">
+                          <label className="text-[10px] text-slate-500 mb-1 block">Inferior (bajo mesón · máx. 3) {(mod.inferior||[]).length >= 3 && <span className="text-amber-400">— límite alcanzado</span>}</label>
+                          <div className="flex flex-wrap gap-1.5">
+                            {INFERIOR.map(inf => (
+                              <button key={inf.valor} type="button"
+                                onClick={() => toggleModuloLista(mod.id, 'inferior', inf.valor, 3)}
+                                className={`text-[10px] px-2 py-1 rounded-full border transition-colors ${(mod.inferior||[]).includes(inf.valor) ? 'bg-orange-600/30 border-orange-500 text-orange-300' : 'bg-[#161820] border-white/10 text-slate-400 hover:border-white/30'} ${!(mod.inferior||[]).includes(inf.valor) && (mod.inferior||[]).length >= 3 ? 'opacity-40 cursor-not-allowed' : ''}`}>
+                                {inf.valor}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
                         <div className="col-span-2">
                           <label className="text-[10px] text-slate-500 mb-1 block">Dimensiones (cm)</label>
                           <div className="grid grid-cols-3 gap-2">
@@ -307,6 +406,19 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
                               placeholder="Alto"
                               className="w-full bg-[#161820] border border-white/10 rounded-lg text-xs text-white px-2 py-1.5 focus:outline-none focus:border-orange-500 placeholder:text-slate-700" />
                           </div>
+                        </div>
+
+                        <div className="col-span-2">
+                          <label className="text-[10px] text-slate-500 mb-1 block">Código generado</label>
+                          <div className="w-full bg-orange-950/30 border border-orange-800/40 rounded-lg text-xs font-mono text-orange-300 px-2 py-2 min-h-[30px] break-all">
+                            {generarCodigoModulo(mod) || <span className="text-slate-600 font-sans">Elige tipo, lado y medidas para generar el código...</span>}
+                          </div>
+                        </div>
+                        <div className="col-span-2">
+                          <label className="text-[10px] text-slate-500 mb-1 block">Nombre del módulo * <span className="text-slate-600">(se llena solo con el código; edítalo solo si el módulo no encaja en el diccionario)</span></label>
+                          <input value={mod.nombre} onChange={e => actualizarModulo(mod.id, 'nombre', e.target.value)}
+                            placeholder="Ej: Módulo Lateral Derecho"
+                            className="w-full bg-[#161820] border border-white/10 rounded-lg text-xs text-white px-2 py-1.5 focus:outline-none focus:border-orange-500 placeholder:text-slate-700" />
                         </div>
                         <div className="col-span-2">
                           <label className="text-[10px] text-slate-500 mb-1 block">Observaciones</label>
