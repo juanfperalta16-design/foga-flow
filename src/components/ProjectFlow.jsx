@@ -1,4 +1,5 @@
 import { ExternalLink, Lock, CheckCircle2, Circle, AlertTriangle, Clock } from 'lucide-react';
+import { LineaBadge } from './Badge';
 
 function dias(fecha) {
   if (!fecha) return null;
@@ -59,11 +60,7 @@ function ModuloRow({ mod, index }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 12, fontWeight: 700, color: '#F1F5F9' }}>{mod.nombre || 'Sin nombre'}</span>
             <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: '#4B5563' }}>{mod.pec}</span>
-            {mod.linea && (
-              <span style={{ fontSize: 11, fontWeight: 700, background: mod.linea === 'Element' ? '#2D1B69' : '#1E3A5F', color: mod.linea === 'Element' ? '#C4B5FD' : '#93C5FD', padding: '2px 8px', borderRadius: 5 }}>
-                {mod.linea}
-              </span>
-            )}
+            <LineaBadge linea={mod.linea} />
             {atrasado && <span style={{ fontSize: 9, background: '#450A0A', color: '#FCA5A5', padding: '1px 6px', borderRadius: 4, fontWeight: 700 }}>ATRASADO</span>}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3, flexWrap: 'wrap' }}>

@@ -1,7 +1,7 @@
 // ─── Badge ────────────────────────────────────────────
 
 import React from "react";
-import { getDeptColor, getStatusColor, getPriorityColor } from "../utils/colorUtils";
+import { getDeptColor, getStatusColor, getPriorityColor, getLineaColor } from "../utils/colorUtils";
 
 export function DeptBadge({ dept, small }) {
   const c = getDeptColor(dept);
@@ -34,6 +34,16 @@ export function PriorityBadge({ priority, small }) {
       ${small ? "px-2 py-0.5 text-xs" : "px-2.5 py-1 text-xs"}
       ${c.bg} ${c.text}`}>
       {priority}
+    </span>
+  );
+}
+
+export function LineaBadge({ linea }) {
+  if (!linea) return null;
+  const c = getLineaColor(linea);
+  return (
+    <span style={{ fontSize: 11, fontWeight: 700, background: c.bg, color: c.text, padding: '2px 8px', borderRadius: 5 }}>
+      {linea}
     </span>
   );
 }

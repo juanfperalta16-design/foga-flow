@@ -5,11 +5,15 @@
 // lista — igual que indica el propio diccionario, no insertar en medio.
 // =====================================================
 
+// Orden alfabético (es) — más fácil de escanear que el orden original
+// del CSV, que era simplemente el orden en que se fueron agregando.
+const porNombre = (a, b) => a.valor.localeCompare(b.valor, 'es', { sensitivity: 'base' });
+
 export const LINEA = [
   { valor: 'Element',   abrev: 'ELE' },
   { valor: 'Santa Ana', abrev: 'SAN' },
   { valor: 'Equifrigo', abrev: 'EQF' },
-];
+].sort(porNombre);
 
 export const TIPO_MODULO = [
   { valor: 'Lateral',                       abrev: 'LAT' },
@@ -28,7 +32,7 @@ export const TIPO_MODULO = [
   { valor: 'Módulo',                        abrev: 'MODL' },
   { valor: 'Equipo',                        abrev: 'EQUP' },
   { valor: 'Mesa de desperdicios',          abrev: 'MESD' },
-];
+].sort(porNombre);
 
 export const LADO = [
   { valor: 'Izquierdo',          abrev: 'IZQ' },
@@ -39,7 +43,7 @@ export const LADO = [
   { valor: 'NO APLICA',          abrev: 'NA' },
   { valor: 'LATERAL DERECHO',    abrev: 'LAT.DER' },
   { valor: 'LATERAL IZQUIERDO',  abrev: 'LAT.IZQ' },
-];
+].sort(porNombre);
 
 export const AEREO = [
   { valor: 'Vitrina aérea',           abrev: 'VIT' },
@@ -55,7 +59,7 @@ export const AEREO = [
   { valor: '7 PUERTAS',               abrev: '7PUE' },
   { valor: '4 PUERTAS',               abrev: '4PUE' },
   { valor: '2 REPISAS',               abrev: '2REPS' },
-];
+].sort(porNombre);
 
 export const SUPERIOR = [
   { valor: 'Hielera',              abrev: 'HIE' },
@@ -72,7 +76,7 @@ export const SUPERIOR = [
   { valor: 'TRAMPA GRASA',         abrev: 'TRG' },
   { valor: 'ESCURRIDERA',          abrev: 'ESCS' },
   { valor: 'Paellera',             abrev: 'PAE' },
-];
+].sort(porNombre);
 
 // Línea caliente · equipo (código combina esto + combustible, ej. "GR.90.G")
 export const LCA_EQUIPO = [
@@ -94,13 +98,13 @@ export const LCA_EQUIPO = [
   { valor: 'Asador 1',                                     abrev: 'ASA.1' },
   { valor: 'Horno Domo',                                   abrev: 'HORDO' },
   { valor: 'PLANCHA 61',                                   abrev: 'PLA.61' },
-];
+].sort(porNombre);
 
 export const COMBUSTIBLE = [
   { valor: 'Gas',      abrev: 'G' },
   { valor: 'Carbón',   abrev: 'C' },
   { valor: 'Híbrida',  abrev: 'H' },
-];
+].sort(porNombre);
 
 // Inferior (bajo mesón) — máx. 3 por módulo, según el diccionario
 export const INFERIOR = [
@@ -142,7 +146,33 @@ export const INFERIOR = [
   { valor: 'Ruedas',                                    abrev: 'RUE' },
   { valor: 'Base de línea caliente',                    abrev: 'BASLINCAL' },
   { valor: '3 Puertas+repisa',                          abrev: '3PUE+REP' },
-];
+].sort(porNombre);
+
+// Qué categorías de detalle tiene sentido mostrar según el tipo de
+// módulo elegido — para no obligar a revisar las ~40 opciones de
+// Inferior en un módulo que en realidad solo necesita Aéreo, etc.
+// Si un tipo no está mapeado (o todavía no se eligió tipo), se
+// muestran todas — mejor de más que ocultar algo que sí se necesita.
+export const CATEGORIAS_POR_TIPO = {
+  'Campana':                      ['aereo'],
+  'AÉREO':                        ['aereo'],
+  'Lateral':                      ['superior', 'inferior'],
+  'Central':                      ['superior', 'inferior'],
+  'Isla':                         ['superior', 'inferior'],
+  'Mesón':                        ['superior', 'inferior'],
+  'Módulo':                       ['superior', 'inferior'],
+  'Especial':                     ['superior', 'inferior'],
+  'Recubrimiento':                [],
+  'Torre':                        ['inferior'],
+  'Línea caliente':               ['lcaEquipo'],
+  'Mueble bajo línea caliente':   ['lcaEquipo', 'inferior'],
+  'Linea de lavado':              ['superior'],
+  'Mesa de Trabajo':              ['inferior'],
+  'Equipo':                       ['lcaEquipo', 'inferior'],
+  'Mesa de desperdicios':         ['lcaEquipo'],
+};
+
+export const TODAS_LAS_CATEGORIAS = ['aereo', 'superior', 'lcaEquipo', 'inferior'];
 
 // Alto estándar (cm) — según el diccionario, si el módulo mide esto NO
 // se agrega "-ALT###" al código, solo cuando es distinto.

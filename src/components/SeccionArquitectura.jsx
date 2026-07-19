@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useApp } from '../App';
 import { ExternalLink, Lock, Unlock, CheckCircle2, Circle, ChevronDown, ChevronUp, Send } from 'lucide-react';
 import { getResponsablesAgrupados } from '../utils/settingsStorage';
+import { LineaBadge } from './Badge';
 
 const CHECKLIST_ARQ = [
   { id: 'propuestaInicial',   label: 'Propuesta de diseño inicial',      desc: 'Primera propuesta presentada al equipo' },
@@ -43,11 +44,7 @@ function ModuloArqCard({ mod, planLink, onUpdateModulo }) {
           <div style={{ fontSize: 12, fontWeight: 700, color: '#F1F5F9' }}>{mod.nombre || 'Sin nombre'}</div>
           <div style={{ display: 'flex', gap: 6, marginTop: 3, flexWrap: 'wrap', alignItems: 'center' }}>
             <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: '#6B7280' }}>{mod.pec}</span>
-            {mod.linea && (
-              <span style={{ fontSize: 11, fontWeight: 700, background: mod.linea === 'Element' ? '#2D1B69' : '#1E3A5F', color: mod.linea === 'Element' ? '#C4B5FD' : '#93C5FD', padding: '2px 8px', borderRadius: 5 }}>
-                {mod.linea}
-              </span>
-            )}
+            <LineaBadge linea={mod.linea} />
             <span style={{ fontSize: 9, background: liberado ? '#2D1B69' : '#1F2937', color: liberado ? '#C4B5FD' : '#6B7280', padding: '1px 6px', borderRadius: 4 }}>
               {arch.estado || 'En proceso'}
             </span>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../App';
 import { ChevronLeft, ChevronRight, AlertTriangle, Clock, CheckCircle2 } from 'lucide-react';
+import { getLineaColor } from '../utils/colorUtils';
 
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const DIAS_SEMANA = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
@@ -131,7 +132,7 @@ export default function MonthlyCalendar() {
                     {p.prioridad}
                   </span>
                   {p.lineaProyecto && (
-                    <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 3, background: p.lineaProyecto === 'Element' ? '#2D1B69' : '#1E3A5F', color: p.lineaProyecto === 'Element' ? '#C4B5FD' : '#93C5FD', fontWeight: 600 }}>
+                    <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 3, background: getLineaColor(p.lineaProyecto).bg, color: getLineaColor(p.lineaProyecto).text, fontWeight: 600 }}>
                       {p.lineaProyecto}
                     </span>
                   )}

@@ -393,8 +393,8 @@ export default function ProjectDetail({ proyectoId }) {
               <StatusChip estado={proyecto.estadoGeneral} />
               <PrioridadChip prioridad={proyecto.prioridad} />
               {proyecto.lineaProyecto && (
-                <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${proyecto.lineaProyecto === 'Element' ? 'bg-purple-900/60 text-purple-300' : 'bg-blue-900/60 text-blue-300'}`}>
-                  {proyecto.lineaProyecto === 'Element' ? '⬡ Element' : '◈ Santa Ana'}
+                <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${proyecto.lineaProyecto === 'Element' ? 'bg-purple-900/60 text-purple-300' : proyecto.lineaProyecto === 'Equifrigo' ? 'bg-yellow-900/60 text-yellow-300' : 'bg-blue-900/60 text-blue-300'}`}>
+                  {proyecto.lineaProyecto === 'Element' ? '⬡ Element' : proyecto.lineaProyecto === 'Equifrigo' ? '◆ Equifrigo' : '◈ Santa Ana'}
                 </span>
               )}
             </div>
@@ -443,6 +443,7 @@ export default function ProjectDetail({ proyectoId }) {
         {modulos.length > 0 && (() => {
           const element    = modulos.filter(m => m.linea === 'Element').length;
           const fogaFull   = modulos.filter(m => m.linea === 'Santa Ana').length;
+          const equifrigo  = modulos.filter(m => m.linea === 'Equifrigo').length;
           const sinMaestro = modulos.filter(m => !m.maestro).length;
           const atrasadosMods = modulos.filter(m => m.fechaEntrega && new Date(m.fechaEntrega) < new Date()).length;
           return (
@@ -452,6 +453,7 @@ export default function ProjectDetail({ proyectoId }) {
                 <span className="text-orange-300 text-xs font-bold">{modulos.length} módulo{modulos.length !== 1 ? 's' : ''}</span>
                 {element  > 0 && <span className="text-[10px] bg-purple-900/60 text-purple-300 px-1.5 py-0.5 rounded font-medium">Element: {element}</span>}
                 {fogaFull > 0 && <span className="text-[10px] bg-blue-900/60 text-blue-300 px-1.5 py-0.5 rounded font-medium">Santa Ana: {fogaFull}</span>}
+                {equifrigo > 0 && <span className="text-[10px] bg-yellow-900/60 text-yellow-300 px-1.5 py-0.5 rounded font-medium">Equifrigo: {equifrigo}</span>}
                 {sinMaestro > 0 && <span className="text-[10px] bg-amber-900/60 text-amber-300 px-1.5 py-0.5 rounded font-medium">⚠ {sinMaestro} sin maestro</span>}
                 {atrasadosMods > 0 && <span className="text-[10px] bg-red-900/60 text-red-300 px-1.5 py-0.5 rounded font-medium">🔴 {atrasadosMods} atrasado{atrasadosMods !== 1 ? 's' : ''}</span>}
               </div>

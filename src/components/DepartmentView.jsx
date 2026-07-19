@@ -8,6 +8,7 @@ import CalendarioDepto from './CalendarioDepto';
 import Prospectos from './Prospectos';
 import { paseInstalacionAbierto } from '../utils/processRules';
 import { getResponsablesAgrupados } from '../utils/settingsStorage';
+import { LineaBadge } from './Badge';
 
 // Sin "Instalando" — esa fase no le corresponde a Producción, es de Instalaciones.
 const FASES_PRODUCCION = [
@@ -37,14 +38,6 @@ function formatDimensiones(mod) {
   return `${m(mod.largo)} × ${m(mod.profundidad)} × ${m(mod.alto)} m`;
 }
 
-function LineaBadge({ linea }) {
-  if (!linea) return null;
-  return (
-    <span style={{ fontSize: 11, fontWeight: 700, background: linea === 'Element' ? '#2D1B69' : '#1E3A5F', color: linea === 'Element' ? '#C4B5FD' : '#93C5FD', padding: '2px 8px', borderRadius: 5 }}>
-      {linea}
-    </span>
-  );
-}
 
 function prioridadOrden(p) {
   return { 'Urgente': 0, 'Alta': 1, 'Normal': 2, 'Baja': 3 }[p?.prioridad] ?? 2;

@@ -28,6 +28,14 @@ export const PRIORITY_COLORS = {
   "Urgente": { bg: "bg-red-100", text: "text-red-700" },
 };
 
+// Línea del módulo/proyecto — un solo lugar para las 3 líneas, así
+// agregar una línea nueva no implica tocar cada badge por separado.
+export const LINEA_COLORS = {
+  "Element":   { bg: "#2D1B69", text: "#C4B5FD" },
+  "Santa Ana": { bg: "#1E3A5F", text: "#93C5FD" },
+  "Equifrigo": { bg: "#452B03", text: "#FCD34D" },
+};
+
 export const getDeptColor = (dept) =>
   DEPT_COLORS[dept] || { bg: "bg-slate-500", text: "text-slate-700", light: "bg-slate-50", border: "border-slate-300", hex: "#64748B" };
 
@@ -36,3 +44,6 @@ export const getStatusColor = (status) =>
 
 export const getPriorityColor = (priority) =>
   PRIORITY_COLORS[priority] || { bg: "bg-gray-100", text: "text-gray-600" };
+
+export const getLineaColor = (linea) =>
+  LINEA_COLORS[linea] || { bg: "#1E3A5F", text: "#93C5FD" };

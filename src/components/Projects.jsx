@@ -131,8 +131,9 @@ export default function Projects() {
     if (mods.length === 0) return null;
     const element   = mods.filter(m => m.linea === 'Element').length;
     const fogaFull  = mods.filter(m => m.linea === 'Santa Ana').length;
+    const equifrigo = mods.filter(m => m.linea === 'Equifrigo').length;
     const atrasados = mods.filter(m => m.fechaEntrega && new Date(m.fechaEntrega) < new Date()).length;
-    return { total: mods.length, element, fogaFull, atrasados };
+    return { total: mods.length, element, fogaFull, equifrigo, atrasados };
   }
 
   function getMaestros(p) {
@@ -251,8 +252,8 @@ export default function Projects() {
                           </td>
                           <td className="px-3 py-3 text-[11px] text-slate-400">{p.vendedor || '—'}</td>
                           <td className="px-3 py-3">
-                            <span className={`text-[9px] px-1.5 py-0.5 rounded font-medium ${p.linea === 'Element' ? 'bg-purple-900/50 text-purple-300' : 'bg-blue-900/50 text-blue-300'}`}>
-                              {p.linea === 'Element' ? 'Element' : 'Santa Ana'}
+                            <span className={`text-[9px] px-1.5 py-0.5 rounded font-medium ${p.linea === 'Element' ? 'bg-purple-900/50 text-purple-300' : p.linea === 'Equifrigo' ? 'bg-yellow-900/50 text-yellow-300' : 'bg-blue-900/50 text-blue-300'}`}>
+                              {p.linea || '—'}
                             </span>
                           </td>
                           <td className="px-3 py-3">
@@ -382,6 +383,7 @@ export default function Projects() {
                               <span className="text-[11px] font-bold text-orange-400">{mods.total}</span>
                               {mods.element  > 0 && <span className="text-[9px] bg-purple-900/50 text-purple-300 px-1 py-0.5 rounded">E:{mods.element}</span>}
                               {mods.fogaFull > 0 && <span className="text-[9px] bg-blue-900/50 text-blue-300 px-1 py-0.5 rounded">F:{mods.fogaFull}</span>}
+                              {mods.equifrigo > 0 && <span className="text-[9px] bg-yellow-900/50 text-yellow-300 px-1 py-0.5 rounded">Q:{mods.equifrigo}</span>}
                               {mods.atrasados > 0 && <span className="text-[9px] bg-red-900/60 text-red-300 px-1 py-0.5 rounded">⚠{mods.atrasados}</span>}
                             </div>
                           ) : <span className="text-[10px] text-slate-600">Sin módulos</span>}
@@ -389,8 +391,8 @@ export default function Projects() {
                         {/* Línea */}
                         <td className="px-3 py-3">
                           {p.lineaProyecto
-                            ? <span className={`text-[9px] px-1.5 py-0.5 rounded font-medium ${p.lineaProyecto === 'Element' ? 'bg-purple-900/50 text-purple-300' : 'bg-blue-900/50 text-blue-300'}`}>
-                                {p.lineaProyecto === 'Element' ? 'Element' : 'Santa Ana'}
+                            ? <span className={`text-[9px] px-1.5 py-0.5 rounded font-medium ${p.lineaProyecto === 'Element' ? 'bg-purple-900/50 text-purple-300' : p.lineaProyecto === 'Equifrigo' ? 'bg-yellow-900/50 text-yellow-300' : 'bg-blue-900/50 text-blue-300'}`}>
+                                {p.lineaProyecto}
                               </span>
                             : <span className="text-[10px] text-slate-600">—</span>}
                         </td>

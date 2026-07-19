@@ -7,7 +7,37 @@ import { SelectGrupoTailwind } from './SelectGrupo';
 import { crearEntradaHistorial } from '../utils/historyHelpers';
 import { buildNuevoProyecto } from '../data/mockData';
 import { generarCodigoModulo } from '../utils/codigoModulo';
-import { TIPO_MODULO, LADO, AEREO, SUPERIOR, LCA_EQUIPO, COMBUSTIBLE, INFERIOR } from '../data/diccionarioModulos';
+import { TIPO_MODULO, LADO, AEREO, SUPERIOR, LCA_EQUIPO, COMBUSTIBLE, INFERIOR, CATEGORIAS_POR_TIPO, TODAS_LAS_CATEGORIAS } from '../data/diccionarioModulos';
+
+// Grilla de chips con buscador — para categorías largas (Superior,
+// Línea caliente·Equipo, Inferior) donde desplazarse por toda la lista
+// es más lento que escribir un par de letras.
+function ChipsFiltrables({ lista, seleccionados, onToggle, max }) {
+  const [filtro, setFiltro] = useState('');
+  const visibles = filtro.trim()
+    ? lista.filter(x => x.valor.toLowerCase().includes(filtro.trim().toLowerCase()))
+    : lista;
+  return (
+    <div>
+      <input value={filtro} onChange={e => setFiltro(e.target.value)} placeholder="Buscar..."
+        className="w-full bg-[#0F1117] border border-white/10 rounded-lg text-[11px] text-white px-2 py-1 mb-1.5 focus:outline-none focus:border-orange-500 placeholder:text-slate-700" />
+      <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
+        {visibles.length === 0 && <span className="text-[10px] text-slate-600">Sin resultados</span>}
+        {visibles.map(item => {
+          const activo = seleccionados.includes(item.valor);
+          const lleno  = !activo && max && seleccionados.length >= max;
+          return (
+            <button key={item.valor} type="button" disabled={lleno}
+              onClick={() => onToggle(item.valor)}
+              className={`text-[10px] px-2 py-1 rounded-full border transition-colors shrink-0 ${activo ? 'bg-orange-600/30 border-orange-500 text-orange-300' : 'bg-[#161820] border-white/10 text-slate-400 hover:border-white/30'} ${lleno ? 'opacity-40 cursor-not-allowed' : ''}`}>
+              {item.valor}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 const LINEAS = ['Element', 'Santa Ana', 'Equifrigo'];
 
@@ -153,6 +183,7 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
   const totalMods  = modulos.length;
   const element    = modulos.filter(m => m.linea === 'Element').length;
   const santaAna   = modulos.filter(m => m.linea === 'Santa Ana').length;
+  const equifrigo  = modulos.filter(m => m.linea === 'Equifrigo').length;
 
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
@@ -290,7 +321,7 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
                       <div className="text-xs font-medium text-white">{mod.nombre || <span className="text-slate-600">Sin nombre</span>}</div>
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-[10px] font-mono text-slate-500">{mod.pec}</span>
-                        <span className={`text-[11px] px-2 py-0.5 rounded font-bold ${mod.linea === 'Element' ? 'bg-purple-900/50 text-purple-300' : 'bg-blue-900/50 text-blue-300'}`}>{mod.linea}</span>
+                        <span className={`text-[11px] px-2 py-0.5 rounded font-bold ${mod.linea === 'Element' ? 'bg-purple-900/50 text-purple-300' : mod.linea === 'Equifrigo' ? 'bg-yellow-900/50 text-yellow-300' : 'bg-blue-900/50 text-blue-300'}`}>{mod.linea}</span>
                         {(mod.largo || mod.profundidad || mod.alto) && (
                           <span className="text-[11px] font-semibold text-slate-400">📐 {mod.largo || '—'}×{mod.profundidad || '—'}×{mod.alto || '—'} cm</span>
                         )}
@@ -305,7 +336,12 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
 
                   {expandedMod === mod.id && (
                     <div className="px-4 pb-4 border-t border-white/5 pt-3 space-y-3">
+                      {(() => {
+                        const categorias = mod.tipoModulo ? (CATEGORIAS_POR_TIPO[mod.tipoModulo] ?? TODAS_LAS_CATEGORIAS) : TODAS_LAS_CATEGORIAS;
+                        return (
                       <div className="grid grid-cols-2 gap-2">
+                        {/* Identidad del módulo: igual que lo dicen en la práctica —
+                            "módulo lateral derecho", "módulo línea caliente"... */}
                         <div>
                           <label className="text-[10px] text-slate-500 mb-1 block">
                             Código PEC
@@ -314,13 +350,7 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
                           <input value={mod.pec} onChange={e => actualizarModulo(mod.id, 'pec', e.target.value)}
                             className="w-full bg-[#161820] border border-white/10 rounded-lg text-xs text-white px-2 py-1.5 focus:outline-none focus:border-orange-500" />
                         </div>
-                        <div>
-                          <label className="text-[10px] text-slate-500 mb-1 block">Línea</label>
-                          <select value={mod.linea} onChange={e => actualizarModulo(mod.id, 'linea', e.target.value)}
-                            className="w-full bg-[#161820] border border-white/10 rounded-lg text-xs text-white px-2 py-1.5 focus:outline-none focus:border-orange-500">
-                            {LINEAS.map(l => <option key={l} value={l}>{l}</option>)}
-                          </select>
-                        </div>
+                        <div />
                         <div>
                           <label className="text-[10px] text-slate-500 mb-1 block">Tipo de módulo</label>
                           <select value={mod.tipoModulo} onChange={e => actualizarModulo(mod.id, 'tipoModulo', e.target.value)}
@@ -337,61 +367,54 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
                             {LADO.map(l => <option key={l.valor} value={l.valor}>{l.valor}</option>)}
                           </select>
                         </div>
-                        <div>
-                          <label className="text-[10px] text-slate-500 mb-1 block">Aéreo (si aplica)</label>
-                          <select value={mod.aereo} onChange={e => actualizarModulo(mod.id, 'aereo', e.target.value)}
-                            className="w-full bg-[#161820] border border-white/10 rounded-lg text-xs text-white px-2 py-1.5 focus:outline-none focus:border-orange-500">
-                            <option value="">— Ninguno —</option>
-                            {AEREO.map(a => <option key={a.valor} value={a.valor}>{a.valor}</option>)}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="text-[10px] text-slate-500 mb-1 block">Combustible (si aplica)</label>
-                          <select value={mod.combustible} onChange={e => actualizarModulo(mod.id, 'combustible', e.target.value)}
-                            className="w-full bg-[#161820] border border-white/10 rounded-lg text-xs text-white px-2 py-1.5 focus:outline-none focus:border-orange-500">
-                            <option value="">— Ninguno —</option>
-                            {COMBUSTIBLE.map(c => <option key={c.valor} value={c.valor}>{c.valor}</option>)}
-                          </select>
-                        </div>
 
-                        <div className="col-span-2">
-                          <label className="text-[10px] text-slate-500 mb-1 block">Superior (sobre mesón)</label>
-                          <div className="flex flex-wrap gap-1.5">
-                            {SUPERIOR.map(s => (
-                              <button key={s.valor} type="button"
-                                onClick={() => toggleModuloLista(mod.id, 'superior', s.valor)}
-                                className={`text-[10px] px-2 py-1 rounded-full border transition-colors ${(mod.superior||[]).includes(s.valor) ? 'bg-orange-600/30 border-orange-500 text-orange-300' : 'bg-[#161820] border-white/10 text-slate-400 hover:border-white/30'}`}>
-                                {s.valor}
-                              </button>
-                            ))}
+                        {/* Categorías de detalle — solo se muestran las que
+                            tienen sentido para el tipo de módulo elegido. */}
+                        {categorias.includes('aereo') && (
+                          <div className="col-span-2">
+                            <label className="text-[10px] text-slate-500 mb-1 block">Aéreo</label>
+                            <select value={mod.aereo} onChange={e => actualizarModulo(mod.id, 'aereo', e.target.value)}
+                              className="w-full bg-[#161820] border border-white/10 rounded-lg text-xs text-white px-2 py-1.5 focus:outline-none focus:border-orange-500">
+                              <option value="">— Ninguno —</option>
+                              {AEREO.map(a => <option key={a.valor} value={a.valor}>{a.valor}</option>)}
+                            </select>
                           </div>
-                        </div>
+                        )}
 
-                        <div className="col-span-2">
-                          <label className="text-[10px] text-slate-500 mb-1 block">Línea caliente · Equipo</label>
-                          <div className="flex flex-wrap gap-1.5">
-                            {LCA_EQUIPO.map(eq => (
-                              <button key={eq.valor} type="button"
-                                onClick={() => toggleModuloLista(mod.id, 'lcaEquipo', eq.valor)}
-                                className={`text-[10px] px-2 py-1 rounded-full border transition-colors ${(mod.lcaEquipo||[]).includes(eq.valor) ? 'bg-orange-600/30 border-orange-500 text-orange-300' : 'bg-[#161820] border-white/10 text-slate-400 hover:border-white/30'}`}>
-                                {eq.valor}
-                              </button>
-                            ))}
+                        {categorias.includes('superior') && (
+                          <div className="col-span-2">
+                            <label className="text-[10px] text-slate-500 mb-1 block">Superior (sobre mesón)</label>
+                            <ChipsFiltrables lista={SUPERIOR} seleccionados={mod.superior || []}
+                              onToggle={v => toggleModuloLista(mod.id, 'superior', v)} />
                           </div>
-                        </div>
+                        )}
 
-                        <div className="col-span-2">
-                          <label className="text-[10px] text-slate-500 mb-1 block">Inferior (bajo mesón · máx. 3) {(mod.inferior||[]).length >= 3 && <span className="text-amber-400">— límite alcanzado</span>}</label>
-                          <div className="flex flex-wrap gap-1.5">
-                            {INFERIOR.map(inf => (
-                              <button key={inf.valor} type="button"
-                                onClick={() => toggleModuloLista(mod.id, 'inferior', inf.valor, 3)}
-                                className={`text-[10px] px-2 py-1 rounded-full border transition-colors ${(mod.inferior||[]).includes(inf.valor) ? 'bg-orange-600/30 border-orange-500 text-orange-300' : 'bg-[#161820] border-white/10 text-slate-400 hover:border-white/30'} ${!(mod.inferior||[]).includes(inf.valor) && (mod.inferior||[]).length >= 3 ? 'opacity-40 cursor-not-allowed' : ''}`}>
-                                {inf.valor}
-                              </button>
-                            ))}
+                        {categorias.includes('lcaEquipo') && (
+                          <div className="col-span-2">
+                            <label className="text-[10px] text-slate-500 mb-1 block">Línea caliente · Equipo</label>
+                            <ChipsFiltrables lista={LCA_EQUIPO} seleccionados={mod.lcaEquipo || []}
+                              onToggle={v => toggleModuloLista(mod.id, 'lcaEquipo', v)} />
                           </div>
-                        </div>
+                        )}
+
+                        {categorias.includes('lcaEquipo') && (
+                          <div className="col-span-2">
+                            <label className="text-[10px] text-slate-500 mb-1 block">Combustible</label>
+                            <select value={mod.combustible} onChange={e => actualizarModulo(mod.id, 'combustible', e.target.value)}
+                              className="w-full bg-[#161820] border border-white/10 rounded-lg text-xs text-white px-2 py-1.5 focus:outline-none focus:border-orange-500">
+                              <option value="">— Ninguno —</option>
+                              {COMBUSTIBLE.map(c => <option key={c.valor} value={c.valor}>{c.valor}</option>)}
+                            </select>
+                          </div>
+                        )}
+
+                        {categorias.includes('inferior') && (
+                          <div className="col-span-2">
+                            <label className="text-[10px] text-slate-500 mb-1 block">Inferior (bajo mesón · máx. 3) {(mod.inferior||[]).length >= 3 && <span className="text-amber-400">— límite alcanzado</span>}</label>
+                            <ChipsFiltrables lista={INFERIOR} seleccionados={mod.inferior || []} max={3}
+                              onToggle={v => toggleModuloLista(mod.id, 'inferior', v, 3)} />
+                          </div>
+                        )}
 
                         <div className="col-span-2">
                           <label className="text-[10px] text-slate-500 mb-1 block">Dimensiones (cm)</label>
@@ -408,12 +431,25 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
                           </div>
                         </div>
 
+                        {/* Línea — se decide sobre la marcha, como en la práctica */}
+                        <div className="col-span-2">
+                          <label className="text-[10px] text-slate-500 mb-1 block">Línea</label>
+                          <select value={mod.linea} onChange={e => actualizarModulo(mod.id, 'linea', e.target.value)}
+                            className="w-full bg-[#161820] border border-white/10 rounded-lg text-xs text-white px-2 py-1.5 focus:outline-none focus:border-orange-500">
+                            {LINEAS.map(l => <option key={l} value={l}>{l}</option>)}
+                          </select>
+                        </div>
+
                         <div className="col-span-2">
                           <label className="text-[10px] text-slate-500 mb-1 block">Código generado</label>
                           <div className="w-full bg-orange-950/30 border border-orange-800/40 rounded-lg text-xs font-mono text-orange-300 px-2 py-2 min-h-[30px] break-all">
                             {generarCodigoModulo(mod) || <span className="text-slate-600 font-sans">Elige tipo, lado y medidas para generar el código...</span>}
                           </div>
                         </div>
+                      </div>
+                        );
+                      })()}
+                      <div className="grid grid-cols-2 gap-2">
                         <div className="col-span-2">
                           <label className="text-[10px] text-slate-500 mb-1 block">Nombre del módulo * <span className="text-slate-600">(se llena solo con el código; edítalo solo si el módulo no encaja en el diccionario)</span></label>
                           <input value={mod.nombre} onChange={e => actualizarModulo(mod.id, 'nombre', e.target.value)}
@@ -439,6 +475,7 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
                 <div><div className="text-[10px] text-slate-500">Total</div><div className="text-lg font-bold text-white">{totalMods}</div></div>
                 {element > 0   && <div><div className="text-[10px] text-slate-500">Element</div><div className="text-lg font-bold text-purple-400">{element}</div></div>}
                 {santaAna > 0  && <div><div className="text-[10px] text-slate-500">Santa Ana</div><div className="text-lg font-bold text-blue-400">{santaAna}</div></div>}
+                {equifrigo > 0 && <div><div className="text-[10px] text-slate-500">Equifrigo</div><div className="text-lg font-bold text-yellow-400">{equifrigo}</div></div>}
               </div>
             )}
           </div>

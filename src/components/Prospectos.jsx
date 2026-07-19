@@ -5,7 +5,13 @@ import { getResponsablesAgrupados } from '../utils/settingsStorage';
 import ProjectForm from './ProjectForm';
 
 const ESTADOS = ['En propuesta','Propuesta inicial lista','Borrador conceptual listo','Presentado al cliente','Con cambios','Aprobado','No ganado'];
-const LINEAS  = ['Element','Santa Ana'];
+const LINEAS  = ['Element','Santa Ana','Equifrigo'];
+
+const LINEA_COLORS = {
+  'Element':   { color: '#C4B5FD', bg: '#2D1B69' },
+  'Santa Ana': { color: '#93C5FD', bg: '#1E3A5F' },
+  'Equifrigo': { color: '#FCD34D', bg: '#452B03' },
+};
 
 const EST_COLORS = {
   'En propuesta':              { color: '#9CA3AF', bg: '#1F2937' },
@@ -178,7 +184,9 @@ function ProspectoCard({ prospecto, onUpdate, onEdit, onDelete, onGenerarProyect
             {checklistCompleto && !prospecto.convertido && (
               <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 99, background: '#052E16', color: '#86EFAC' }}>✓ Listo para proyecto</span>
             )}
-            {prospecto.linea && <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 4, background: prospecto.linea === 'Element' ? '#2D1B69' : '#1E3A5F', color: prospecto.linea === 'Element' ? '#C4B5FD' : '#93C5FD', fontWeight: 600 }}>{prospecto.linea === 'Element' ? 'Element' : 'Santa Ana'}</span>}
+            {prospecto.linea && (() => { const lc = LINEA_COLORS[prospecto.linea] || LINEA_COLORS['Santa Ana']; return (
+              <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 4, background: lc.bg, color: lc.color, fontWeight: 600 }}>{prospecto.linea}</span>
+            ); })()}
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap', alignItems: 'center' }}>
             {prospecto.vendedor    && <span style={{ fontSize: 10, color: '#6B7280' }}>💼 {prospecto.vendedor}</span>}
