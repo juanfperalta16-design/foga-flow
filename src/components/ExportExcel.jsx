@@ -1,14 +1,12 @@
 // =====================================================
 // FOGA FLOW — Botón flotante de exportación Excel
-// Genera reporte con 3 hojas:
-// 1. Resumen general
-// 2. Por persona
-// 3. Producción detallada
+// Genera reporte con 11 hojas, con encabezados y semáforos
+// (rojo/amarillo/verde) coloreados igual que la planilla de referencia.
 // =====================================================
 import { useState } from 'react';
 import { useApp } from '../App';
 import { Download, X, FileSpreadsheet, Loader } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { fabricaTerminada, paseInstalacionAbierto } from '../utils/processRules';
 
 function semaforo(fecha) {
@@ -28,19 +26,6 @@ function estado(fecha) {
   return 'EN TIEMPO';
 }
 
-// Da formato de "tabla" a una hoja: encabezado con filtros desplegables (autofiltro,
-// funciona igual que una Tabla de Excel para buscar/filtrar por columna) y el título
-// fusionado para que ocupe todo el ancho de datos en vez de verse angosto.
-function formatoTabla(ws, { headerRowIdx, lastRowIdx, lastColIdx, tituloRows = [0] }) {
-  ws['!merges'] = [
-    ...(ws['!merges'] || []),
-    ...tituloRows.map(r => ({ s: { r, c: 0 }, e: { r, c: lastColIdx } })),
-  ];
-  ws['!autofilter'] = {
-    ref: XLSX.utils.encode_range({ s: { r: headerRowIdx, c: 0 }, e: { r: lastRowIdx, c: lastColIdx } }),
-  };
-}
-
 function isoWeek(date) {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
   const dayNum = d.getUTCDay() || 7;
@@ -56,26 +41,156 @@ function semanaDelMes(date) {
 
 const MESES_NOMBRE = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
+// ── Estilo de hojas ──────────────────────────────────
+const COLORES = {
+  rojo:     { bg: 'FFFCA5A5', font: 'FF7F1D1D' },
+  amarillo: { bg: 'FFFDE68A', font: 'FF78350F' },
+  verde:    { bg: 'FF86EFAC', font: 'FF14532D' },
+  gris:     { bg: 'FFE2E8F0', font: 'FF475569' },
+};
+
+function estiloTitulo(cell) {
+  cell.font = { bold: true, size: 13, color: { argb: 'FFFFFFFF' } };
+  cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F1117' } };
+  cell.alignment = { vertical: 'middle' };
+}
+
+function estiloSubtitulo(cell) {
+  cell.font = { italic: true, size: 9, color: { argb: 'FF94A3B8' } };
+  cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F1117' } };
+}
+
+function estiloEncabezados(row, numCols) {
+  for (let i = 1; i <= numCols; i++) {
+    const cell = row.getCell(i);
+    cell.font = { bold: true, color: { argb: 'FFF1F5F9' } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E2433' } };
+    cell.alignment = { vertical: 'middle' };
+    cell.border = { bottom: { style: 'thin', color: { argb: 'FF334155' } } };
+  }
+}
+
+function aplicarColorClase(cell, clase) {
+  const c = COLORES[clase];
+  if (!c) return;
+  cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: c.bg } };
+  cell.font = { bold: true, color: { argb: c.font } };
+}
+
+// Busca una columna por el texto de su encabezado y colorea cada celda
+// de datos debajo de ella según lo que devuelva `classifier(valor)`.
+function pintarColumna(sheet, headerRow, headerLabel, classifier) {
+  let colIdx = null;
+  headerRow.eachCell((cell, idx) => { if (cell.value === headerLabel) colIdx = idx; });
+  if (!colIdx) return;
+  for (let r = headerRow.number + 1; r <= sheet.rowCount; r++) {
+    const cell = sheet.getRow(r).getCell(colIdx);
+    const clase = classifier(cell.value);
+    if (clase) aplicarColorClase(cell, clase);
+  }
+}
+
+function negritaFila(sheet, rowNumber, numCols) {
+  const row = sheet.getRow(rowNumber);
+  for (let i = 1; i <= numCols; i++) row.getCell(i).font = { bold: true };
+}
+
+// ── Clasificadores de semáforo por columna ───────────
+const claseSemaforoTexto = (v) => {
+  const t = String(v || '').toUpperCase();
+  if (t.startsWith('ATRASADO') || t.startsWith('URGENTE')) return 'rojo';
+  if (t.startsWith('PRÓXIMO') || t.startsWith('PROXIMO')) return 'amarillo';
+  if (t.startsWith('OK')) return 'verde';
+  return null;
+};
+const claseEstadoTexto = (v) => {
+  const t = String(v || '').toUpperCase();
+  if (t === 'ATRASADO' || t === 'URGENTE') return 'rojo';
+  if (t === 'EN TIEMPO') return 'verde';
+  return null;
+};
+const clasePase = (v) => {
+  const t = String(v || '').toUpperCase();
+  if (t === 'ABIERTO') return 'verde';
+  if (t === 'SIN PASE') return 'rojo';
+  return null;
+};
+const claseSiNo = (v) => {
+  const t = String(v || '').toUpperCase();
+  if (t.startsWith('SÍ') || t.startsWith('SI')) return 'verde';
+  if (t === 'NO') return 'gris';
+  return null;
+};
+const claseReproceso = (v) => {
+  const t = String(v || '').toUpperCase();
+  if (t === 'SÍ' || t === 'SI') return 'rojo';
+  if (t === 'NO') return 'verde';
+  return null;
+};
+const claseProgreso = (v) => {
+  const t = String(v || '').toUpperCase();
+  if (t === 'TERMINADO' || t === 'CARGADO') return 'verde';
+  if (t === 'EN PROCESO') return 'amarillo';
+  if (t === 'PENDIENTE') return 'rojo';
+  return null;
+};
+const claseRegistroEstado = (v) => {
+  const t = String(v || '').toUpperCase();
+  if (t === 'REPROCESO') return 'rojo';
+  if (t === 'VALIDADO') return 'verde';
+  return null;
+};
+const claseSemaforoLiteral = (v) => {
+  const t = String(v || '').toUpperCase();
+  if (t === 'ROJO') return 'rojo';
+  if (t === 'AMARILLO') return 'amarillo';
+  if (t === 'VERDE') return 'verde';
+  return null;
+};
+const claseProspectoEstado = (v) => (v === 'Convertido a proyecto' ? 'verde' : null);
+
+// Crea una hoja con título (fusionado), fecha de generación opcional,
+// fila en blanco y encabezados con autofiltro — devuelve la hoja y la
+// fila de encabezados (para poder pintar columnas después).
+function nuevaHoja(wb, nombre, titulo, headers, anchos, { conGenerado = true } = {}) {
+  const sheet = wb.addWorksheet(nombre);
+  sheet.columns = anchos.map(w => ({ width: w }));
+  const numCols = headers.length;
+
+  const rowTitulo = sheet.addRow([titulo]);
+  sheet.mergeCells(rowTitulo.number, 1, rowTitulo.number, numCols);
+  estiloTitulo(rowTitulo.getCell(1));
+
+  if (conGenerado) {
+    const rowGen = sheet.addRow([`Generado: ${new Date().toLocaleDateString('es-EC')}`]);
+    sheet.mergeCells(rowGen.number, 1, rowGen.number, numCols);
+    estiloSubtitulo(rowGen.getCell(1));
+  }
+
+  sheet.addRow([]);
+
+  const rowHeader = sheet.addRow(headers);
+  estiloEncabezados(rowHeader, numCols);
+  sheet.autoFilter = { from: { row: rowHeader.number, column: 1 }, to: { row: rowHeader.number, column: numCols } };
+
+  return { sheet, rowHeader };
+}
+
 export default function ExportExcel() {
   const { proyectos, prospectos, departamentosConfig } = useApp();
   const [loading, setLoading] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
 
-  function exportar() {
+  async function exportar() {
     setLoading(true);
     setShowMenu(false);
 
     try {
-      const wb = XLSX.utils.book_new();
-      const hoy = new Date().toLocaleDateString('es-EC');
+      const wb = new ExcelJS.Workbook();
 
       // ── HOJA 1: RESUMEN GENERAL ──────────────────
-      const resumenData = [
-        ['FOGA FLOW — REPORTE GENERAL', '', '', '', '', '', '', '', ''],
-        [`Generado: ${hoy}`, '', '', '', '', '', '', '', ''],
-        [''],
-        ['PROYECTO', 'CLIENTE', 'PEC', 'LÍNEA', 'VENDEDOR', 'ESTADO', 'PRIORIDAD', 'FECHA ENTREGA', 'DÍAS RESTANTES', 'SEMÁFORO', 'MÓDULOS', 'RESPONSABLE ARQ.', 'DISEÑADOR D3D', 'RESP. INSTALACIONES'],
-      ];
+      const headers1 = ['PROYECTO', 'CLIENTE', 'PEC', 'LÍNEA', 'VENDEDOR', 'ESTADO', 'PRIORIDAD', 'FECHA ENTREGA', 'DÍAS RESTANTES', 'SEMÁFORO', 'MÓDULOS', 'RESPONSABLE ARQ.', 'DISEÑADOR D3D', 'RESP. INSTALACIONES'];
+      const { sheet: ws1, rowHeader: hdr1 } = nuevaHoja(wb, 'Resumen General', 'FOGA FLOW — REPORTE GENERAL', headers1, [30,20,12,15,18,20,10,14,14,12,10,18,20,18]);
 
       (proyectos || []).forEach(p => {
         const d3       = p.design3d || {};
@@ -83,7 +198,7 @@ export default function ExportExcel() {
         const modulos  = p.production?.modulos || [];
         const dias     = p.fechaEntrega ? Math.floor((new Date(p.fechaEntrega) - new Date()) / 86400000) : null;
 
-        resumenData.push([
+        ws1.addRow([
           p.nombre || '—',
           p.cliente || '—',
           p.numeroContrato || '—',
@@ -100,74 +215,51 @@ export default function ExportExcel() {
           p.installations?.responsible || 'Sin asignar',
         ]);
       });
-
-      const ws1 = XLSX.utils.aoa_to_sheet(resumenData);
-      ws1['!cols'] = [30,20,12,15,18,20,10,14,14,12,10,18,20,18].map(w => ({ wch: w }));
-      // Estilo encabezado
-      ws1['A1'] = { v: `FOGA FLOW — REPORTE GENERAL`, t: 's' };
-      formatoTabla(ws1, { headerRowIdx: 3, lastRowIdx: resumenData.length - 1, lastColIdx: 13, tituloRows: [0,1] });
-      XLSX.utils.book_append_sheet(wb, ws1, 'Resumen General');
+      pintarColumna(ws1, hdr1, 'SEMÁFORO', claseSemaforoTexto);
 
       // ── HOJA 2: POR PERSONA ──────────────────────
-      const personaData = [
-        ['FOGA FLOW — CARGA DE TRABAJO POR PERSONA', '', '', '', '', '', '', ''],
-        [`Generado: ${hoy}`, '', '', '', '', '', '', ''],
-        [''],
-        ['PERSONA', 'DEPARTAMENTO', 'PROYECTO', 'CLIENTE', 'PEC', 'MÓDULO / ROL', 'ESTADO', 'FECHA ENTREGA DEPT.', 'DÍAS RESTANTES', 'SEMÁFORO'],
-      ];
+      const headers2 = ['PERSONA', 'DEPARTAMENTO', 'PROYECTO', 'CLIENTE', 'PEC', 'MÓDULO / ROL', 'ESTADO', 'FECHA ENTREGA DEPT.', 'DÍAS RESTANTES', 'SEMÁFORO'];
+      const { sheet: ws2, rowHeader: hdr2 } = nuevaHoja(wb, 'Por Persona', 'FOGA FLOW — CARGA DE TRABAJO POR PERSONA', headers2, [20,14,28,20,12,20,18,16,14,12]);
 
-      const personas = {};
       (proyectos || []).filter(p => p.estadoGeneral !== 'Finalizado').forEach(p => {
         const modulos   = p.production?.modulos || [];
         const d3        = p.design3d || {};
         const designers = d3.responsables || (d3.responsible ? [d3.responsible] : []);
         const fechasDepto = p.fechasDepto || {};
 
-        // Arquitectura
         if (p.architecture?.responsible) {
           const nombre = p.architecture.responsible;
           const fecha  = fechasDepto.arquitectura || p.fechaEntrega;
           const dias   = fecha ? Math.floor((new Date(fecha) - new Date()) / 86400000) : null;
-          personaData.push([nombre, 'Arquitectura', p.nombre, p.cliente, p.numeroContrato || '—', p.architecture?.status || '—', p.estadoGeneral, fecha || 'Sin fecha', dias !== null ? dias : '—', dias !== null ? estado(fecha) : '—']);
+          ws2.addRow([nombre, 'Arquitectura', p.nombre, p.cliente, p.numeroContrato || '—', p.architecture?.status || '—', p.estadoGeneral, fecha || 'Sin fecha', dias !== null ? dias : '—', dias !== null ? estado(fecha) : '—']);
         }
 
-        // Diseño 3D
         designers.forEach(nombre => {
           const fecha = fechasDepto.diseno3d || p.fechaEntrega;
           const dias  = fecha ? Math.floor((new Date(fecha) - new Date()) / 86400000) : null;
-          personaData.push([nombre, 'Diseño 3D', p.nombre, p.cliente, p.numeroContrato || '—', d3.status || d3.estado || '—', p.estadoGeneral, fecha || 'Sin fecha', dias !== null ? dias : '—', dias !== null ? estado(fecha) : '—']);
+          ws2.addRow([nombre, 'Diseño 3D', p.nombre, p.cliente, p.numeroContrato || '—', d3.status || d3.estado || '—', p.estadoGeneral, fecha || 'Sin fecha', dias !== null ? dias : '—', dias !== null ? estado(fecha) : '—']);
         });
 
-        // Instalaciones
         if (p.installations?.responsible) {
           const nombre = p.installations.responsible;
           const fecha  = fechasDepto.instalaciones || p.fechaEntrega;
           const dias   = fecha ? Math.floor((new Date(fecha) - new Date()) / 86400000) : null;
-          personaData.push([nombre, 'Instalaciones', p.nombre, p.cliente, p.numeroContrato || '—', p.installations?.status || '—', p.estadoGeneral, fecha || 'Sin fecha', dias !== null ? dias : '—', dias !== null ? estado(fecha) : '—']);
+          ws2.addRow([nombre, 'Instalaciones', p.nombre, p.cliente, p.numeroContrato || '—', p.installations?.status || '—', p.estadoGeneral, fecha || 'Sin fecha', dias !== null ? dias : '—', dias !== null ? estado(fecha) : '—']);
         }
 
-        // Producción por módulo
         modulos.forEach(mod => {
           if (mod.maestro) {
             const fecha = mod.fechaEntrega || fechasDepto.produccion || p.fechaEntrega;
             const dias  = fecha ? Math.floor((new Date(fecha) - new Date()) / 86400000) : null;
-            personaData.push([mod.maestro, 'Producción', p.nombre, p.cliente, mod.pec || '—', mod.nombre || '—', mod.produccion?.faseActual || '—', fecha || 'Sin fecha', dias !== null ? dias : '—', dias !== null ? estado(fecha) : '—']);
+            ws2.addRow([mod.maestro, 'Producción', p.nombre, p.cliente, mod.pec || '—', mod.nombre || '—', mod.produccion?.faseActual || '—', fecha || 'Sin fecha', dias !== null ? dias : '—', dias !== null ? estado(fecha) : '—']);
           }
         });
       });
-
-      const ws2 = XLSX.utils.aoa_to_sheet(personaData);
-      ws2['!cols'] = [20,14,28,20,12,20,18,16,14,12].map(w => ({ wch: w }));
-      formatoTabla(ws2, { headerRowIdx: 3, lastRowIdx: personaData.length - 1, lastColIdx: 9, tituloRows: [0,1] });
-      XLSX.utils.book_append_sheet(wb, ws2, 'Por Persona');
+      pintarColumna(ws2, hdr2, 'SEMÁFORO', claseSemaforoTexto);
 
       // ── HOJA 3: PRODUCCIÓN DETALLADA ─────────────
-      const prodData = [
-        ['FOGA FLOW — PRODUCCIÓN DETALLADA', '', '', '', '', '', '', '', ''],
-        [`Generado: ${hoy}`, '', '', '', '', '', '', '', ''],
-        [''],
-        ['PROYECTO', 'CLIENTE', 'PEC MÓDULO', 'MÓDULO', 'LÍNEA', 'MAESTRO', 'FASE ACTUAL', 'REPROCESO', 'FECHA ENTREGA', 'DÍAS REST.', 'SEMÁFORO', 'MATERIAL FALTANTE'],
-      ];
+      const headers3 = ['PROYECTO', 'CLIENTE', 'PEC MÓDULO', 'MÓDULO', 'LÍNEA', 'MAESTRO', 'FASE ACTUAL', 'REPROCESO', 'FECHA ENTREGA', 'DÍAS REST.', 'SEMÁFORO', 'MATERIAL FALTANTE'];
+      const { sheet: ws3, rowHeader: hdr3 } = nuevaHoja(wb, 'Producción Detallada', 'FOGA FLOW — PRODUCCIÓN DETALLADA', headers3, [28,20,14,20,14,18,22,12,14,10,12,30]);
 
       (proyectos || []).forEach(p => {
         const modulos = p.production?.modulos || [];
@@ -175,7 +267,7 @@ export default function ExportExcel() {
           const matFaltante = (mod.materialFaltante || []).filter(m => m.estadoCompra !== '✓ Recibido');
           const fecha = mod.fechaEntrega || p.fechaEntrega;
           const dias  = fecha ? Math.floor((new Date(fecha) - new Date()) / 86400000) : null;
-          prodData.push([
+          ws3.addRow([
             p.nombre || '—',
             p.cliente || '—',
             mod.pec || '—',
@@ -191,22 +283,15 @@ export default function ExportExcel() {
           ]);
         });
       });
-
-      const ws3 = XLSX.utils.aoa_to_sheet(prodData);
-      ws3['!cols'] = [28,20,14,20,14,18,22,12,14,10,12,30].map(w => ({ wch: w }));
-      formatoTabla(ws3, { headerRowIdx: 3, lastRowIdx: prodData.length - 1, lastColIdx: 11, tituloRows: [0,1] });
-      XLSX.utils.book_append_sheet(wb, ws3, 'Producción Detallada');
+      pintarColumna(ws3, hdr3, 'SEMÁFORO', claseSemaforoTexto);
+      pintarColumna(ws3, hdr3, 'REPROCESO', claseReproceso);
 
       // ── HOJA 4: PROSPECTOS DE DISEÑO ─────────────
-      const prosRaw = prospectos || [];
-      const prosData = [
-        ['FOGA FLOW — PROSPECTOS DE DISEÑO', '', '', '', '', '', '', '', ''],
-        [`Generado: ${hoy}`, '', '', '', '', '', '', '', ''],
-        [''],
-        ['#', 'CLIENTE', 'VENDEDOR', 'DISEÑADORA', 'LÍNEA', 'ESTADO', 'N° CAMBIOS', 'FECHA INGRESO', 'OBSERVACIÓN'],
-      ];
-      prosRaw.forEach((p, i) => {
-        prosData.push([
+      const headers4 = ['#', 'CLIENTE', 'VENDEDOR', 'DISEÑADORA', 'LÍNEA', 'ESTADO', 'N° CAMBIOS', 'FECHA INGRESO', 'OBSERVACIÓN'];
+      const { sheet: ws4, rowHeader: hdr4 } = nuevaHoja(wb, 'Prospectos Diseño', 'FOGA FLOW — PROSPECTOS DE DISEÑO', headers4, [5,25,18,18,16,20,12,14,30]);
+
+      (prospectos || []).forEach((p, i) => {
+        ws4.addRow([
           i + 1,
           p.cliente || '—',
           p.vendedor || '—',
@@ -218,18 +303,12 @@ export default function ExportExcel() {
           p.observacion || '—',
         ]);
       });
-      const ws4 = XLSX.utils.aoa_to_sheet(prosData);
-      ws4['!cols'] = [5,25,18,18,16,20,12,14,30].map(w => ({ wch: w }));
-      formatoTabla(ws4, { headerRowIdx: 3, lastRowIdx: prosData.length - 1, lastColIdx: 8, tituloRows: [0,1] });
-      XLSX.utils.book_append_sheet(wb, ws4, 'Prospectos Diseño');
+      pintarColumna(ws4, hdr4, 'ESTADO', claseProspectoEstado);
 
       // ── HOJA 5: ARQUITECTURA DETALLADA ───────────
-      const arqData = [
-        ['FOGA FLOW — ARQUITECTURA DETALLADA', '', '', '', '', '', '', ''],
-        [`Generado: ${hoy}`, '', '', '', '', '', '', ''],
-        [''],
-        ['PROYECTO', 'CLIENTE', 'PEC', 'RESPONSABLE', 'ESTADO', 'CHECKLIST', 'MÓDULOS LIBERADOS A D3D', 'OBSERVACIONES'],
-      ];
+      const headers5 = ['PROYECTO', 'CLIENTE', 'PEC', 'RESPONSABLE', 'ESTADO', 'CHECKLIST', 'MÓDULOS LIBERADOS A D3D', 'OBSERVACIONES'];
+      const { sheet: ws5 } = nuevaHoja(wb, 'Arquitectura Detallada', 'FOGA FLOW — ARQUITECTURA DETALLADA', headers5, [28,20,12,18,26,12,20,30]);
+
       (proyectos || []).filter(p => p.estadoGeneral !== 'Finalizado').forEach(p => {
         const arch = p.architecture || {};
         const checklist = arch.checklist || {};
@@ -237,7 +316,7 @@ export default function ExportExcel() {
         const pasosOk = pasos.filter(k => checklist[k]).length;
         const modulos = p.production?.modulos || [];
         const liberados = modulos.filter(m => m.arquitectura?.liberadoA3D).length;
-        arqData.push([
+        ws5.addRow([
           p.nombre || '—', p.cliente || '—', p.numeroContrato || '—',
           arch.responsible || 'Sin asignar', arch.status || '—',
           `${pasosOk}/${pasos.length}`,
@@ -245,24 +324,17 @@ export default function ExportExcel() {
           arch.observations || '—',
         ]);
       });
-      const ws5 = XLSX.utils.aoa_to_sheet(arqData);
-      ws5['!cols'] = [28,20,12,18,26,12,20,30].map(w => ({ wch: w }));
-      formatoTabla(ws5, { headerRowIdx: 3, lastRowIdx: arqData.length - 1, lastColIdx: 7, tituloRows: [0,1] });
-      XLSX.utils.book_append_sheet(wb, ws5, 'Arquitectura Detallada');
 
       // ── HOJA 6: DISEÑO 3D DETALLADA ──────────────
-      const d3Data = [
-        ['FOGA FLOW — DISEÑO 3D DETALLADA', '', '', '', '', '', '', '', ''],
-        [`Generado: ${hoy}`, '', '', '', '', '', '', '', ''],
-        [''],
-        ['PROYECTO', 'CLIENTE', 'PEC MÓDULO', 'MÓDULO', 'DISEÑADOR(ES)', 'SOLIDWORKS', 'DESPIECE', 'PLAN DE CORTE', 'LIBERADO A PRODUCCIÓN'],
-      ];
+      const headers6 = ['PROYECTO', 'CLIENTE', 'PEC MÓDULO', 'MÓDULO', 'DISEÑADOR(ES)', 'SOLIDWORKS', 'DESPIECE', 'PLAN DE CORTE', 'LIBERADO A PRODUCCIÓN'];
+      const { sheet: ws6, rowHeader: hdr6 } = nuevaHoja(wb, 'Diseño 3D Detallada', 'FOGA FLOW — DISEÑO 3D DETALLADA', headers6, [28,20,14,20,20,14,14,14,20]);
+
       (proyectos || []).forEach(p => {
         const d3 = p.design3d || {};
         const designers = (d3.responsables || (d3.responsible ? [d3.responsible] : [])).join(', ') || 'Sin asignar';
         (p.production?.modulos || []).filter(m => m.arquitectura?.liberadoA3D).forEach(mod => {
           const md3 = mod.diseno3d || {};
-          d3Data.push([
+          ws6.addRow([
             p.nombre || '—', p.cliente || '—', mod.pec || '—', mod.nombre || '—', designers,
             md3.solidworksFinished ? 'Terminado' : md3.solidworksStarted ? 'En proceso' : 'Pendiente',
             md3.autocadBreakdownFinished ? 'Terminado' : md3.autocadBreakdownStarted ? 'En proceso' : 'Pendiente',
@@ -271,21 +343,18 @@ export default function ExportExcel() {
           ]);
         });
       });
-      const ws6 = XLSX.utils.aoa_to_sheet(d3Data);
-      ws6['!cols'] = [28,20,14,20,20,14,14,14,20].map(w => ({ wch: w }));
-      formatoTabla(ws6, { headerRowIdx: 3, lastRowIdx: d3Data.length - 1, lastColIdx: 8, tituloRows: [0,1] });
-      XLSX.utils.book_append_sheet(wb, ws6, 'Diseño 3D Detallada');
+      pintarColumna(ws6, hdr6, 'SOLIDWORKS', claseProgreso);
+      pintarColumna(ws6, hdr6, 'DESPIECE', claseProgreso);
+      pintarColumna(ws6, hdr6, 'PLAN DE CORTE', claseProgreso);
+      pintarColumna(ws6, hdr6, 'LIBERADO A PRODUCCIÓN', claseSiNo);
 
       // ── HOJA 7: INSTALACIONES DETALLADA ──────────
-      const instData = [
-        ['FOGA FLOW — INSTALACIONES DETALLADA', '', '', '', '', '', '', '', ''],
-        [`Generado: ${hoy}`, '', '', '', '', '', '', '', ''],
-        [''],
-        ['PROYECTO', 'CLIENTE', 'RESPONSABLE', '1ª VISITA', 'INFORME TÉCNICO / MEDIDAS', '2ª VISITA', 'OBRA LISTA', 'INSTALACIÓN REALIZADA', 'FECHA INSTALACIÓN'],
-      ];
+      const headers7 = ['PROYECTO', 'CLIENTE', 'RESPONSABLE', '1ª VISITA', 'INFORME TÉCNICO / MEDIDAS', '2ª VISITA', 'OBRA LISTA', 'INSTALACIÓN REALIZADA', 'FECHA INSTALACIÓN'];
+      const { sheet: ws7, rowHeader: hdr7 } = nuevaHoja(wb, 'Instalaciones Detallada', 'FOGA FLOW — INSTALACIONES DETALLADA', headers7, [28,20,20,14,22,14,12,20,16]);
+
       (proyectos || []).filter(p => p.releasedToInstallations || p.releasedToDesign3D || (p.production?.modulos||[]).some(m => m.arquitectura?.liberadoA3D)).forEach(p => {
         const inst = p.installations || {};
-        instData.push([
+        ws7.addRow([
           p.nombre || '—', p.cliente || '—', inst.responsible || 'Sin asignar',
           inst.firstVisitDate || '—',
           inst.initialTechnicalReportLink ? 'Cargado' : 'Pendiente',
@@ -295,21 +364,16 @@ export default function ExportExcel() {
           p.fechaEntrega || 'Sin fecha',
         ]);
       });
-      const ws7 = XLSX.utils.aoa_to_sheet(instData);
-      ws7['!cols'] = [28,20,20,14,22,14,12,20,16].map(w => ({ wch: w }));
-      formatoTabla(ws7, { headerRowIdx: 3, lastRowIdx: instData.length - 1, lastColIdx: 8, tituloRows: [0,1] });
-      XLSX.utils.book_append_sheet(wb, ws7, 'Instalaciones Detallada');
+      pintarColumna(ws7, hdr7, 'INFORME TÉCNICO / MEDIDAS', claseProgreso);
+      pintarColumna(ws7, hdr7, 'OBRA LISTA', claseSiNo);
 
       // ── HOJA 7B: CONTABILIDAD — PASE DE INSTALACIÓN ──
-      const contData = [
-        ['FOGA FLOW — CONTABILIDAD · PASE DE INSTALACIÓN', '', '', '', '', '', ''],
-        [`Generado: ${hoy}`, '', '', '', '', '', ''],
-        [''],
-        ['PROYECTO', 'CLIENTE', 'PEC', 'FECHA INSTALACIÓN', 'FÁBRICA TERMINADA', 'AUTORIZADO CONTABILIDAD', 'PASE'],
-      ];
+      const headersC = ['PROYECTO', 'CLIENTE', 'PEC', 'FECHA INSTALACIÓN', 'FÁBRICA TERMINADA', 'AUTORIZADO CONTABILIDAD', 'PASE'];
+      const { sheet: wsC, rowHeader: hdrC } = nuevaHoja(wb, 'Contabilidad', 'FOGA FLOW — CONTABILIDAD · PASE DE INSTALACIÓN', headersC, [28,20,12,16,16,26,12]);
+
       (proyectos || []).filter(p => p.estadoGeneral !== 'Finalizado').forEach(p => {
         const aut = !!p.contabilidad?.autorizado;
-        contData.push([
+        wsC.addRow([
           p.nombre || '—', p.cliente || '—', p.numeroContrato || '—',
           p.fechaEntrega || 'Sin fecha',
           fabricaTerminada(p) ? 'Sí' : 'No',
@@ -317,10 +381,9 @@ export default function ExportExcel() {
           paseInstalacionAbierto(p) ? 'ABIERTO' : 'SIN PASE',
         ]);
       });
-      const wsC = XLSX.utils.aoa_to_sheet(contData);
-      wsC['!cols'] = [28,20,12,16,16,26,12].map(w => ({ wch: w }));
-      formatoTabla(wsC, { headerRowIdx: 3, lastRowIdx: contData.length - 1, lastColIdx: 6, tituloRows: [0,1] });
-      XLSX.utils.book_append_sheet(wb, wsC, 'Contabilidad');
+      pintarColumna(wsC, hdrC, 'FÁBRICA TERMINADA', claseSiNo);
+      pintarColumna(wsC, hdrC, 'AUTORIZADO CONTABILIDAD', claseSiNo);
+      pintarColumna(wsC, hdrC, 'PASE', clasePase);
 
       // ── HOJA 8: REGISTRO DE DISEÑO DE OBJETO ─────
       // Un renglón por módulo con fecha de diseño registrada (ML = largo en metros)
@@ -333,8 +396,6 @@ export default function ExportExcel() {
           const f = new Date(d3.fechaDiseno);
           registro.push({
             fechaDiseno: d3.fechaDiseno,
-            // La validación y el reproceso los marca Producción, cuando la pieza ya está en planta —
-            // Diseño 3D solo registra que diseñó el módulo.
             fechaValidacionJP: prod.fechaValidacionJP || '',
             semanaIso: isoWeek(f),
             anio: f.getFullYear(),
@@ -352,19 +413,14 @@ export default function ExportExcel() {
       });
       registro.sort((a,b) => a.fechaDiseno.localeCompare(b.fechaDiseno));
 
-      const regData = [
-        ['FOGA · REGISTRO DE DISEÑO DE OBJETO · el metro cuenta como BUENO solo cuando JP valida el equipo YA EN PRODUCCION', '', '', '', '', '', '', '', '', '', '', ''],
-        [''],
-        ['FECHA DISEÑO', 'FECHA VALIDACIÓN JP', 'SEMANA ISO', 'AÑO', 'MES', 'SEMANA DEL MES', 'DISEÑADOR', 'LINEA', 'CODIGO / PEC', 'CLIENTE / MODULO', 'ML', 'ESTADO', 'OBSERVACIONES'],
-      ];
-      registro.forEach(r => regData.push([
+      const headers8 = ['FECHA DISEÑO', 'FECHA VALIDACIÓN JP', 'SEMANA ISO', 'AÑO', 'MES', 'SEMANA DEL MES', 'DISEÑADOR', 'LINEA', 'CODIGO / PEC', 'CLIENTE / MODULO', 'ML', 'ESTADO', 'OBSERVACIONES'];
+      const { sheet: ws8, rowHeader: hdr8 } = nuevaHoja(wb, 'Registro Diseño Objeto', 'FOGA · REGISTRO DE DISEÑO DE OBJETO · el metro cuenta como BUENO solo cuando JP valida el equipo YA EN PRODUCCION', headers8, [12,14,10,8,8,12,14,10,14,40,8,12,30], { conGenerado: false });
+
+      registro.forEach(r => ws8.addRow([
         r.fechaDiseno, r.fechaValidacionJP, r.semanaIso, r.anio, r.mes, r.semanaMes,
         r.disenador, r.linea, r.pec, r.clienteModulo, Number(r.ml.toFixed(2)), r.estado, r.observaciones,
       ]));
-      const ws8 = XLSX.utils.aoa_to_sheet(regData);
-      ws8['!cols'] = [12,14,10,8,8,12,14,10,14,40,8,12,30].map(w => ({ wch: w }));
-      formatoTabla(ws8, { headerRowIdx: 2, lastRowIdx: regData.length - 1, lastColIdx: 12 });
-      XLSX.utils.book_append_sheet(wb, ws8, 'Registro Diseño Objeto');
+      pintarColumna(ws8, hdr8, 'ESTADO', claseRegistroEstado);
 
       // ── HOJA 9 y 10: RESUMEN DEL MES (semana / diseñador) ──
       // Se calcula sobre el mes actual, igual que el reporte físico del jefe.
@@ -384,54 +440,52 @@ export default function ExportExcel() {
       }
 
       // Por semana del mes
-      const semData = [
-        [`FOGA FLOW — RESUMEN DEL MES POR SEMANA (${MESES_NOMBRE[ahora.getMonth()]} ${ahora.getFullYear()})`, '', '', '', ''],
-        [''],
-        ['SEMANA DEL MES', 'GENERADOS (ML)', 'VALIDADOS (ML)', 'REPROCESO (ML)', 'PENDIENTE (ML)', '% VALIDADO'],
-      ];
+      const headers9 = ['SEMANA DEL MES', 'GENERADOS (ML)', 'VALIDADOS (ML)', 'REPROCESO (ML)', 'PENDIENTE (ML)', '% VALIDADO'];
+      const { sheet: ws9 } = nuevaHoja(wb, 'Resumen Mes-Semana', `FOGA FLOW — RESUMEN DEL MES POR SEMANA (${MESES_NOMBRE[ahora.getMonth()]} ${ahora.getFullYear()})`, headers9, [16,16,16,16,16,12], { conGenerado: false });
+
       for (let s = 1; s <= 5; s++) {
         const r = resumenDe(delMesActual.filter(x => x.semanaMes === s));
         if (r.generados === 0 && s > 4) continue;
-        semData.push([`Semana ${s}`, r.generados.toFixed(2), r.validados.toFixed(2) || '-', r.reproceso.toFixed(2) || '-', r.pendiente.toFixed(2), `${r.pctValidado.toFixed(1)}%`]);
+        ws9.addRow([`Semana ${s}`, r.generados.toFixed(2), r.validados.toFixed(2) || '-', r.reproceso.toFixed(2) || '-', r.pendiente.toFixed(2), `${r.pctValidado.toFixed(1)}%`]);
       }
       const totalMes = resumenDe(delMesActual);
-      semData.push(['TOTAL MES', totalMes.generados.toFixed(2), totalMes.validados.toFixed(2), totalMes.reproceso.toFixed(2), totalMes.pendiente.toFixed(2), `${totalMes.pctValidado.toFixed(1)}%`]);
-      const ws9 = XLSX.utils.aoa_to_sheet(semData);
-      ws9['!cols'] = [16,16,16,16,16,12].map(w => ({ wch: w }));
-      formatoTabla(ws9, { headerRowIdx: 2, lastRowIdx: semData.length - 1, lastColIdx: 5 });
-      XLSX.utils.book_append_sheet(wb, ws9, 'Resumen Mes-Semana');
+      ws9.addRow(['TOTAL MES', totalMes.generados.toFixed(2), totalMes.validados.toFixed(2), totalMes.reproceso.toFixed(2), totalMes.pendiente.toFixed(2), `${totalMes.pctValidado.toFixed(1)}%`]);
+      negritaFila(ws9, ws9.rowCount, headers9.length);
 
       // Por diseñador, con meta y semáforo
       const deptD3D = (departamentosConfig || []).find(d => d.nombre === 'Diseño 3D');
       const metaMes = Number(deptD3D?.metaMensualML) || 0;
       const disenadores = [...new Set(delMesActual.map(r => r.disenador))].sort();
-      const disData = [
-        [`FOGA FLOW — RESUMEN DEL MES POR DISEÑADOR (${MESES_NOMBRE[ahora.getMonth()]} ${ahora.getFullYear()})`, '', '', '', '', '', ''],
-        [''],
-        ['DISEÑADOR', 'GENERADOS (ML)', 'VALIDADOS (ML)', 'REPROCESO (ML)', 'PENDIENTE (ML)', 'META MES (ML)', '% vs META', 'SEMAFORO'],
-      ];
+      const headers10 = ['DISEÑADOR', 'GENERADOS (ML)', 'VALIDADOS (ML)', 'REPROCESO (ML)', 'PENDIENTE (ML)', 'META MES (ML)', '% vs META', 'SEMAFORO'];
+      const { sheet: ws10, rowHeader: hdr10 } = nuevaHoja(wb, 'Resumen Mes-Diseñador', `FOGA FLOW — RESUMEN DEL MES POR DISEÑADOR (${MESES_NOMBRE[ahora.getMonth()]} ${ahora.getFullYear()})`, headers10, [16,16,16,16,16,14,12,12], { conGenerado: false });
+
       disenadores.forEach(nombre => {
         const r = resumenDe(delMesActual.filter(x => x.disenador === nombre));
         const pctMeta = metaMes > 0 ? (r.generados / metaMes) * 100 : 0;
         const sem = pctMeta >= 100 ? 'VERDE' : pctMeta >= 70 ? 'AMARILLO' : 'ROJO';
-        disData.push([nombre, r.generados.toFixed(2), r.validados.toFixed(2) || '-', r.reproceso.toFixed(2) || '-', r.pendiente.toFixed(2), metaMes.toFixed(2), `${pctMeta.toFixed(1)}%`, sem]);
+        ws10.addRow([nombre, r.generados.toFixed(2), r.validados.toFixed(2) || '-', r.reproceso.toFixed(2) || '-', r.pendiente.toFixed(2), metaMes.toFixed(2), `${pctMeta.toFixed(1)}%`, sem]);
       });
       const totalDis = resumenDe(delMesActual);
       const metaTotal = metaMes * disenadores.length;
       const pctMetaTotal = metaTotal > 0 ? (totalDis.generados / metaTotal) * 100 : 0;
-      disData.push(['TOTAL', totalDis.generados.toFixed(2), totalDis.validados.toFixed(2), totalDis.reproceso.toFixed(2), totalDis.pendiente.toFixed(2), metaTotal.toFixed(2), `${pctMetaTotal.toFixed(1)}%`, '']);
-      const ws10 = XLSX.utils.aoa_to_sheet(disData);
-      ws10['!cols'] = [16,16,16,16,16,14,12,12].map(w => ({ wch: w }));
-      formatoTabla(ws10, { headerRowIdx: 2, lastRowIdx: disData.length - 1, lastColIdx: 7 });
-      XLSX.utils.book_append_sheet(wb, ws10, 'Resumen Mes-Diseñador');
+      ws10.addRow(['TOTAL', totalDis.generados.toFixed(2), totalDis.validados.toFixed(2), totalDis.reproceso.toFixed(2), totalDis.pendiente.toFixed(2), metaTotal.toFixed(2), `${pctMetaTotal.toFixed(1)}%`, '']);
+      negritaFila(ws10, ws10.rowCount, headers10.length);
+      pintarColumna(ws10, hdr10, 'SEMAFORO', claseSemaforoLiteral);
 
       // ── DESCARGAR ─────────────────────────────────
       const fecha = new Date().toISOString().slice(0,10);
-      XLSX.writeFile(wb, `FOGA_Flow_Reporte_${fecha}.xlsx`);
+      const buffer = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `FOGA_Flow_Reporte_${fecha}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
 
     } catch(err) {
       console.error('Error exportando:', err);
-      alert('Error al generar el Excel. Verifica que xlsx esté instalado.');
+      alert('Error al generar el Excel.');
     } finally {
       setLoading(false);
     }
