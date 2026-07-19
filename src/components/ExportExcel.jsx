@@ -1,6 +1,6 @@
 // =====================================================
 // FOGA FLOW — Botón flotante de exportación Excel
-// Genera reporte con 11 hojas, con encabezados y semáforos
+// Genera reporte con 12 hojas, con encabezados y semáforos
 // (rojo/amarillo/verde) coloreados igual que la planilla de referencia.
 // =====================================================
 import { useState } from 'react';
@@ -148,6 +148,13 @@ const claseSemaforoLiteral = (v) => {
   return null;
 };
 const claseProspectoEstado = (v) => (v === 'Convertido a proyecto' ? 'verde' : null);
+const claseDiasSinAvanzar = (v) => {
+  const n = Number(v);
+  if (v === '—' || isNaN(n)) return null;
+  if (n >= 15) return 'rojo';
+  if (n >= 7) return 'amarillo';
+  return 'verde';
+};
 
 // Crea una hoja con título (fusionado), fecha de generación opcional,
 // fila en blanco y encabezados con autofiltro — devuelve la hoja y la
@@ -304,6 +311,39 @@ export default function ExportExcel() {
         ]);
       });
       pintarColumna(ws4, hdr4, 'ESTADO', claseProspectoEstado);
+
+      // ── HOJA 4B: CONTROL DE BORRADORES (ARQUITECTURA) ──
+      // Fecha de cada paso del checklist de diseño conceptual, para dar
+      // seguimiento a los borradores en proceso — aparte de proyectos ya
+      // confirmados. "Días sin avanzar" ayuda a ver dónde se atascan.
+      const headers4B = ['CLIENTE', 'DISEÑADORA', 'VENDEDOR', 'LÍNEA', 'ESTADO ACTUAL', 'FECHA INGRESO', '1. PROPUESTA INICIAL', '2. BORRADOR CONCEPTUAL', '3. ENVIADO A VENTAS', '4. AJUSTES REALIZADOS', '5. PLANOS APROBADOS', 'DÍAS SIN AVANZAR', 'OBSERVACIÓN'];
+      const { sheet: ws4B, rowHeader: hdr4B } = nuevaHoja(wb, 'Control Borradores Arq.', 'FOGA FLOW — CONTROL DE BORRADORES · ARQUITECTURA', headers4B, [25,18,18,12,20,14,16,18,16,16,16,14,30]);
+
+      const hoyStr = new Date().toISOString().slice(0,10);
+      (prospectos || []).forEach(p => {
+        const ch = p.checklist || {};
+        const pasos = ['propuestaInicial','borradorConceptual','enviadoAVentas','ajustesRealizados','planosAprobados'];
+        const fechas = pasos.map(id => ch[`${id}Fecha`]).filter(Boolean);
+        const ultimoAvance = fechas.length ? fechas.sort().at(-1) : p.fechaIngreso;
+        const diasSinAvanzar = (p.convertido || ch.planosAprobados || !ultimoAvance) ? '—'
+          : Math.floor((new Date(hoyStr) - new Date(ultimoAvance)) / 86400000);
+        ws4B.addRow([
+          p.cliente || '—',
+          p.disenadora || '—',
+          p.vendedor || '—',
+          p.linea || '—',
+          p.convertido ? 'Convertido a proyecto' : (p.estado || '—'),
+          p.fechaIngreso || '—',
+          ch.propuestaInicialFecha   || (ch.propuestaInicial   ? '✓' : '—'),
+          ch.borradorConceptualFecha || (ch.borradorConceptual ? '✓' : '—'),
+          ch.enviadoAVentasFecha     || (ch.enviadoAVentas     ? '✓' : '—'),
+          ch.ajustesRealizadosFecha  || (ch.ajustesRealizados  ? '✓' : '—'),
+          ch.planosAprobadosFecha    || (ch.planosAprobados    ? '✓' : '—'),
+          diasSinAvanzar,
+          p.observacion || '—',
+        ]);
+      });
+      pintarColumna(ws4B, hdr4B, 'DÍAS SIN AVANZAR', claseDiasSinAvanzar);
 
       // ── HOJA 5: ARQUITECTURA DETALLADA ───────────
       const headers5 = ['PROYECTO', 'CLIENTE', 'PEC', 'RESPONSABLE', 'ESTADO', 'CHECKLIST', 'MÓDULOS LIBERADOS A D3D', 'OBSERVACIONES'];
@@ -528,13 +568,14 @@ export default function ExportExcel() {
             </button>
           </div>
           <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 14 }}>
-            Genera un Excel con control total de la empresa, en 11 hojas:
+            Genera un Excel con control total de la empresa, en 12 hojas:
           </div>
           {[
             { icon: '📊', label: 'Resumen general',    desc: 'Todos los proyectos con estado y fechas' },
             { icon: '👤', label: 'Por persona',         desc: 'Carga de trabajo por responsable' },
             { icon: '🏭', label: 'Producción',          desc: 'Módulos, fases y material faltante' },
             { icon: '✏️', label: 'Prospectos',           desc: 'Prospectos de diseño en proceso' },
+            { icon: '📝', label: 'Control Borradores Arq.', desc: 'Fecha por paso del checklist y días sin avanzar' },
             { icon: '📐', label: 'Arquitectura',         desc: 'Checklist, contrato y liberación a D3D' },
             { icon: '🖥️', label: 'Diseño 3D',            desc: 'SolidWorks, despiece y plan de corte' },
             { icon: '🔧', label: 'Instalaciones',        desc: 'Visitas, medidas y obra lista' },
