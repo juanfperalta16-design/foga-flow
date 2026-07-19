@@ -1,9 +1,11 @@
 import { useState, useEffect, createContext, useContext } from 'react';
-import { mockProyectos, mockActividades, mockAlertas, mockHistorial } from './data/mockData';
-import { initStorage, getProyectos, setProyectos, getActividades, setActividades, getAlertas, setAlertas, getHistorial, setHistorial } from './utils/storage';
-import { initSettingsStorage, getResponsablesActivos } from './utils/settingsStorage';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { auth } from './firebase/config';
+import { COLLECTIONS, listenToCollection, setWithId, remove } from './firebase/firestoreService';
+import { seedIfEmpty } from './firebase/seed';
 import { generarAlertasAutomaticas, calcularEstadoGeneral } from './utils/processRules';
 import { isAtrasado } from './utils/dateHelpers';
+import Login from './components/Login';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import Projects from './components/Projects';
@@ -11,95 +13,125 @@ import ProjectDetail from './components/ProjectDetail';
 import MonthlyCalendar from './components/MonthlyCalendar';
 import KanbanBoard from './components/KanbanBoard';
 import DepartmentView from './components/DepartmentView';
-import Urgencies from './components/Urgencies';
+import Urgencias from './components/Urgencies';
+import VistaEquipo from './components/VistaEquipo';
+import ExportExcel from './components/ExportExcel';
 import Configuration from './components/Configuration';
+import Contabilidad from './components/Contabilidad';
 
 export const AppContext = createContext(null);
 export const useApp = () => useContext(AppContext);
 
 export default function App() {
+  const [user, setUser]                           = useState(undefined); // undefined = verificando, null = sin sesión
   const [page, setPage]                           = useState('dashboard');
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [proyectos, setProyectosState]            = useState([]);
   const [actividades, setActividadesState]        = useState([]);
-  const [alertas, setAlertasState]                = useState([]);
+  const [alertasManuales, setAlertasManuales]     = useState([]);
   const [historial, setHistorialState]            = useState([]);
   const [responsables, setResponsablesState]      = useState([]);
-  const [currentUser]                             = useState('Juan Peralta');
+  const [prospectos, setProspectosState]          = useState([]);
+  const [departamentosConfig, setDepartamentosConfig] = useState([]);
 
+  // ── Sesión ──
+  useEffect(() => onAuthStateChanged(auth, setUser), []);
+
+  // ── Datos en tiempo real desde Firestore (solo con sesión activa) ──
   useEffect(() => {
-    initStorage(mockProyectos, mockActividades, mockAlertas, mockHistorial);
-    initSettingsStorage();
-    loadData();
-  }, []);
+    if (!user) return;
+    let cancelled = false;
+    let unsubs = [];
 
-  const loadData = () => {
-    const p = getProyectos() || mockProyectos;
-    const a = getActividades() || mockActividades;
-    const h = getHistorial() || mockHistorial;
-    const r = getResponsablesActivos() || [];
+    (async () => {
+      await seedIfEmpty();
+      if (cancelled) return;
+      unsubs = [
+        listenToCollection(COLLECTIONS.PROYECTOS, data =>
+          setProyectosState(data.map(p => ({ ...p, estadoGeneral: calcularEstadoGeneral(p) })))
+        ),
+        listenToCollection(COLLECTIONS.ACTIVIDADES, data =>
+          setActividadesState(data.map(a => ({ ...a, estado: isAtrasado(a.fechaLimite, a.estado) ? 'Atrasado' : a.estado })))
+        ),
+        listenToCollection(COLLECTIONS.ALERTAS, setAlertasManuales),
+        listenToCollection(COLLECTIONS.HISTORIAL, setHistorialState),
+        listenToCollection(COLLECTIONS.RESPONSABLES, data =>
+          setResponsablesState(data.filter(r => r.estado === 'Activo'))
+        ),
+        listenToCollection(COLLECTIONS.PROSPECTOS, setProspectosState),
+        listenToCollection(COLLECTIONS.DEPARTAMENTOS_CONFIG, setDepartamentosConfig),
+      ];
+    })();
 
-    const aConEstado = (Array.isArray(a) ? a : []).map(act => ({
-      ...act,
-      estado: isAtrasado(act.fechaLimite, act.estado) ? 'Atrasado' : act.estado,
-    }));
+    return () => { cancelled = true; unsubs.forEach(u => u && u()); };
+  }, [user]);
 
-    const proyectosActualizados = (Array.isArray(p) ? p : []).map(proy => ({
-      ...proy,
-      estadoGeneral: calcularEstadoGeneral(proy),
-    }));
-
-    const autoAlertas   = generarAlertasAutomaticas(proyectosActualizados);
-    const manualAlertas = ((getAlertas() || mockAlertas) || []).filter(al => !al.auto);
-
-    setProyectosState(proyectosActualizados);
-    setActividadesState(aConEstado);
-    setAlertasState([...manualAlertas, ...autoAlertas]);
-    setHistorialState(Array.isArray(h) ? h : []);
-    setResponsablesState(Array.isArray(r) ? r : []);
+  // ── Escrituras ──
+  const updateProyecto = async (proyecto) => {
+    const conEstado = { ...proyecto, estadoGeneral: calcularEstadoGeneral(proyecto) };
+    await setWithId(COLLECTIONS.PROYECTOS, conEstado.id, conEstado);
   };
 
-  const saveProyectos   = (data) => { setProyectos(data);   setProyectosState(data); };
-  const saveActividades = (data) => { setActividades(data); setActividadesState(data); };
-  const saveAlertas     = (data) => { const manual = data.filter(a => !a.auto); setAlertas(manual); setAlertasState(data); };
-  const saveHistorial   = (data) => { setHistorial(data);   setHistorialState(data); };
-
-  const updateProyecto = (proyecto) => {
-    const pConEstado = { ...proyecto, estadoGeneral: calcularEstadoGeneral(proyecto) };
-    // Si existe lo actualiza, si es nuevo lo agrega
-    const existe  = proyectos.some(p => p.id === pConEstado.id);
-    const updated = existe
-      ? proyectos.map(p => p.id === pConEstado.id ? pConEstado : p)
-      : [...proyectos, pConEstado];
-    const autoAlertas = generarAlertasAutomaticas(updated);
-    const manual = alertas.filter(a => !a.auto);
-    saveProyectos(updated);
-    setAlertasState([...manual, ...autoAlertas]);
-    setAlertas(manual);
+  const deleteProyecto = async (id) => {
+    const alertasRelacionadas = alertasManuales.filter(a => a.proyectoId === id);
+    await Promise.all(alertasRelacionadas.map(a => remove(COLLECTIONS.ALERTAS, a.id)));
+    await remove(COLLECTIONS.PROYECTOS, id);
   };
 
-  const updateActividad = (actividad) => {
-    saveActividades(actividades.map(a => a.id === actividad.id ? actividad : a));
+  const updateActividad = async (actividad) => {
+    await setWithId(COLLECTIONS.ACTIVIDADES, actividad.id, actividad);
   };
 
-  const addActividad = (actividad) => {
-    saveActividades([...actividades, actividad]);
+  const addActividad = async (actividad) => {
+    await setWithId(COLLECTIONS.ACTIVIDADES, actividad.id, actividad);
   };
 
-  const addHistorial = (entry) => {
-    saveHistorial([entry, ...historial]);
+  const addHistorial = async (entry) => {
+    const id = entry.id || `H${Date.now()}`;
+    await setWithId(COLLECTIONS.HISTORIAL, id, { ...entry, id });
+  };
+
+  const saveAlertas = async (data) => {
+    const manuales = (data || []).filter(a => !a.auto);
+    await Promise.all(manuales.map(a => setWithId(COLLECTIONS.ALERTAS, a.id, a)));
+  };
+
+  const updateProspecto = async (prospecto) => {
+    await setWithId(COLLECTIONS.PROSPECTOS, prospecto.id, prospecto);
+  };
+
+  const deleteProspecto = async (id) => {
+    await remove(COLLECTIONS.PROSPECTOS, id);
   };
 
   const goToProject = (id) => { setSelectedProjectId(id); setPage('project-detail'); };
+  const handleLogout = () => signOut(auth);
 
-  const reloadResponsables = () => {
-    setResponsablesState(getResponsablesActivos() || []);
+  // ── Alertas: manuales (Firestore) + automáticas (calculadas en el momento) ──
+  // Se descartan alertas manuales que ya no aplican:
+  // - huérfanas: su proyecto ya no existe (fue eliminado).
+  // - resueltas por el propio flujo: ej. "Bloqueo Diseño 3D" cuando Arquitectura ya liberó módulos,
+  //   sin que nadie tenga que acordarse de marcarla "Resuelta" a mano.
+  const proyectosPorId = new Map(proyectos.map(p => [p.id, p]));
+  const alertaSigueVigente = (a) => {
+    if (!a.proyectoId) return true;
+    const p = proyectosPorId.get(a.proyectoId);
+    if (!p) return false;
+    if (a.tipo === 'Bloqueo Diseño 3D') {
+      const liberados = (p.production?.modulos || []).some(m => m.arquitectura?.liberadoA3D);
+      if (liberados || p.releasedToDesign3D) return false;
+    }
+    return true;
   };
+  const alertasManualesVivas = alertasManuales.filter(alertaSigueVigente);
+  const alertas = [...alertasManualesVivas, ...generarAlertasAutomaticas(proyectos)];
+  const currentUser = user?.email || '';
 
   const ctx = {
-    proyectos, actividades, alertas, historial, responsables, currentUser,
-    updateProyecto, updateActividad, addActividad, addHistorial,
-    goToProject, setPage, saveAlertas, loadData, reloadResponsables,
+    proyectos, actividades, alertas, historial, responsables, prospectos, currentUser, departamentosConfig,
+    updateProyecto, deleteProyecto, updateActividad, addActividad, addHistorial,
+    saveAlertas, updateProspecto, deleteProspecto,
+    goToProject, setPage,
   };
 
   const urgentCount    = alertas.filter(a => a.estado === 'Pendiente' && a.prioridad === 'Urgente').length;
@@ -120,29 +152,39 @@ export default function App() {
       case 'dashboard':      return <Dashboard />;
       case 'proyectos':      return <Projects />;
       case 'project-detail': return <ProjectDetail proyectoId={selectedProjectId} />;
-      case 'arquitectura':   return <DepartmentView departamento="Arquitectura"  {...deptProps} />;
-      case 'instalaciones':  return <DepartmentView departamento="Instalaciones" {...deptProps} />;
-      case 'diseno3d':       return <DepartmentView departamento="Diseño 3D"     {...deptProps} />;
-      case 'produccion':     return <DepartmentView departamento="Producción"    {...deptProps} />;
-      case 'diseno':         return <DepartmentView departamento="Diseño 3D"     {...deptProps} />;
-      case 'instalacion':    return <DepartmentView departamento="Instalaciones" {...deptProps} />;
-      case 'obra':           return <DepartmentView departamento="Instalaciones" {...deptProps} />;
+      case 'arquitectura':   return <DepartmentView key="Arquitectura"  departamento="Arquitectura"  {...deptProps} />;
+      case 'instalaciones':  return <DepartmentView key="Instalaciones" departamento="Instalaciones" {...deptProps} />;
+      case 'diseno3d':       return <DepartmentView key="Diseño 3D"     departamento="Diseño 3D"     {...deptProps} />;
+      case 'produccion':     return <DepartmentView key="Producción"    departamento="Producción"    {...deptProps} />;
+      case 'diseno':         return <DepartmentView key="Diseño 3D"     departamento="Diseño 3D"     {...deptProps} />;
+      case 'instalacion':    return <DepartmentView key="Instalaciones" departamento="Instalaciones" {...deptProps} />;
+      case 'obra':           return <DepartmentView key="Instalaciones" departamento="Instalaciones" {...deptProps} />;
+      case 'contabilidad':   return <Contabilidad />;
       case 'calendario':     return <MonthlyCalendar />;
       case 'kanban':         return <KanbanBoard />;
-      case 'urgencias':      return <Urgencies activities={actividades} projects={proyectos} alerts={alertas} history={historial} />;
+      case 'urgencias':      return <Urgencias />;
+      case 'equipo':         return <VistaEquipo />;
       case 'configuracion':  return <Configuration />;
       default:               return <Dashboard />;
     }
   };
 
+  if (user === undefined) {
+    return <div className="flex items-center justify-center min-h-screen bg-[#0F1117] text-slate-500 text-sm">Cargando...</div>;
+  }
+  if (user === null) {
+    return <Login />;
+  }
+
   return (
     <AppContext.Provider value={ctx}>
       <div className="flex h-screen overflow-hidden bg-[#0F1117]">
-        <Sidebar page={page} setPage={setPage} urgentCount={urgentCount} atrasadosCount={atrasadosCount} />
+        <Sidebar page={page} setPage={setPage} urgentCount={urgentCount} atrasadosCount={atrasadosCount} currentUser={currentUser} onLogout={handleLogout} />
         <main className="flex-1 overflow-y-auto">
           {renderPage()}
         </main>
       </div>
+      <ExportExcel />
     </AppContext.Provider>
   );
 }

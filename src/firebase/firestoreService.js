@@ -4,22 +4,21 @@
 // =====================================================
 
 import {
-  collection, doc, getDocs, getDoc, addDoc, updateDoc,
-  deleteDoc, onSnapshot, query, orderBy, where,
-  serverTimestamp, writeBatch
+  collection, doc, getDocs, getDoc, setDoc, addDoc, updateDoc,
+  deleteDoc, onSnapshot, serverTimestamp
 } from "firebase/firestore";
 import { db } from "./config";
 
 // ─── Colecciones ──────────────────────────────────
+// Nombres reales usados por la app (src/App.jsx, utils/storage.js, settingsStorage.js)
 export const COLLECTIONS = {
-  USERS: "users",
-  DEPARTMENTS: "departments",
+  PROYECTOS: "proyectos",
+  ACTIVIDADES: "actividades",
+  ALERTAS: "alertas",
+  HISTORIAL: "historial",
   RESPONSABLES: "responsables",
-  PROJECTS: "projects",
-  ACTIVITIES: "activities",
-  CHECKLISTS: "checklists",
-  SETTINGS: "settings",
-  HISTORY: "history",
+  DEPARTAMENTOS_CONFIG: "departamentos_config",
+  PROSPECTOS: "prospectos",
 };
 
 // ─── Helpers genéricos ────────────────────────────
@@ -42,6 +41,12 @@ export const create = async (col, data) => {
   return ref.id;
 };
 
+// setWithId: crea o reemplaza un documento con un ID propio (ej. "P001"),
+// necesario para conservar los IDs que ya usa toda la app.
+export const setWithId = async (col, id, data) => {
+  await setDoc(doc(db, col, id), data, { merge: true });
+};
+
 export const update = async (col, id, data) => {
   await updateDoc(doc(db, col, id), {
     ...data,
@@ -54,34 +59,12 @@ export const remove = async (col, id) => {
 };
 
 // ─── Listeners en tiempo real ─────────────────────
-export const listenToCollection = (col, callback, orderField = "createdAt") => {
-  const q = query(collection(db, col), orderBy(orderField, "desc"));
-  return onSnapshot(q, (snap) => {
+// Sin orderBy: no todos los documentos garantizan el mismo campo/tipo de fecha
+// (datos sembrados con fechas en texto vs. escrituras nuevas con serverTimestamp).
+// El orden, cuando importa, se resuelve del lado de la app.
+export const listenToCollection = (col, callback) => {
+  return onSnapshot(collection(db, col), (snap) => {
     const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     callback(data);
-  });
-};
-
-export const listenToActivities = (callback) => {
-  const q = query(collection(db, COLLECTIONS.ACTIVITIES), orderBy("fechaInicio", "asc"));
-  return onSnapshot(q, (snap) => {
-    const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    callback(data);
-  });
-};
-
-export const listenToProjects = (callback) => {
-  const q = query(collection(db, COLLECTIONS.PROJECTS), orderBy("createdAt", "desc"));
-  return onSnapshot(q, (snap) => {
-    const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    callback(data);
-  });
-};
-
-// ─── Historial ────────────────────────────────────
-export const addHistory = async (entry) => {
-  await addDoc(collection(db, COLLECTIONS.HISTORY), {
-    ...entry,
-    timestamp: serverTimestamp(),
   });
 };

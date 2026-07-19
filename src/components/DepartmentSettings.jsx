@@ -16,6 +16,7 @@ export default function DepartmentSettings({ departamentos = [], responsables = 
   const [expandido, setExpandido] = useState(null);
   const [editDesc, setEditDesc] = useState({});
   const [editColor, setEditColor] = useState({});
+  const [editMeta, setEditMeta] = useState({});
 
   function toggleExpand(id) {
     setExpandido(prev => prev === id ? null : id);
@@ -24,9 +25,11 @@ export default function DepartmentSettings({ departamentos = [], responsables = 
   function handleSave(dept) {
     const desc  = editDesc[dept.id]  !== undefined ? editDesc[dept.id]  : dept.descripcion;
     const color = editColor[dept.id] !== undefined ? editColor[dept.id] : dept.color;
-    onUpdateDept({ ...dept, descripcion: desc, color });
+    const meta  = editMeta[dept.id]  !== undefined ? editMeta[dept.id]  : dept.metaMensualML;
+    onUpdateDept({ ...dept, descripcion: desc, color, metaMensualML: meta });
     setEditDesc(p => { const n = {...p}; delete n[dept.id]; return n; });
     setEditColor(p => { const n = {...p}; delete n[dept.id]; return n; });
+    setEditMeta(p => { const n = {...p}; delete n[dept.id]; return n; });
   }
 
   function miembros(deptNombre) {
@@ -40,7 +43,8 @@ export default function DepartmentSettings({ departamentos = [], responsables = 
         const color  = editColor[dept.id] !== undefined ? editColor[dept.id] : dept.color;
         const desc   = editDesc[dept.id]  !== undefined ? editDesc[dept.id]  : dept.descripcion;
         const equipo = miembros(dept.nombre);
-        const dirty  = editDesc[dept.id] !== undefined || editColor[dept.id] !== undefined;
+        const meta   = editMeta[dept.id] !== undefined ? editMeta[dept.id] : (dept.metaMensualML ?? '');
+        const dirty  = editDesc[dept.id] !== undefined || editColor[dept.id] !== undefined || editMeta[dept.id] !== undefined;
 
         return (
           <div key={dept.id} style={{ background: '#fff', borderRadius: 12, border: '1px solid #F1F5F9', overflow: 'hidden' }}>
@@ -88,6 +92,18 @@ export default function DepartmentSettings({ departamentos = [], responsables = 
                     style={{ width: '100%', marginTop: 5, padding: '7px 10px', border: '1px solid #E2E8F0', borderRadius: 7, fontSize: 13, resize: 'none', boxSizing: 'border-box', color: '#0F172A', outline: 'none' }}
                   />
                 </div>
+
+                {/* Meta mensual — solo Diseño 3D */}
+                {dept.nombre === 'Diseño 3D' && (
+                  <div style={{ marginTop: 14 }}>
+                    <label style={labelStyle}>Meta mensual por diseñador (ML)</label>
+                    <input type="number" min={0} step="0.01" value={meta}
+                      onChange={e => setEditMeta(p => ({ ...p, [dept.id]: e.target.value === '' ? '' : parseFloat(e.target.value) }))}
+                      placeholder="Ej: 32"
+                      style={{ width: 140, marginTop: 5, padding: '7px 10px', border: '1px solid #E2E8F0', borderRadius: 7, fontSize: 13, boxSizing: 'border-box', color: '#0F172A', outline: 'none' }} />
+                    <p style={{ fontSize: 11, color: '#94A3B8', marginTop: 4 }}>Se usa en el resumen mensual del registro de diseño (mismo valor para todos los diseñadores).</p>
+                  </div>
+                )}
 
                 {/* Equipo */}
                 <div style={{ marginTop: 14 }}>

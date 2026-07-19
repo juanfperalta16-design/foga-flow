@@ -2,25 +2,29 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Por ahora: solo usuarios autenticados pueden leer/escribir
-    // Cambia estas reglas según tus necesidades de seguridad
+    // Solo usuarios autenticados (cuentas creadas a mano en Firebase Console)
+    // pueden leer/escribir. No hay roles/permisos todavía: cualquier cuenta
+    // logueada puede ver y editar todo, igual que la app antes de esta migración.
 
-    match /projects/{docId} {
+    match /proyectos/{docId} {
       allow read, write: if request.auth != null;
     }
-    match /activities/{docId} {
+    match /actividades/{docId} {
       allow read, write: if request.auth != null;
     }
-    match /history/{docId} {
+    match /alertas/{docId} {
       allow read, write: if request.auth != null;
     }
-    match /alerts/{docId} {
+    match /historial/{docId} {
       allow read, write: if request.auth != null;
     }
-    match /users/{docId} {
+    match /responsables/{docId} {
       allow read, write: if request.auth != null;
     }
-    match /settings/{docId} {
+    match /departamentos_config/{docId} {
+      allow read, write: if request.auth != null;
+    }
+    match /prospectos/{docId} {
       allow read, write: if request.auth != null;
     }
   }

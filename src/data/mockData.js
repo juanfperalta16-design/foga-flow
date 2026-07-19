@@ -66,6 +66,7 @@ export function buildNuevoProyecto(overrides = {}) {
     id: `P${Date.now()}`,
     nombre: '', cliente: '', numeroContrato: '',
     fechaInicio: new Date().toISOString().slice(0, 10),
+    fechaIngreso: new Date().toISOString().slice(0, 10),
     fechaEntrega: '',
     prioridad: 'Normal',
     responsableGeneral: '',

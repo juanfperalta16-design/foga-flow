@@ -1,208 +1,263 @@
 import { useState } from 'react';
 import { useApp } from '../App';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { getDiasDelMes, getNombreDia, getNombreMes, today, formatFechaCorta } from '../utils/dateHelpers';
-import { getDeptColor, getStatusColor } from '../utils/statusHelpers';
-import ActivityModal from './ActivityModal';
+import { ChevronLeft, ChevronRight, AlertTriangle, Clock, CheckCircle2 } from 'lucide-react';
 
-const DEPTS = ['Arquitectura','Diseño','Obra','Producción','Instalación'];
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DIAS_SEMANA = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+function diasEnMes(year, month) {
+  return new Date(year, month + 1, 0).getDate();
+}
+function primerDia(year, month) {
+  return new Date(year, month, 1).getDay();
+}
+
+function semaforo(fecha) {
+  if (!fecha) return null;
+  const d = Math.floor((new Date(fecha) - new Date()) / 86400000);
+  if (d < 0)  return { color: '#EF4444', bg: '#450A0A', dot: '#EF4444', label: 'Atrasado' };
+  if (d <= 5) return { color: '#F97316', bg: '#431407', dot: '#F97316', label: `${d}d` };
+  if (d <= 15) return { color: '#D97706', bg: '#451A03', dot: '#D97706', label: `${d}d` };
+  return { color: '#16A34A', bg: '#052E16', dot: '#16A34A', label: `${d}d` };
+}
+
+function prioridadColor(p) {
+  if (p === 'Urgente') return '#EF4444';
+  if (p === 'Alta')    return '#D97706';
+  return '#2563EB';
+}
 
 export default function MonthlyCalendar() {
-  const { actividades } = useApp();
-  const [year, setYear] = useState(2026);
-  const [month, setMonth] = useState(6);
-  const [view, setView] = useState('dept'); // 'month' | 'dept'
-  const [selectedAct, setSelectedAct] = useState(null);
-  const [filterDept, setFilterDept] = useState('');
-  const hoy = today();
+  const { proyectos, goToProject } = useApp();
+  const hoy = new Date();
+  const [year, setYear]   = useState(hoy.getFullYear());
+  const [month, setMonth] = useState(hoy.getMonth());
+  const [hoveredDay, setHoveredDay] = useState(null);
 
-  const dias = getDiasDelMes(year, month);
+  const safeProys = (proyectos || []).filter(p => p.fechaEntrega && p.estadoGeneral !== 'Finalizado');
 
-  const actsByDate = {};
-  actividades.forEach(a => {
-    if (!a.fechaInicio) return;
-    const start = a.fechaInicio;
-    const end = a.fechaLimite || start;
-    dias.forEach(dia => {
-      if (dia >= start && dia <= end) {
-        if (!actsByDate[dia]) actsByDate[dia] = [];
-        actsByDate[dia].push(a);
-      }
-    });
-  });
-
-  const prevMonth = () => { if (month === 1) { setMonth(12); setYear(y => y - 1); } else setMonth(m => m - 1); };
-  const nextMonth = () => { if (month === 12) { setMonth(1); setYear(y => y + 1); } else setMonth(m => m + 1); };
-
-  const ActCard = ({ act, compact = false }) => {
-    const c = getDeptColor(act.departamento);
-    const sc = getStatusColor(act.estado);
-    return (
-      <div onClick={(e) => { e.stopPropagation(); setSelectedAct(act); }}
-        className={`cursor-pointer rounded px-1.5 py-1 border-l-2 ${c.border} ${c.light} hover:brightness-125 transition-all mb-1`}>
-        {!compact && <div className={`text-[9px] font-bold ${c.text} mb-0.5`}>{act.departamento}</div>}
-        <div className="text-[10px] font-medium text-white leading-tight truncate">{act.proyecto}</div>
-        <div className="text-[9px] text-slate-400 truncate">{act.actividad}</div>
-        {!compact && <div className="flex items-center gap-1 mt-0.5">
-          <span className={`text-[8px] px-1 py-0.5 rounded ${sc.bg} ${sc.text}`}>{act.estado}</span>
-        </div>}
-      </div>
-    );
-  };
-
-  return (
-    <div className="p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Calendario</h1>
-          <p className="text-slate-400 text-sm">{getNombreMes(month)} {year}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex rounded-lg overflow-hidden border border-white/10">
-            {[['dept','Por departamentos'],['month','Vista mensual']].map(([v,l]) => (
-              <button key={v} onClick={() => setView(v)} className={`text-xs px-3 py-1.5 transition-colors ${view === v ? 'bg-blue-600 text-white' : 'bg-[#161820] text-slate-400 hover:text-white'}`}>{l}</button>
-            ))}
-          </div>
-          <div className="flex items-center gap-1">
-            <button onClick={prevMonth} className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors"><ChevronLeft size={16} /></button>
-            <span className="text-sm text-white font-medium w-28 text-center">{getNombreMes(month)} {year}</span>
-            <button onClick={nextMonth} className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors"><ChevronRight size={16} /></button>
-          </div>
-        </div>
-      </div>
-
-      {/* Legend */}
-      <div className="flex items-center gap-3 flex-wrap">
-        {DEPTS.map(d => {
-          const c = getDeptColor(d);
-          return (
-            <button key={d} onClick={() => setFilterDept(filterDept === d ? '' : d)}
-              className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded-lg border transition-all ${filterDept === d ? `${c.bg} border-transparent text-white` : `${c.border} ${c.text} border-opacity-50 hover:border-opacity-100`}`}>
-              <span className={`w-2 h-2 rounded-full ${c.bg}`} />{d}
-            </button>
-          );
-        })}
-        {filterDept && <button onClick={() => setFilterDept('')} className="text-xs text-slate-500 hover:text-white">✕ Limpiar</button>}
-      </div>
-
-      {view === 'month' ? (
-        <MonthView dias={dias} actsByDate={actsByDate} hoy={hoy} ActCard={ActCard} filterDept={filterDept} />
-      ) : (
-        <DeptView dias={dias} actividades={actividades} hoy={hoy} setSelectedAct={setSelectedAct} filterDept={filterDept} year={year} month={month} />
-      )}
-
-      {selectedAct && <ActivityModal actividad={selectedAct} onClose={() => setSelectedAct(null)} />}
-    </div>
-  );
-}
-
-function MonthView({ dias, actsByDate, hoy, ActCard, filterDept }) {
-  const firstDay = new Date(dias[0] + 'T12:00:00').getDay();
-  const padded = Array(firstDay).fill(null).concat(dias);
-  const DIAS_SEMANA = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-
-  return (
-    <div className="bg-[#161820] border border-white/5 rounded-xl overflow-hidden">
-      <div className="grid grid-cols-7 border-b border-white/5">
-        {DIAS_SEMANA.map(d => <div key={d} className="text-center text-[10px] font-bold text-slate-500 py-2">{d}</div>)}
-      </div>
-      <div className="grid grid-cols-7">
-        {padded.map((dia, i) => {
-          if (!dia) return <div key={i} className="border-r border-b border-white/5 min-h-24" />;
-          const acts = (actsByDate[dia] || []).filter(a => !filterDept || a.departamento === filterDept);
-          const isToday = dia === hoy;
-          const dayNum = parseInt(dia.split('-')[2]);
-          return (
-            <div key={dia} className={`border-r border-b border-white/5 min-h-24 p-1.5 ${isToday ? 'bg-blue-950/30' : 'hover:bg-white/3'} transition-colors`}>
-              <div className={`text-xs font-bold mb-1 w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-blue-500 text-white' : 'text-slate-400'}`}>{dayNum}</div>
-              <div className="overflow-hidden">
-                {acts.slice(0, 3).map(a => <ActCard key={a.id} act={a} compact />)}
-                {acts.length > 3 && <div className="text-[9px] text-slate-500 pl-1">+{acts.length - 3} más</div>}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function DeptView({ dias, actividades, hoy, setSelectedAct, filterDept, year, month }) {
-  const DEPTS_SHOW = filterDept ? [filterDept] : ['Arquitectura','Diseño','Obra','Producción','Instalación'];
-
-  const getActsForDeptDay = (dept, dia) => {
-    return actividades.filter(a => {
-      if (a.departamento !== dept) return false;
-      const start = a.fechaInicio || '';
-      const end = a.fechaLimite || start;
-      return dia >= start && dia <= end;
-    });
-  };
-
-  // Only show days that have at least one activity or are today
-  const diasConActividad = dias.filter(dia => {
-    if (dia === hoy) return true;
-    return DEPTS_SHOW.some(d => getActsForDeptDay(d, dia).length > 0);
-  });
-
-  if (diasConActividad.length === 0) {
-    return <div className="bg-[#161820] border border-white/5 rounded-xl p-8 text-center text-slate-500">Sin actividades en este mes</div>;
+  // Proyectos por día del mes actual
+  function proyectosDelDia(dia) {
+    const fechaStr = `${year}-${String(month + 1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+    return safeProys.filter(p => p.fechaEntrega === fechaStr);
   }
 
+  // Proyectos del mes (para la lista lateral)
+  const proyectosMes = safeProys
+    .filter(p => {
+      const f = new Date(p.fechaEntrega + 'T00:00:00');
+      return f.getFullYear() === year && f.getMonth() === month;
+    })
+    .sort((a, b) => a.fechaEntrega.localeCompare(b.fechaEntrega));
+
+  // Proyectos atrasados (entrega pasada)
+  const atrasados = safeProys.filter(p => {
+    const f = new Date(p.fechaEntrega + 'T00:00:00');
+    return f < new Date(new Date().toDateString());
+  });
+
+  function navMes(dir) {
+    let m = month + dir;
+    let y = year;
+    if (m < 0) { m = 11; y--; }
+    if (m > 11) { m = 0; y++; }
+    setMonth(m); setYear(y);
+  }
+
+  const totalDias  = diasEnMes(year, month);
+  const primerDot  = primerDia(year, month);
+  const hoyStr     = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}`;
+
   return (
-    <div className="bg-[#161820] border border-white/5 rounded-xl overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-white/5">
-              <th className="text-left text-[10px] font-bold text-slate-500 uppercase px-3 py-3 w-24 sticky left-0 bg-[#161820] z-10">Día</th>
-              {DEPTS_SHOW.map(d => {
-                const c = getDeptColor(d);
-                return <th key={d} className="text-left px-3 py-3 min-w-44">
-                  <span className={`text-[10px] font-bold ${c.text} uppercase`}>{d}</span>
-                </th>;
-              })}
-            </tr>
-          </thead>
-          <tbody>
-            {diasConActividad.map(dia => {
-              const isToday = dia === hoy;
-              const dayNum = parseInt(dia.split('-')[2]);
-              const dayName = getNombreDia(dia);
-              return (
-                <tr key={dia} className={`border-b border-white/5 ${isToday ? 'bg-blue-950/20' : 'hover:bg-white/2'}`}>
-                  <td className={`px-3 py-2 sticky left-0 z-10 ${isToday ? 'bg-blue-950/40' : 'bg-[#161820]'}`}>
-                    <div className={`text-sm font-bold ${isToday ? 'text-blue-400' : 'text-white'}`}>{dayNum}</div>
-                    <div className="text-[9px] text-slate-500 uppercase">{dayName}</div>
-                    {isToday && <span className="text-[8px] bg-blue-500 text-white px-1 rounded">HOY</span>}
-                  </td>
-                  {DEPTS_SHOW.map(dept => {
-                    const acts = getActsForDeptDay(dept, dia);
-                    const c = getDeptColor(dept);
-                    return (
-                      <td key={dept} className="px-2 py-2 align-top">
-                        {acts.map(a => {
-                          const sc = getStatusColor(a.estado);
-                          return (
-                            <div key={a.id} onClick={() => setSelectedAct(a)}
-                              className={`cursor-pointer rounded-lg border-l-2 ${c.border} ${c.light} px-2 py-1.5 mb-1 hover:brightness-125 transition-all`}>
-                              <div className="text-[10px] font-semibold text-white truncate">{a.proyecto}</div>
-                              <div className="text-[9px] text-slate-300 truncate">{a.actividad}</div>
-                              <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                                <span className="text-[8px] text-slate-500">{a.responsable?.split(' ')[0]}</span>
-                                <span className={`text-[8px] px-1 py-0.5 rounded ${sc.bg} ${sc.text}`}>{a.estado}</span>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+    <div style={{ display: 'flex', height: '100%', minHeight: '100vh', background: '#0F1117' }}>
+
+      {/* ── Panel lateral izquierdo ── */}
+      <div style={{ width: 280, flexShrink: 0, borderRight: '1px solid #1E2433', padding: '20px 16px', overflowY: 'auto' }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 14 }}>
+          {MESES[month]} {year}
+        </div>
+
+        {/* Atrasados */}
+        {atrasados.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+              <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#EF4444' }} />
+              <span style={{ fontSize: 10, fontWeight: 700, color: '#EF4444', textTransform: 'uppercase', letterSpacing: '.5px' }}>
+                Atrasados — {atrasados.length}
+              </span>
+            </div>
+            {atrasados.map(p => (
+              <div key={p.id} onClick={() => goToProject(p.id)}
+                style={{ background: '#450A0A', border: '1px solid #EF444430', borderRadius: 8, padding: '8px 10px', marginBottom: 5, cursor: 'pointer' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#FCA5A5' }}>{p.nombre}</div>
+                <div style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2 }}>{p.cliente}</div>
+                <div style={{ fontSize: 10, color: '#EF4444', fontWeight: 600, marginTop: 3 }}>Venció el {p.fechaEntrega}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Proyectos del mes */}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#2563EB' }} />
+            <span style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px' }}>
+              Este mes — {proyectosMes.length}
+            </span>
+          </div>
+          {proyectosMes.length === 0 && (
+            <div style={{ fontSize: 11, color: '#4B5563', textAlign: 'center', padding: '16px 0' }}>Sin entregas este mes</div>
+          )}
+          {proyectosMes.map(p => {
+            const sem = semaforo(p.fechaEntrega);
+            const dia = parseInt(p.fechaEntrega.split('-')[2]);
+            return (
+              <div key={p.id} onClick={() => goToProject(p.id)}
+                style={{ background: '#141824', border: `1px solid ${sem?.dot || '#1E2433'}25`, borderLeft: `3px solid ${sem?.dot || '#2563EB'}`, borderRadius: '0 8px 8px 0', padding: '8px 10px', marginBottom: 5, cursor: 'pointer', transition: 'background .15s' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#1a1f2e'}
+                onMouseLeave={e => e.currentTarget.style.background = '#141824'}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#F1F5F9', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.nombre}</div>
+                    <div style={{ fontSize: 10, color: '#6B7280', marginTop: 1 }}>{p.cliente}</div>
+                  </div>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: sem?.color || '#6B7280' }}>{dia}</div>
+                    <div style={{ fontSize: 9, color: sem?.color || '#6B7280', fontWeight: 600 }}>{sem?.label}</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 4, marginTop: 5, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 3, background: p.prioridad === 'Urgente' ? '#450A0A' : p.prioridad === 'Alta' ? '#451A03' : '#1F2937', color: p.prioridad === 'Urgente' ? '#FCA5A5' : p.prioridad === 'Alta' ? '#FCD34D' : '#9CA3AF', fontWeight: 600 }}>
+                    {p.prioridad}
+                  </span>
+                  {p.lineaProyecto && (
+                    <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 3, background: p.lineaProyecto === 'Element' ? '#2D1B69' : '#1E3A5F', color: p.lineaProyecto === 'Element' ? '#C4B5FD' : '#93C5FD', fontWeight: 600 }}>
+                      {p.lineaProyecto}
+                    </span>
+                  )}
+                  <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 3, background: '#1F2937', color: '#9CA3AF' }}>{p.estadoGeneral}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Calendario principal ── */}
+      <div style={{ flex: 1, padding: '20px 24px', overflowY: 'auto' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <div>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: '#F1F5F9', margin: 0, fontFamily: 'var(--font-display)' }}>Calendario de entregas</h1>
+            <p style={{ fontSize: 12, color: '#6B7280', margin: '4px 0 0' }}>Fechas de entrega estimadas por proyecto</p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button onClick={() => navMes(-1)} style={{ background: '#141824', border: '1px solid #1E2433', borderRadius: 8, color: '#9CA3AF', cursor: 'pointer', padding: '6px 10px', display: 'flex', alignItems: 'center' }}>
+              <ChevronLeft size={16} />
+            </button>
+            <span style={{ fontSize: 15, fontWeight: 700, color: '#F1F5F9', minWidth: 140, textAlign: 'center' }}>
+              {MESES[month]} {year}
+            </span>
+            <button onClick={() => navMes(1)} style={{ background: '#141824', border: '1px solid #1E2433', borderRadius: 8, color: '#9CA3AF', cursor: 'pointer', padding: '6px 10px', display: 'flex', alignItems: 'center' }}>
+              <ChevronRight size={16} />
+            </button>
+            <button onClick={() => { setMonth(hoy.getMonth()); setYear(hoy.getFullYear()); }}
+              style={{ background: '#2563EB20', border: '1px solid #2563EB40', borderRadius: 8, color: '#93C5FD', cursor: 'pointer', padding: '6px 14px', fontSize: 12, fontWeight: 600 }}>
+              Hoy
+            </button>
+          </div>
+        </div>
+
+        {/* Días de la semana */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 4 }}>
+          {DIAS_SEMANA.map(d => (
+            <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#4B5563', padding: '6px 0', textTransform: 'uppercase', letterSpacing: '.5px' }}>
+              {d}
+            </div>
+          ))}
+        </div>
+
+        {/* Grid del mes */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
+          {/* Celdas vacías al inicio */}
+          {Array.from({ length: primerDot }).map((_, i) => (
+            <div key={`empty-${i}`} style={{ minHeight: 90, background: '#0A0D14', borderRadius: 8, opacity: 0.3 }} />
+          ))}
+
+          {/* Días del mes */}
+          {Array.from({ length: totalDias }).map((_, i) => {
+            const dia = i + 1;
+            const fechaStr = `${year}-${String(month + 1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+            const esHoy    = fechaStr === hoyStr;
+            const proys    = proyectosDelDia(dia);
+            const hayAtrasados = proys.some(p => new Date(p.fechaEntrega) < new Date(new Date().toDateString()));
+
+            return (
+              <div key={dia}
+                onMouseEnter={() => setHoveredDay(dia)}
+                onMouseLeave={() => setHoveredDay(null)}
+                style={{
+                  minHeight: 90, background: esHoy ? '#1E3A5F20' : hoveredDay === dia ? '#141824' : '#0F1117',
+                  border: `1px solid ${esHoy ? '#2563EB40' : hayAtrasados ? '#EF444420' : '#1E2433'}`,
+                  borderRadius: 8, padding: '6px 8px', transition: 'all .1s', position: 'relative',
+                }}>
+                {/* Número del día */}
+                <div style={{
+                  fontSize: 12, fontWeight: esHoy ? 700 : 500,
+                  color: esHoy ? '#fff' : '#9CA3AF',
+                  background: esHoy ? '#2563EB' : 'transparent',
+                  width: esHoy ? 24 : 'auto', height: esHoy ? 24 : 'auto',
+                  borderRadius: esHoy ? '50%' : 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  marginBottom: 4,
+                }}>{dia}</div>
+
+                {/* Proyectos del día */}
+                {proys.slice(0, 3).map(p => {
+                  const sem = semaforo(p.fechaEntrega);
+                  return (
+                    <div key={p.id} onClick={() => goToProject(p.id)}
+                      style={{
+                        background: sem?.bg || '#1F2937',
+                        border: `1px solid ${sem?.dot || '#374151'}40`,
+                        borderRadius: 5, padding: '3px 6px', marginBottom: 2,
+                        cursor: 'pointer', transition: 'opacity .1s',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
+                      onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: sem?.color || '#9CA3AF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {p.nombre}
+                      </div>
+                      <div style={{ fontSize: 9, color: '#6B7280', marginTop: 1 }}>{p.cliente}</div>
+                    </div>
+                  );
+                })}
+
+                {/* Más proyectos */}
+                {proys.length > 3 && (
+                  <div style={{ fontSize: 9, color: '#6B7280', fontWeight: 600, padding: '2px 4px' }}>
+                    +{proys.length - 3} más
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Leyenda */}
+        <div style={{ display: 'flex', gap: 16, marginTop: 16, padding: '12px 16px', background: '#141824', borderRadius: 10, border: '1px solid #1E2433' }}>
+          {[
+            { color: '#EF4444', label: 'Atrasado' },
+            { color: '#F97316', label: 'Urgente (≤5 días)' },
+            { color: '#D97706', label: 'Próximo (≤15 días)' },
+            { color: '#16A34A', label: 'En tiempo' },
+          ].map(({ color, label }) => (
+            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <div style={{ width: 8, height: 8, borderRadius: 2, background: color }} />
+              <span style={{ fontSize: 10, color: '#9CA3AF' }}>{label}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

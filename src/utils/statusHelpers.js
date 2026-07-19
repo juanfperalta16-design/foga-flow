@@ -58,6 +58,30 @@ export const getDeptColor = (dept) => {
   return DEPT_COLORS[dept] || { bg: 'bg-slate-600', text: 'text-slate-300', border: 'border-slate-500', light: 'bg-slate-800', hex: '#475569' };
 };
 
+/**
+ * Departamento en el que está realmente un proyecto ahora mismo, calculado a partir
+ * de los campos reales que sí se actualizan (architecture/design3d/installations/production
+ * y los módulos), no de "departamentoActual" (ese campo nunca existió en los datos).
+ * Devuelve una de las claves de DEPT_COLORS: 'Arquitectura' | 'Diseño' | 'Obra' | 'Producción' | 'Instalación' | 'Finalizado'.
+ */
+export const getDeptActual = (p) => {
+  if (!p) return 'Arquitectura';
+  if (p.estadoGeneral === 'Finalizado') return 'Finalizado';
+
+  const modulos = p.production?.modulos || [];
+  const d3   = p.design3d || {};
+  const inst = p.installations || {};
+
+  // Producción ya terminó todo pero falta instalar — pasa a la columna de Instalación,
+  // no se queda en Producción (ver [[project-foga-flow]]: Finalizado ahora requiere instalación real).
+  if (p.production?.productionFinished) return 'Instalación';
+  if (modulos.some(m => m.diseno3d?.liberadoProduccion) || d3.releasedToProduction) return 'Producción';
+  if (p.releasedToDesign3D || modulos.some(m => m.arquitectura?.liberadoA3D)) return 'Diseño';
+  if (inst.siteReady) return 'Instalación';
+  if (p.releasedToInstallations || inst.firstVisitDate) return 'Obra';
+  return 'Arquitectura';
+};
+
 // Style objects with hex colors (for inline styles in calendar etc.)
 const DEPT_STYLE_MAP = {
   'Arquitectura': { bg: '#2D1B69', border: '#7C3AED', text: '#C4B5FD' },

@@ -1,4 +1,5 @@
-import { LayoutDashboard, FolderKanban, Calendar, Columns, AlertTriangle, Settings, Building2, Monitor, Factory, Wrench } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Calendar, Columns, AlertTriangle, Settings, Building2, Monitor, Factory, Wrench, Users, LogOut, DollarSign } from 'lucide-react';
+import logoFoga from '../assets/LOGO_FOGA.png';
 
 const NAV = [
   { id: 'dashboard',    label: 'Dashboard',    icon: LayoutDashboard },
@@ -6,27 +7,29 @@ const NAV = [
   { type: 'divider',    label: 'DEPARTAMENTOS' },
   { id: 'arquitectura', label: 'Arquitectura', icon: Building2, color: 'text-purple-400' },
   { id: 'diseno3d',     label: 'Diseño 3D',    icon: Monitor,   color: 'text-blue-400' },
-  { id: 'instalaciones',label: 'Instalaciones',icon: Wrench,    color: 'text-green-400' },
   { id: 'produccion',   label: 'Producción',   icon: Factory,   color: 'text-orange-400' },
+  { id: 'instalaciones',label: 'Instalaciones',icon: Wrench,    color: 'text-green-400' },
+  { id: 'contabilidad', label: 'Contabilidad', icon: DollarSign, color: 'text-yellow-400' },
   { type: 'divider',    label: 'VISTAS' },
   { id: 'calendario',   label: 'Calendario',   icon: Calendar },
   { id: 'kanban',       label: 'Kanban',       icon: Columns },
+  { id: 'equipo',       label: 'Equipo',       icon: Users },
   { type: 'divider',    label: 'CONTROL' },
   { id: 'urgencias',    label: 'Urgencias',    icon: AlertTriangle, color: 'text-red-400', badge: true },
   { id: 'configuracion',label: 'Configuración',icon: Settings },
 ];
 
-export default function Sidebar({ page, setPage, urgentCount, atrasadosCount }) {
+export default function Sidebar({ page, setPage, urgentCount, atrasadosCount, currentUser, onLogout }) {
+  const nombre = currentUser || 'Usuario';
+  const iniciales = nombre.split(/[@.]/)[0].slice(0, 2).toUpperCase();
   return (
     <aside className="w-56 shrink-0 bg-[#161820] border-r border-white/5 flex flex-col h-screen">
-      <div className="px-5 py-5 border-b border-white/5">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xs">F</span>
-          </div>
+      <div className="px-5 py-4 border-b border-white/5">
+        <div className="flex items-center gap-3">
+          <img src={logoFoga} alt="FOGA" style={{ height: 32, filter: 'invert(1)', opacity: 0.95 }} />
           <div>
-            <div className="text-white font-bold text-sm leading-none">FOGA Flow</div>
-            <div className="text-slate-500 text-[10px] mt-0.5 font-mono">v1.0 · FOGA</div>
+            <div className="text-white font-display font-bold text-sm leading-none">Flow</div>
+            <div className="text-slate-500 text-[10px] mt-0.5 font-mono">v1.0 · Sistema interno</div>
           </div>
         </div>
       </div>
@@ -37,7 +40,7 @@ export default function Sidebar({ page, setPage, urgentCount, atrasadosCount }) 
               <span className="text-[9px] font-bold tracking-widest text-slate-600 uppercase">{item.label}</span>
             </div>
           );
-          const Icon = item.icon;
+          const Icon   = item.icon;
           const active = page === item.id;
           const total  = item.badge ? (urgentCount + atrasadosCount) : 0;
           return (
@@ -52,13 +55,16 @@ export default function Sidebar({ page, setPage, urgentCount, atrasadosCount }) 
       </nav>
       <div className="px-4 py-3 border-t border-white/5">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-            <span className="text-white text-[10px] font-bold">JP</span>
+          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shrink-0">
+            <span className="text-white text-[10px] font-bold">{iniciales}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-xs text-white font-medium truncate">Juan Peralta</div>
-            <div className="text-[10px] text-slate-500">Administrador</div>
+            <div className="text-xs text-white font-medium truncate">{nombre}</div>
+            <div className="text-[10px] text-slate-500">Sesión activa</div>
           </div>
+          <button onClick={onLogout} title="Cerrar sesión" className="text-slate-500 hover:text-red-400 transition-colors shrink-0">
+            <LogOut size={14} />
+          </button>
         </div>
       </div>
     </aside>

@@ -1,80 +1,58 @@
-// =====================================================
-// FOGA FLOW — Settings Storage
-// Responsables y departamentos en LocalStorage
-// =====================================================
-
-const KEYS = {
-  RESPONSABLES: 'foga_responsables',
-  DEPARTAMENTOS_CONFIG: 'foga_departamentos_config',
+// ── Grupos definidos por FOGA ────────────────────
+export const GRUPOS = {
+  MAESTROS:             'Maestros',
+  VENDEDORES:           'Vendedores',
+  DISENADORES_PRODUCTO: 'Diseñadores Producto',
+  ARQUITECTAS:          'Arquitectas',
 };
-
-const safe = {
-  get: (key) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } catch { return null; } },
-  set: (key, val) => { try { localStorage.setItem(key, JSON.stringify(val)); return true; } catch { return false; } },
-};
-
-// ─── Datos iniciales ──────────────────────────────
 
 export const RESPONSABLES_INICIALES = [
-  { id: 'U001', nombre: 'Juan Peralta',       iniciales: 'JP', departamento: 'Diseño',               rol: 'Administrador', estado: 'Activo',    correo: '', telefono: '' },
-  { id: 'U002', nombre: 'Santiago Vanegas',    iniciales: 'SV', departamento: 'Arquitectura',          rol: 'Arquitectura',  estado: 'Activo',    correo: '', telefono: '' },
-  { id: 'U003', nombre: 'Manuel Aguirre',      iniciales: 'MA', departamento: 'Diseño',               rol: 'Diseño',        estado: 'Activo',    correo: '', telefono: '' },
-  { id: 'U004', nombre: 'Joaquín Chica',       iniciales: 'JC', departamento: 'Diseño',               rol: 'Diseño',        estado: 'Activo',    correo: '', telefono: '' },
-  { id: 'U005', nombre: 'Paúl Laica',          iniciales: 'PL', departamento: 'Producción',            rol: 'Producción',    estado: 'Activo',    correo: '', telefono: '' },
-  { id: 'U006', nombre: 'Jose Luis Yanza',     iniciales: 'JY', departamento: 'Producción',            rol: 'Producción',    estado: 'Activo',    correo: '', telefono: '' },
-  { id: 'U007', nombre: 'Diego Montero',       iniciales: 'DM', departamento: 'Instalación',           rol: 'Instalación',   estado: 'Activo',    correo: '', telefono: '' },
-  { id: 'U008', nombre: 'Jose Luis Pesantez',  iniciales: 'JP', departamento: 'Instalación',           rol: 'Instalación',   estado: 'Activo',    correo: '', telefono: '' },
-  { id: 'U009', nombre: 'Jaime Dominguez',     iniciales: 'JD', departamento: 'Instalación',           rol: 'Instalación',   estado: 'Activo',    correo: '', telefono: '' },
-  { id: 'U010', nombre: 'Michael Aguayza',     iniciales: 'MA', departamento: 'Producción',            rol: 'Producción',    estado: 'Activo',    correo: '', telefono: '' },
-  { id: 'U011', nombre: 'Bryam Casierra',      iniciales: 'BC', departamento: 'Producción',            rol: 'Producción',    estado: 'Activo',    correo: '', telefono: '' },
+  // ── Maestros ──
+  { id: 'U001', nombre: 'Paúl Laica',          iniciales: 'PL', grupo: 'Maestros',              departamento: 'Producción',    rol: 'Maestro',    estado: 'Activo', correo: '', telefono: '' },
+  { id: 'U002', nombre: 'Jose Luis Pesantez',  iniciales: 'JP', grupo: 'Maestros',              departamento: 'Producción',    rol: 'Maestro',    estado: 'Activo', correo: '', telefono: '' },
+  { id: 'U003', nombre: 'Jose Luis Yanza',     iniciales: 'JY', grupo: 'Maestros',              departamento: 'Producción',    rol: 'Maestro',    estado: 'Activo', correo: '', telefono: '' },
+  { id: 'U004', nombre: 'Diego Montero',       iniciales: 'DM', grupo: 'Maestros',              departamento: 'Producción',    rol: 'Maestro',    estado: 'Activo', correo: '', telefono: '' },
+  { id: 'U005', nombre: 'Jaime Dominguez',     iniciales: 'JD', grupo: 'Maestros',              departamento: 'Producción',    rol: 'Maestro',    estado: 'Activo', correo: '', telefono: '' },
+  // ── Vendedores ──
+  { id: 'U006', nombre: 'Fabián Peralta',      iniciales: 'FP', grupo: 'Vendedores',            departamento: 'Ventas',        rol: 'Vendedor',   estado: 'Activo', correo: '', telefono: '' },
+  { id: 'U007', nombre: 'Cristian Peralta',    iniciales: 'CP', grupo: 'Vendedores',            departamento: 'Ventas',        rol: 'Vendedor',   estado: 'Activo', correo: '', telefono: '' },
+  { id: 'U008', nombre: 'Fabián Andrés Peralta', iniciales: 'FA', grupo: 'Vendedores',          departamento: 'Ventas',        rol: 'Vendedor',   estado: 'Activo', correo: '', telefono: '' },
+  // ── Diseñadores Producto ──
+  { id: 'U009', nombre: 'Juan Peralta',        iniciales: 'JP', grupo: 'Diseñadores Producto',  departamento: 'Diseño 3D',     rol: 'Diseñador',  estado: 'Activo', correo: '', telefono: '' },
+  { id: 'U010', nombre: 'Manuel Aguirre',      iniciales: 'MA', grupo: 'Diseñadores Producto',  departamento: 'Diseño 3D',     rol: 'Diseñador',  estado: 'Activo', correo: '', telefono: '' },
+  { id: 'U011', nombre: 'Joaquín Chica',       iniciales: 'JC', grupo: 'Diseñadores Producto',  departamento: 'Diseño 3D',     rol: 'Diseñador',  estado: 'Activo', correo: '', telefono: '' },
+  { id: 'U012', nombre: 'Santiago Vanegas',    iniciales: 'SV', grupo: 'Diseñadores Producto',  departamento: 'Diseño 3D',     rol: 'Diseñador',  estado: 'Activo', correo: '', telefono: '' },
+  // ── Arquitectas ──
+  { id: 'U013', nombre: 'Kelly Fierro',        iniciales: 'KF', grupo: 'Arquitectas',           departamento: 'Arquitectura',  rol: 'Arquitecta', estado: 'Activo', correo: '', telefono: '' },
+  { id: 'U014', nombre: 'Carolina Yunga',      iniciales: 'CY', grupo: 'Arquitectas',           departamento: 'Arquitectura',  rol: 'Arquitecta', estado: 'Activo', correo: '', telefono: '' },
 ];
 
 export const DEPARTAMENTOS_CONFIG_INICIALES = [
-  { id: 'D001', nombre: 'Arquitectura',         color: '#7C3AED', descripcion: 'Diseño conceptual, medidas iniciales y revisión con cliente',              activo: true },
-  { id: 'D002', nombre: 'Diseño',               color: '#2563EB', descripcion: 'Modelado 3D, planos técnicos y planos de corte para producción',           activo: true },
-  { id: 'D003', nombre: 'Seguimiento de obra',  color: '#D97706', descripcion: 'Verificación de obra gris, visitas y toma de medidas finales',             activo: true },
-  { id: 'D004', nombre: 'Producción',           color: '#EA580C', descripcion: 'Fabricación y armado de muebles en acero inoxidable',                      activo: true },
-  { id: 'D005', nombre: 'Instalación',          color: '#16A34A', descripcion: 'Transporte, montaje e instalación de los equipos en el sitio del cliente', activo: true },
-  { id: 'D006', nombre: 'Administración',       color: '#6B7280', descripcion: 'Gestión de contratos, facturación y coordinación general',                 activo: true },
+  { id: 'D001', nombre: 'Arquitectura', color: '#7C3AED', descripcion: 'Diseño conceptual y planos', activo: true },
+  { id: 'D002', nombre: 'Diseño 3D',    color: '#2563EB', descripcion: 'Modelado SolidWorks y despiece AutoCAD', activo: true, metaMensualML: 32 },
+  { id: 'D003', nombre: 'Producción',   color: '#EA580C', descripcion: 'Fabricación en acero inoxidable', activo: true },
+  { id: 'D004', nombre: 'Instalaciones',color: '#16A34A', descripcion: 'Transporte e instalación en obra', activo: true },
+  { id: 'D005', nombre: 'Ventas',       color: '#6B7280', descripcion: 'Gestión de prospectos y contratos', activo: true },
 ];
 
-// ─── Responsables ─────────────────────────────────
+// ── Helpers de responsables ──────────────────────
+// Reciben la lista de responsables como parámetro (la que viene reactiva desde
+// useApp().responsables, alimentada en vivo por Firestore) en vez de leer una
+// caché propia — así React vuelve a renderizar los selects apenas cambian los
+// datos, sin depender de que algo más dispare un re-render por casualidad.
+export const getResponsablesActivos  = (responsables) => (responsables || []).filter(r => r.estado === 'Activo');
+export const getResponsablesPorDept  = (responsables, dept)  => getResponsablesActivos(responsables).filter(r => r.departamento === dept);
+export const getResponsablesPorGrupo = (responsables, grupo) => getResponsablesActivos(responsables).filter(r => r.grupo === grupo);
+export const getNombresResponsables  = (responsables) => getResponsablesActivos(responsables).map(r => r.nombre);
 
-export const getResponsables = () => safe.get(KEYS.RESPONSABLES) || RESPONSABLES_INICIALES;
-
-export const setResponsables = (data) => safe.set(KEYS.RESPONSABLES, data);
-
-export const initResponsables = () => {
-  if (!safe.get(KEYS.RESPONSABLES)) setResponsables(RESPONSABLES_INICIALES);
-};
-
-/** Solo responsables activos — para usarse en selects de toda la app */
-export const getResponsablesActivos = () =>
-  (getResponsables() || []).filter(r => r.estado === 'Activo');
-
-/** Responsables activos de un departamento específico */
-export const getResponsablesPorDept = (dept) =>
-  (getResponsables() || []).filter(r => r.estado === 'Activo' && r.departamento === dept);
-
-/** Lista de nombres para selects (compatibilidad con código existente) */
-export const getNombresResponsables = () =>
-  (getResponsablesActivos() || []).map(r => r.nombre);
-
-// ─── Departamentos config ─────────────────────────
-
-export const getDepartamentosConfig = () =>
-  safe.get(KEYS.DEPARTAMENTOS_CONFIG) || DEPARTAMENTOS_CONFIG_INICIALES;
-
-export const setDepartamentosConfig = (data) =>
-  safe.set(KEYS.DEPARTAMENTOS_CONFIG, data);
-
-export const initDepartamentosConfig = () => {
-  if (!safe.get(KEYS.DEPARTAMENTOS_CONFIG)) setDepartamentosConfig(DEPARTAMENTOS_CONFIG_INICIALES);
-};
-
-// ─── Init combinado ───────────────────────────────
-
-export const initSettingsStorage = () => {
-  initResponsables();
-  initDepartamentosConfig();
+/** Responsables agrupados para usar en selects con optgroup */
+export const getResponsablesAgrupados = (responsables) => {
+  const activos = getResponsablesActivos(responsables);
+  const grupos = {};
+  activos.forEach(r => {
+    const g = r.grupo || r.departamento || 'Otros';
+    if (!grupos[g]) grupos[g] = [];
+    grupos[g].push(r.nombre);
+  });
+  return grupos;
 };

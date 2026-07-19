@@ -1,11 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Plus, Pencil, Trash2, Power, Users, Building2, Info, RotateCcw } from 'lucide-react';
-import {
-  getResponsables, setResponsables, initSettingsStorage,
-  getDepartamentosConfig, setDepartamentosConfig,
-} from '../utils/settingsStorage';
-import { resetStorage } from '../utils/storage';
-import { mockProyectos, mockActividades, mockAlertas, mockHistorial } from '../data/mockData';
+import { useApp } from '../App';
+import { listenToCollection, setWithId, remove, COLLECTIONS } from '../firebase/firestoreService';
+import { resetDatos } from '../firebase/seed';
 import ResponsibleForm from './ResponsibleForm';
 import DepartmentSettings from './DepartmentSettings';
 
@@ -27,6 +24,7 @@ const TABS = [
 ];
 
 export default function Configuration() {
+  const { currentUser } = useApp();
   const [tab, setTab] = useState('responsables');
   const [responsables, setResp] = useState([]);
   const [departamentos, setDepts] = useState([]);
@@ -36,54 +34,39 @@ export default function Configuration() {
   const [resetConfirm, setResetConfirm] = useState(false);
 
   useEffect(() => {
-    initSettingsStorage();
-    setResp(getResponsables() || []);
-    setDepts(getDepartamentosConfig() || []);
+    const unsub1 = listenToCollection(COLLECTIONS.RESPONSABLES, setResp);
+    const unsub2 = listenToCollection(COLLECTIONS.DEPARTAMENTOS_CONFIG, setDepts);
+    return () => { unsub1(); unsub2(); };
   }, []);
 
   // ─── Responsables CRUD ────────────────────────
 
-  function handleSaveResponsable(form) {
-    let updated;
-    if (editTarget) {
-      updated = (responsables || []).map(r => r.id === editTarget.id ? { ...r, ...form } : r);
-    } else {
-      const newId = 'U' + String(Date.now()).slice(-6);
-      updated = [...(responsables || []), { ...form, id: newId }];
-    }
-    setResponsables(updated);
-    setResp(updated);
+  async function handleSaveResponsable(form) {
+    const id = editTarget ? editTarget.id : 'U' + String(Date.now()).slice(-6);
+    await setWithId(COLLECTIONS.RESPONSABLES, id, { ...form, id });
     setEditTarget(null);
   }
 
-  function handleToggleEstado(r) {
-    const updated = (responsables || []).map(x =>
-      x.id === r.id ? { ...x, estado: x.estado === 'Activo' ? 'Inactivo' : 'Activo' } : x
-    );
-    setResponsables(updated);
-    setResp(updated);
+  async function handleToggleEstado(r) {
+    await setWithId(COLLECTIONS.RESPONSABLES, r.id, { ...r, estado: r.estado === 'Activo' ? 'Inactivo' : 'Activo' });
   }
 
-  function handleDelete(id) {
-    const updated = (responsables || []).filter(r => r.id !== id);
-    setResponsables(updated);
-    setResp(updated);
+  async function handleDelete(id) {
+    await remove(COLLECTIONS.RESPONSABLES, id);
     setDeleteConfirm(null);
   }
 
   // ─── Departamentos update ─────────────────────
 
-  function handleUpdateDept(dept) {
-    const updated = (departamentos || []).map(d => d.id === dept.id ? dept : d);
-    setDepartamentosConfig(updated);
-    setDepts(updated);
+  async function handleUpdateDept(dept) {
+    await setWithId(COLLECTIONS.DEPARTAMENTOS_CONFIG, dept.id, dept);
   }
 
   // ─── Reset ────────────────────────────────────
 
-  function handleReset() {
+  async function handleReset() {
     if (!resetConfirm) { setResetConfirm(true); return; }
-    resetStorage(mockProyectos, mockActividades, mockAlertas, mockHistorial);
+    await resetDatos();
     window.location.reload();
   }
 
@@ -93,7 +76,7 @@ export default function Configuration() {
     <div style={{ padding: 24, maxWidth: 860, fontFamily: 'inherit' }}>
       {/* Title */}
       <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', margin: 0 }}>Configuración</h1>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', margin: 0, fontFamily: 'var(--font-display)' }}>Configuración</h1>
         <p style={{ fontSize: 13, color: '#94A3B8', marginTop: 3 }}>Administra responsables, departamentos y opciones del sistema</p>
       </div>
 
@@ -244,17 +227,10 @@ export default function Configuration() {
               <Info size={15} color="#94A3B8" />
               <h2 style={cardTitle}>Información del sistema</h2>
             </div>
-            <InfoRow label="Aplicación"      value="FOGA Flow v1.0" />
-            <InfoRow label="Almacenamiento"  value="LocalStorage (prototipo)" />
-            <InfoRow label="Usuario activo"  value="Juan Peralta — Administrador" />
+            <InfoRow label="Aplicación"      value="FOGA Flow v2.0" />
+            <InfoRow label="Almacenamiento"  value="Firebase Firestore (en la nube, compartido)" />
+            <InfoRow label="Usuario activo"  value={currentUser || '—'} />
             <InfoRow label="Empresa"         value="FOGA S.A. — Cocinas en acero inoxidable" last />
-          </div>
-
-          <div style={card}>
-            <h2 style={{ ...cardTitle, marginBottom: 8 }}>📦 Migración a Firebase</h2>
-            <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6 }}>
-              El código está preparado. Reemplaza las funciones de <code style={codeStyle}>src/utils/storage.js</code> y <code style={codeStyle}>src/utils/settingsStorage.js</code> por llamadas a Firestore. El resto de la app no requiere cambios.
-            </p>
           </div>
 
           <div style={{ ...card, background: '#FEF2F2', borderColor: '#FECACA' }}>
@@ -263,7 +239,7 @@ export default function Configuration() {
               <h2 style={{ ...cardTitle, color: '#991B1B' }}>Zona peligrosa</h2>
             </div>
             <p style={{ fontSize: 13, color: '#B91C1C', marginBottom: 14 }}>
-              Reinicia todos los datos al estado inicial. Esta acción no se puede deshacer.
+              Reinicia proyectos, actividades, alertas e historial al estado de ejemplo — para <strong>todo el equipo</strong>, no solo para vos. Esta acción no se puede deshacer.
             </p>
             <button onClick={handleReset} style={{
               padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600,
@@ -302,7 +278,6 @@ const card = {
   background: '#fff', borderRadius: 12, border: '1px solid #F1F5F9', padding: '18px 20px',
 };
 const cardTitle = { fontSize: 14, fontWeight: 700, color: '#0F172A', margin: 0 };
-const codeStyle = { background: '#F1F5F9', padding: '1px 5px', borderRadius: 4, fontFamily: 'monospace', fontSize: 12 };
 
 function InfoRow({ label, value, last }) {
   return (

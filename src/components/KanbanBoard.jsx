@@ -1,37 +1,35 @@
 import { useState } from 'react';
 import { useApp } from '../App';
 import { isAtrasado, formatFecha } from '../utils/dateHelpers';
-import { getDeptColor } from '../utils/statusHelpers';
+import { getDeptColor, getDeptActual } from '../utils/statusHelpers';
 import { StatusChip, DeptChip } from './StatusChip';
 
 const COLUMNAS_GENERAL = [
-  { id: 'sin-contrato', label: 'Sin contrato', color: 'border-red-700' },
   { id: 'arquitectura', label: 'Arquitectura', color: 'border-purple-600' },
-  { id: 'diseno', label: 'Diseño', color: 'border-blue-600' },
-  { id: 'obra', label: 'Obra / Medidas', color: 'border-amber-600' },
+  { id: 'diseno', label: 'Diseño 3D', color: 'border-blue-600' },
+  { id: 'obra', label: 'Instalaciones', color: 'border-amber-600' },
   { id: 'produccion', label: 'Producción', color: 'border-orange-600' },
   { id: 'instalacion', label: 'Instalación', color: 'border-green-600' },
-  { id: 'observaciones', label: 'Con observaciones', color: 'border-yellow-600' },
   { id: 'finalizado', label: 'Finalizado', color: 'border-slate-600' },
 ];
 
-const getKanbanCol = (p) => {
-  if (!p.contratoFirmado) return 'sin-contrato';
-  if (p.estadoGeneral === 'Finalizado') return 'finalizado';
-  if (p.estadoGeneral === 'Con observaciones') return 'observaciones';
-  if (p.departamentoActual === 'Instalación' || p.estadoGeneral === 'En instalación') return 'instalacion';
-  if (p.departamentoActual === 'Producción' || p.estadoGeneral === 'En producción') return 'produccion';
-  if (p.estadoGeneral === 'En obra') return 'obra';
-  if (p.departamentoActual === 'Diseño' || p.estadoGeneral === 'En diseño') return 'diseno';
-  if (p.estadoGeneral === 'En arquitectura') return 'arquitectura';
-  return 'arquitectura';
+// Mapea el departamento real (calculado con getDeptActual) a la columna del tablero.
+const DEPT_TO_COL = {
+  'Finalizado':  'finalizado',
+  'Producción':  'produccion',
+  'Diseño':      'diseno',
+  'Instalación': 'instalacion',
+  'Obra':        'obra',
+  'Arquitectura':'arquitectura',
 };
+
+const getKanbanCol = (p) => DEPT_TO_COL[getDeptActual(p)] || 'arquitectura';
 
 export default function KanbanBoard() {
   const { proyectos, goToProject } = useApp();
   const [filterDept, setFilterDept] = useState('');
 
-  const filtered = filterDept ? proyectos.filter(p => p.departamentoActual === filterDept) : proyectos;
+  const filtered = filterDept ? proyectos.filter(p => getDeptActual(p) === filterDept) : proyectos;
 
   const DEPTS = ['Arquitectura','Diseño','Obra','Producción','Instalación'];
 
@@ -39,7 +37,7 @@ export default function KanbanBoard() {
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Kanban</h1>
+          <h1 className="text-2xl font-display font-bold text-white">Kanban</h1>
           <p className="text-slate-400 text-sm">{filtered.length} proyectos</p>
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -63,7 +61,6 @@ export default function KanbanBoard() {
               <div className="flex-1 p-2 space-y-2 overflow-y-auto max-h-[70vh]">
                 {items.map(p => {
                   const atrasado = isAtrasado(p.fechaEntrega, p.estadoGeneral);
-                  const c = getDeptColor(p.departamentoActual);
                   return (
                     <div key={p.id} onClick={() => goToProject(p.id)}
                       className={`cursor-pointer bg-[#0F1117] border rounded-lg p-3 hover:border-white/20 transition-all ${atrasado ? 'border-red-800/70' : 'border-white/5'}`}>
@@ -73,8 +70,7 @@ export default function KanbanBoard() {
                       </div>
                       <div className="text-[10px] text-slate-500 mb-2">{p.cliente}</div>
                       <div className="flex items-center gap-1 flex-wrap mb-2">
-                        <span className={`text-[8px] px-1.5 py-0.5 rounded font-bold ${p.contratoFirmado ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'}`}>{p.contratoFirmado ? '✓ CTR' : '✗ CTR'}</span>
-                        <DeptChip dept={p.departamentoActual} size="xs" />
+                        <DeptChip dept={getDeptActual(p)} size="xs" />
                       </div>
                       {p.proximaAccion && <div className="text-[9px] text-blue-400 truncate">{p.proximaAccion}</div>}
                       <div className="flex items-center justify-between mt-2">
