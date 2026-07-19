@@ -96,6 +96,33 @@ function TarjetaModulo({ modulo, proyecto, color, motivo, goToProject }) {
   );
 }
 
+function TarjetaAlerta({ alerta, goToProject, onResolver }) {
+  return (
+    <div onClick={() => alerta.proyectoId && goToProject(alerta.proyectoId)}
+      style={{ background: '#141824', border: '1px solid #DC262630', borderLeft: '3px solid #DC2626', borderRadius: 10, padding: '12px 14px', cursor: alerta.proyectoId ? 'pointer' : 'default' }}
+      onMouseEnter={e => e.currentTarget.style.background = '#1a1f2e'}
+      onMouseLeave={e => e.currentTarget.style.background = '#141824'}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 3 }}>
+            <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 4, background: '#450A0A', color: '#FCA5A5' }}>{alerta.tipo}</span>
+            {alerta.departamentoOrigen && <span style={{ fontSize: 10, color: '#6B7280' }}>{alerta.departamentoOrigen}{alerta.departamentoDestino ? ` → ${alerta.departamentoDestino}` : ''}</span>}
+          </div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#F1F5F9' }}>{alerta.proyecto}{alerta.cliente ? ` · ${alerta.cliente}` : ''}</div>
+          <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 3 }}>{alerta.motivo}</div>
+          {alerta.accionNecesaria && <div style={{ fontSize: 10, color: '#93C5FD', marginTop: 4, fontWeight: 600 }}>{alerta.accionNecesaria}</div>}
+        </div>
+        <button onClick={e => { e.stopPropagation(); onResolver(alerta); }}
+          style={{ fontSize: 10, color: '#9CA3AF', background: 'none', border: '1px solid #ffffff20', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}
+          onMouseEnter={e => { e.currentTarget.style.color = '#86EFAC'; e.currentTarget.style.borderColor = '#16653480'; }}
+          onMouseLeave={e => { e.currentTarget.style.color = '#9CA3AF'; e.currentTarget.style.borderColor = '#ffffff20'; }}>
+          ✓ Marcar resuelta
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function Seccion({ titulo, subtitulo, items, color, icon, children }) {
   return (
     <div style={{ background: '#141824', border: `1px solid ${color}30`, borderRadius: 14, overflow: 'hidden' }}>
@@ -122,8 +149,15 @@ function Seccion({ titulo, subtitulo, items, color, icon, children }) {
 }
 
 export default function Urgencies() {
-  const { proyectos, goToProject } = useApp();
+  const { proyectos, alertas, saveAlertas, goToProject } = useApp();
   const safeProys = (proyectos || []);
+
+  // ── 0. Alertas reportadas manualmente por un departamento ──
+  // (ej. botón "🔔 Enviar alerta" en Arquitectura) — antes solo se
+  // veían en Proyectos → pestaña Alertas; el contador del sidebar las
+  // cuenta pero esta página no las mostraba, así que "desaparecían".
+  const alertasReportadas = (alertas || []).filter(a => !a.auto && a.estado === 'Pendiente');
+  const resolverAlerta = (al) => saveAlertas([{ ...al, estado: 'Resuelta' }]);
 
   // ── 1. Proyectos atrasados (fecha general) ──
   const proyAtrasados = safeProys.filter(p =>
@@ -175,7 +209,7 @@ export default function Urgencies() {
     });
   });
 
-  const totalAlertas = proyAtrasados.length + proyUrgentes.length + sinResponsable.length + modMaterial.length + modAtrasados.length;
+  const totalAlertas = alertasReportadas.length + proyAtrasados.length + proyUrgentes.length + sinResponsable.length + modMaterial.length + modAtrasados.length;
 
   return (
     <div style={{ padding: 24, maxWidth: 900, margin: '0 auto' }}>
@@ -188,6 +222,11 @@ export default function Urgencies() {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+        {/* Alertas reportadas manualmente por un departamento */}
+        <Seccion titulo="Alertas reportadas" subtitulo="Reportadas manualmente por un departamento (ej. bloqueos para liberar a otra área)" items={alertasReportadas.length} color="#DC2626" icon="🔔">
+          {alertasReportadas.map(al => <TarjetaAlerta key={al.id} alerta={al} goToProject={goToProject} onResolver={resolverAlerta} />)}
+        </Seccion>
 
         {/* Proyectos atrasados */}
         <Seccion titulo="Proyectos atrasados" subtitulo="Fecha de entrega general vencida" items={proyAtrasados.length} color="#EF4444" icon="🔴">
