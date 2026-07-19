@@ -156,9 +156,6 @@ export default function App() {
       case 'instalaciones':  return <DepartmentView key="Instalaciones" departamento="Instalaciones" {...deptProps} />;
       case 'diseno3d':       return <DepartmentView key="Diseño 3D"     departamento="Diseño 3D"     {...deptProps} />;
       case 'produccion':     return <DepartmentView key="Producción"    departamento="Producción"    {...deptProps} />;
-      case 'diseno':         return <DepartmentView key="Diseño 3D"     departamento="Diseño 3D"     {...deptProps} />;
-      case 'instalacion':    return <DepartmentView key="Instalaciones" departamento="Instalaciones" {...deptProps} />;
-      case 'obra':           return <DepartmentView key="Instalaciones" departamento="Instalaciones" {...deptProps} />;
       case 'contabilidad':   return <Contabilidad />;
       case 'calendario':     return <MonthlyCalendar />;
       case 'kanban':         return <KanbanBoard />;
