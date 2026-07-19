@@ -368,8 +368,14 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
                           </select>
                         </div>
 
-                        {/* Categorías de detalle — solo se muestran las que
-                            tienen sentido para el tipo de módulo elegido. */}
+                        {/* Categorías de detalle — solo aparecen una vez elegidos
+                            Tipo de módulo y Lado (la base del código), y solo las
+                            que tienen sentido para ese tipo. */}
+                        {(!mod.tipoModulo || !mod.lado) ? (
+                          <div className="col-span-2 bg-white/[0.03] border border-white/10 rounded-lg px-3 py-2.5 text-[11px] text-slate-500">
+                            Elige <strong className="text-slate-300">Tipo de módulo</strong> y <strong className="text-slate-300">Lado</strong> arriba para ver las opciones de Aéreo, Superior, Línea caliente e Inferior.
+                          </div>
+                        ) : (<>
                         {categorias.includes('aereo') && (
                           <div className="col-span-2">
                             <label className="text-[10px] text-slate-500 mb-1 block">Aéreo</label>
@@ -415,6 +421,7 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
                               onToggle={v => toggleModuloLista(mod.id, 'inferior', v, 3)} />
                           </div>
                         )}
+                        </>)}
 
                         <div className="col-span-2">
                           <label className="text-[10px] text-slate-500 mb-1 block">Dimensiones (cm)</label>
@@ -442,9 +449,23 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
 
                         <div className="col-span-2">
                           <label className="text-[10px] text-slate-500 mb-1 block">Código generado</label>
-                          <div className="w-full bg-orange-950/30 border border-orange-800/40 rounded-lg text-xs font-mono text-orange-300 px-2 py-2 min-h-[30px] break-all">
-                            {generarCodigoModulo(mod) || <span className="text-slate-600 font-sans">Elige tipo, lado y medidas para generar el código...</span>}
-                          </div>
+                          {(() => {
+                            const codigo = generarCodigoModulo(mod);
+                            if (codigo) return (
+                              <div className="w-full bg-orange-950/30 border border-orange-800/40 rounded-lg text-xs font-mono text-orange-300 px-2 py-2 min-h-[30px] break-all">
+                                {codigo}
+                              </div>
+                            );
+                            const falta = [];
+                            if (!mod.linea)      falta.push('Línea');
+                            if (!mod.tipoModulo) falta.push('Tipo de módulo');
+                            if (!mod.lado)       falta.push('Lado');
+                            return (
+                              <div className="w-full bg-white/[0.03] border border-white/10 rounded-lg text-[11px] text-slate-500 px-2 py-2 min-h-[30px] flex items-center">
+                                {falta.length > 0 ? <>Falta elegir: <span className="text-slate-300 ml-1">{falta.join(', ')}</span></> : 'Sin datos suficientes para generar el código'}
+                              </div>
+                            );
+                          })()}
                         </div>
                       </div>
                         );
