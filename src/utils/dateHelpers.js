@@ -1,16 +1,14 @@
-export const HOY = '2026-06-10'; // Simulated today
-
-export const today = () => HOY;
+export const today = () => new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD, hora local
 
 export const isAtrasado = (fechaLimite, estado) => {
   if (!fechaLimite) return false;
   if (['Finalizado', 'Aprobado'].includes(estado)) return false;
-  return fechaLimite < HOY;
+  return fechaLimite < today();
 };
 
 export const diasRestantes = (fechaLimite) => {
   if (!fechaLimite) return null;
-  const diff = new Date(fechaLimite) - new Date(HOY);
+  const diff = new Date(fechaLimite) - new Date(today());
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 };
 
