@@ -85,6 +85,14 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
 
   const set = (field, val) => setForm(f => ({ ...f, [field]: val }));
 
+  // En la práctica un proyecto se trabaja con UNA sola línea — no se
+  // elige por módulo. Cambiar la línea del proyecto la aplica a todos
+  // los módulos ya agregados, para no tener que repetirla uno por uno.
+  function setLineaProyecto(linea) {
+    set('lineaProyecto', linea);
+    setModulos(ms => ms.map(m => ({ ...m, linea })));
+  }
+
   // El maestro ya no se asigna aquí — Arquitectura no decide quién fabrica.
   // Lo asigna el Jefe de Producción, por módulo, desde la pestaña Producción.
   function agregarModulo() {
@@ -252,12 +260,12 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
 
               <div>
                 <label className="text-xs text-slate-400 mb-1 block">Línea del proyecto</label>
-                <select value={form.lineaProyecto || ''} onChange={e => set('lineaProyecto', e.target.value)}
+                <select value={form.lineaProyecto || ''} onChange={e => setLineaProyecto(e.target.value)}
                   className="w-full bg-[#0F1117] border border-white/10 rounded-lg text-sm text-white px-3 py-2 focus:outline-none focus:border-purple-500">
                   <option value="">Seleccionar línea...</option>
                   {LINEAS.map(l => <option key={l} value={l}>{l}</option>)}
                 </select>
-                <p className="text-[10px] text-slate-600 mt-1">Línea por defecto para los módulos nuevos — cada módulo la puede cambiar si es de otra línea.</p>
+                <p className="text-[10px] text-slate-600 mt-1">Se aplica a todos los módulos del proyecto.</p>
               </div>
 
               <div>
@@ -439,17 +447,6 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
                           </div>
                         </div>
 
-                        {/* Línea — se decide sobre la marcha, como en la práctica.
-                            Ya viene precargada con la línea del proyecto; solo
-                            cambiarla si ESTE módulo puntual es de otra línea. */}
-                        <div className="col-span-2">
-                          <label className="text-[10px] text-slate-500 mb-1 block">Línea de este módulo</label>
-                          <select value={mod.linea} onChange={e => actualizarModulo(mod.id, 'linea', e.target.value)}
-                            className="w-full bg-[#161820] border border-white/10 rounded-lg text-xs text-white px-2 py-1.5 focus:outline-none focus:border-orange-500">
-                            {LINEAS.map(l => <option key={l} value={l}>{l}</option>)}
-                          </select>
-                          <p className="text-[10px] text-slate-700 mt-1">Toma la línea del proyecto por defecto — cámbiala solo si este módulo es distinto.</p>
-                        </div>
 
                         <div className="col-span-2">
                           <label className="text-[10px] text-slate-500 mb-1 block">Código generado</label>
