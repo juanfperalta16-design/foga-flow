@@ -22,11 +22,11 @@ const ordenarPorDiccionario = (valores, lista) =>
 const pad3 = (n) => String(Math.round(Number(n))).padStart(3, '0');
 
 export function generarCodigoModulo({
-  linea, tipo, lado, aereo, superior, lcaEquipo, combustible, inferior,
+  linea, tipoModulo, lado, aereo, superior, lcaEquipo, combustible, inferior,
   largo, profundidad, alto,
 } = {}) {
   const abrevLinea = abrevDe(LINEA, linea);
-  const abrevTipo  = abrevDe(TIPO_MODULO, tipo);
+  const abrevTipo  = abrevDe(TIPO_MODULO, tipoModulo);
   const abrevLado  = abrevDe(LADO, lado);
   if (!abrevLinea || !abrevTipo || !abrevLado) return '';
 
