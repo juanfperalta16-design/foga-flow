@@ -257,6 +257,7 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
                   <option value="">Seleccionar línea...</option>
                   {LINEAS.map(l => <option key={l} value={l}>{l}</option>)}
                 </select>
+                <p className="text-[10px] text-slate-600 mt-1">Línea por defecto para los módulos nuevos — cada módulo la puede cambiar si es de otra línea.</p>
               </div>
 
               <div>
@@ -438,13 +439,16 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
                           </div>
                         </div>
 
-                        {/* Línea — se decide sobre la marcha, como en la práctica */}
+                        {/* Línea — se decide sobre la marcha, como en la práctica.
+                            Ya viene precargada con la línea del proyecto; solo
+                            cambiarla si ESTE módulo puntual es de otra línea. */}
                         <div className="col-span-2">
-                          <label className="text-[10px] text-slate-500 mb-1 block">Línea</label>
+                          <label className="text-[10px] text-slate-500 mb-1 block">Línea de este módulo</label>
                           <select value={mod.linea} onChange={e => actualizarModulo(mod.id, 'linea', e.target.value)}
                             className="w-full bg-[#161820] border border-white/10 rounded-lg text-xs text-white px-2 py-1.5 focus:outline-none focus:border-orange-500">
                             {LINEAS.map(l => <option key={l} value={l}>{l}</option>)}
                           </select>
+                          <p className="text-[10px] text-slate-700 mt-1">Toma la línea del proyecto por defecto — cámbiala solo si este módulo es distinto.</p>
                         </div>
 
                         <div className="col-span-2">
