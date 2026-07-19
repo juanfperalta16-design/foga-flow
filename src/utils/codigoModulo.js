@@ -51,3 +51,16 @@ export function generarCodigoModulo({
 
   return seg.join('-');
 }
+
+// Nombre legible para humanos — lo que se lee de un vistazo en tarjetas,
+// listas y reportes. El código técnico (generarCodigoModulo) es la
+// referencia exacta para trabajo interno, pero no es cómodo de leer de
+// primeras, así que va aparte, no como el nombre principal.
+export function generarNombreModulo({ tipoModulo, lado, linea } = {}) {
+  if (!tipoModulo) return '';
+  const partes = ['Módulo', tipoModulo];
+  if (lado && lado !== 'NO APLICA') partes.push(lado);
+  let nombre = partes.join(' ');
+  if (linea) nombre += ` — ${linea}`;
+  return nombre;
+}

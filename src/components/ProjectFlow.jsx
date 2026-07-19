@@ -68,6 +68,7 @@ function ModuloRow({ mod, index }) {
             <SemaforoBadge fecha={mod.fechaEntrega} />
             {dims && <span style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF' }}>📐 {dims}</span>}
           </div>
+          {mod.codigo && <div style={{ fontSize: 9, fontFamily: 'var(--font-mono)', color: '#4B5563', marginTop: 2 }}>{mod.codigo}</div>}
         </div>
       </div>
 

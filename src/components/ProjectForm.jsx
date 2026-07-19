@@ -6,7 +6,7 @@ import { getResponsablesAgrupados } from '../utils/settingsStorage';
 import { SelectGrupoTailwind } from './SelectGrupo';
 import { crearEntradaHistorial } from '../utils/historyHelpers';
 import { buildNuevoProyecto } from '../data/mockData';
-import { generarCodigoModulo } from '../utils/codigoModulo';
+import { generarCodigoModulo, generarNombreModulo } from '../utils/codigoModulo';
 import { TIPO_MODULO, LADO, AEREO, SUPERIOR, LCA_EQUIPO, COMBUSTIBLE, INFERIOR, CATEGORIAS_POR_TIPO, TODAS_LAS_CATEGORIAS } from '../data/diccionarioModulos';
 
 // Grilla de chips con buscador — para categorías largas (Superior,
@@ -53,7 +53,7 @@ function buildModulo(pec, index, maestro = '') {
   return {
     id:     `MOD-${Date.now()}-${index}`,
     pec:    `${pec}-(${num})`,
-    nombre: '',
+    nombre: '', codigo: '', _nombreAuto: '',
     linea:  'Element',
     tipoModulo: '', lado: '', aereo: '', superior: [], lcaEquipo: [], combustible: '', inferior: [],
     maestro,
@@ -90,7 +90,7 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
   // los módulos ya agregados, para no tener que repetirla uno por uno.
   function setLineaProyecto(linea) {
     set('lineaProyecto', linea);
-    setModulos(ms => ms.map(m => ({ ...m, linea })));
+    setModulos(ms => ms.map(m => regenerarNombreYCodigo({ ...m, linea })));
   }
 
   // El maestro ya no se asigna aquí — Arquitectura no decide quién fabrica.
@@ -113,23 +113,46 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
   }
 
   // Campos que participan en el código generado — al cambiar cualquiera
-  // de ellos, el nombre del módulo se re-arma automáticamente.
+  // de ellos, el nombre y el código del módulo se re-arman solos.
   const CAMPOS_CODIGO = ['linea','tipoModulo','lado','aereo','superior','lcaEquipo','combustible','inferior','largo','profundidad','alto'];
+
+  // Al cambiar el tipo de módulo, limpia las categorías que ya no le
+  // corresponden (ej. pasar de "Lateral" a "Aéreo" no debe dejar
+  // colgadas selecciones de Superior/Inferior que ya no se ven en el
+  // formulario pero seguían coladas en el código generado).
+  function limpiarCategoriasNoRelevantes(mod, nuevoTipo) {
+    const categorias = nuevoTipo ? (CATEGORIAS_POR_TIPO[nuevoTipo] ?? TODAS_LAS_CATEGORIAS) : TODAS_LAS_CATEGORIAS;
+    const limpio = { ...mod };
+    if (!categorias.includes('aereo'))     limpio.aereo = '';
+    if (!categorias.includes('superior'))  limpio.superior = [];
+    if (!categorias.includes('lcaEquipo')) { limpio.lcaEquipo = []; limpio.combustible = ''; }
+    if (!categorias.includes('inferior'))  limpio.inferior = [];
+    return limpio;
+  }
+
+  function regenerarNombreYCodigo(mod) {
+    const actualizado = { ...mod };
+    actualizado.codigo = generarCodigoModulo(actualizado);
+    const nombreAuto = generarNombreModulo(actualizado);
+    // Solo pisa el nombre si todavía no lo editaron a mano con algo
+    // propio, o si el nombre actual es justo el auto-generado anterior.
+    if (nombreAuto && (!mod.nombre || mod.nombre === mod._nombreAuto)) actualizado.nombre = nombreAuto;
+    actualizado._nombreAuto = nombreAuto;
+    return actualizado;
+  }
 
   function actualizarModulo(id, field, val) {
     setModulos(ms => ms.map(m => {
       if (m.id !== id) return m;
-      const actualizado = { ...m, [field]: val };
-      if (CAMPOS_CODIGO.includes(field)) {
-        const codigo = generarCodigoModulo(actualizado);
-        if (codigo) actualizado.nombre = codigo;
-      }
+      let actualizado = { ...m, [field]: val };
+      if (field === 'tipoModulo') actualizado = limpiarCategoriasNoRelevantes(actualizado, val);
+      if (CAMPOS_CODIGO.includes(field)) actualizado = regenerarNombreYCodigo(actualizado);
       return actualizado;
     }));
   }
 
   // Marca/desmarca un valor dentro de una categoría de selección múltiple
-  // (superior, línea caliente·equipo, inferior) y regenera el código.
+  // (superior, línea caliente·equipo, inferior) y regenera nombre+código.
   function toggleModuloLista(id, field, valor, max) {
     setModulos(ms => ms.map(m => {
       if (m.id !== id) return m;
@@ -139,10 +162,7 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
       if (yaEsta) siguiente = actual.filter(v => v !== valor);
       else if (max && actual.length >= max) return m; // límite alcanzado, sin cambios
       else siguiente = [...actual, valor];
-      const actualizado = { ...m, [field]: siguiente };
-      const codigo = generarCodigoModulo(actualizado);
-      if (codigo) actualizado.nombre = codigo;
-      return actualizado;
+      return regenerarNombreYCodigo({ ...m, [field]: siguiente });
     }));
   }
 
@@ -335,6 +355,7 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
                           <span className="text-[11px] font-semibold text-slate-400">📐 {mod.largo || '—'}×{mod.profundidad || '—'}×{mod.alto || '—'} cm</span>
                         )}
                       </div>
+                      {mod.codigo && <div className="text-[10px] font-mono text-slate-600 mt-0.5 truncate">{mod.codigo}</div>}
                     </div>
                     <button onClick={e => { e.stopPropagation(); eliminarModulo(mod.id); }}
                       className="text-slate-600 hover:text-red-400 transition-colors p-1">
@@ -449,11 +470,18 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
 
 
                         <div className="col-span-2">
-                          <label className="text-[10px] text-slate-500 mb-1 block">Código generado</label>
+                          <label className="text-[10px] text-slate-500 mb-1 block">Nombre del módulo * <span className="text-slate-600">(se arma solo; edítalo solo si el módulo no encaja en el diccionario)</span></label>
+                          <input value={mod.nombre} onChange={e => actualizarModulo(mod.id, 'nombre', e.target.value)}
+                            placeholder="Ej: Módulo Lateral Derecho — Element"
+                            className="w-full bg-[#161820] border border-white/10 rounded-lg text-xs text-white px-2 py-1.5 focus:outline-none focus:border-orange-500 placeholder:text-slate-700" />
+                        </div>
+
+                        <div className="col-span-2">
+                          <label className="text-[10px] text-slate-500 mb-1 block">Código técnico <span className="text-slate-600">(referencia interna — se arma solo, no editable)</span></label>
                           {(() => {
                             const codigo = generarCodigoModulo(mod);
                             if (codigo) return (
-                              <div className="w-full bg-orange-950/30 border border-orange-800/40 rounded-lg text-xs font-mono text-orange-300 px-2 py-2 min-h-[30px] break-all">
+                              <div className="w-full bg-white/[0.03] border border-white/10 rounded-lg text-xs font-mono text-slate-400 px-2 py-2 min-h-[30px] break-all">
                                 {codigo}
                               </div>
                             );
@@ -472,12 +500,6 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
                         );
                       })()}
                       <div className="grid grid-cols-2 gap-2">
-                        <div className="col-span-2">
-                          <label className="text-[10px] text-slate-500 mb-1 block">Nombre del módulo * <span className="text-slate-600">(se llena solo con el código; edítalo solo si el módulo no encaja en el diccionario)</span></label>
-                          <input value={mod.nombre} onChange={e => actualizarModulo(mod.id, 'nombre', e.target.value)}
-                            placeholder="Ej: Módulo Lateral Derecho"
-                            className="w-full bg-[#161820] border border-white/10 rounded-lg text-xs text-white px-2 py-1.5 focus:outline-none focus:border-orange-500 placeholder:text-slate-700" />
-                        </div>
                         <div className="col-span-2">
                           <label className="text-[10px] text-slate-500 mb-1 block">Observaciones</label>
                           <input value={mod.observaciones || ''} onChange={e => actualizarModulo(mod.id, 'observaciones', e.target.value)}

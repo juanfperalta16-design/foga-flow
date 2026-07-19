@@ -212,6 +212,7 @@ function ModuloArq({ mod, planLink, onUpdate }) {
             <span style={{ fontSize: 9, background: liberado ? '#2D1B69' : '#1F2937', color: liberado ? '#C4B5FD' : '#6B7280', padding: '1px 6px', borderRadius: 4 }}>{arch.estado || 'En proceso'}</span>
             {mod.maestro && <span style={{ fontSize: 10, color: '#6B7280' }}>👤 {mod.maestro}</span>}
           </div>
+          {mod.codigo && <div style={{ fontSize: 9, fontFamily: 'var(--font-mono)', color: '#4B5563', marginTop: 2 }}>{mod.codigo}</div>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {liberado ? <span style={{ fontSize: 10, color: '#C4B5FD', fontWeight: 600 }}>✓ En D3D</span> : <button onClick={toggle} style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', background: '#7C3AED', color: '#fff', border: 'none', borderRadius: 7, cursor: 'pointer' }}>Liberar a D3D</button>}
@@ -301,6 +302,7 @@ function ModuloD3D({ mod, onUpdate }) {
             {mod.maestro && <span style={{ fontSize: 10, color: '#6B7280' }}>👤 {mod.maestro}</span>}
             {dims && <span style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF' }}>📐 {dims}</span>}
           </div>
+          {mod.codigo && <div style={{ fontSize: 9, fontFamily: 'var(--font-mono)', color: '#4B5563', marginTop: 2 }}>{mod.codigo}</div>}
         </div>
         <button onClick={() => setExpanded(v => !v)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4B5563' }}>{expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>
       </div>
@@ -406,6 +408,7 @@ function ModuloProd({ mod, onUpdate }) {
             <span style={{ fontSize: 10, color: sem.color }}>{sem.label}</span>
             {dims && <span style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF' }}>📐 {dims}</span>}
           </div>
+          {mod.codigo && <div style={{ fontSize: 9, fontFamily: 'var(--font-mono)', color: '#4B5563', marginTop: 2 }}>{mod.codigo}</div>}
           <div style={{ display: 'flex', gap: 2, marginTop: 5 }}>
             {FASES_PRODUCCION.slice(0,10).map((_, i) => <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i < idxActual ? '#EA580C' : i === idxActual ? '#FDBA74' : '#1E2433' }} />)}
           </div>

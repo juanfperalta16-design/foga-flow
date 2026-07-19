@@ -51,6 +51,7 @@ function ModuloArqCard({ mod, planLink, onUpdateModulo }) {
             {mod.maestro && <span style={{ fontSize: 10, color: '#6B7280' }}>👤 {mod.maestro}</span>}
             {dims && <span style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF' }}>📐 {dims}</span>}
           </div>
+          {mod.codigo && <div style={{ fontSize: 9, fontFamily: 'var(--font-mono)', color: '#4B5563', marginTop: 2 }}>{mod.codigo}</div>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {liberado
