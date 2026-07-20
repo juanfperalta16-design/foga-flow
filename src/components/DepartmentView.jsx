@@ -244,8 +244,6 @@ function ModuloArq({ mod, planLink, onUpdate }) {
 }
 
 function ModuloD3D({ mod, onUpdate }) {
-  const { responsables } = useApp();
-  const disenadoresOpts = getResponsablesAgrupados(responsables)['Diseñadores Producto'] || [];
   const [expanded, setExpanded] = useState(false);
   const [showPlan, setShowPlan] = useState(false);
   const [planInput, setPlanInput] = useState('');
@@ -346,11 +344,10 @@ function ModuloD3D({ mod, onUpdate }) {
           <div style={{ marginTop: 8 }}>
             <label style={lbl}>Registro de diseño</label>
             <div style={{ marginBottom: 8 }}>
-              <label style={{ ...lbl, fontSize: 10 }}>Diseñador de este módulo</label>
-              <select value={d3.disenador || ''} onChange={e => onUpdate({ ...mod, diseno3d: { ...d3, disenador: e.target.value } })} style={inp}>
-                <option value="">Seleccionar...</option>
-                {disenadoresOpts.map(n => <option key={n} value={n}>{n}</option>)}
-              </select>
+              <label style={{ ...lbl, fontSize: 10 }}>Diseñador</label>
+              <div style={{ ...inp, display: 'flex', alignItems: 'center', color: d3.disenador ? '#E2E8F0' : '#4B5563' }}>
+                {d3.disenador || 'Sin asignar — se asigna desde la pestaña Equipo del proyecto'}
+              </div>
             </div>
             <div>
               <label style={{ ...lbl, fontSize: 10 }}>Fecha diseño</label>

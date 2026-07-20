@@ -110,16 +110,17 @@ function PestanaEquipo({ proyecto, onUpdate, responsables }) {
     onUpdate({ ...proyecto, [dept]: { ...(proyecto[dept] || {}), [field]: val } });
   }
 
+  // El diseñador se asigna UNA vez aquí, en Equipo (no por módulo — ver
+  // ModuloD3D en DepartmentView, que ahora solo lo muestra de solo lectura).
+  // Cambiar el diseñador principal lo aplica de una vez a todos los módulos
+  // ya liberados a Diseño 3D, igual que la Línea del proyecto en Arquitectura.
   function setD3Designers(vals) {
-    const previos = d3.responsables || (d3.responsible ? [d3.responsible] : []);
     const cambios = { ...proyecto, design3d: { ...d3, responsables: vals, responsible: vals[0] || '' } };
-    // Si se agregó un diseñador nuevo, aplicarlo a los módulos ya liberados a Diseño 3D
-    // que todavía no tengan diseñador — si no, quedaba guardado aquí pero Diseño 3D seguía sin verlo.
-    if (vals.length > previos.length) {
-      const nuevo = vals[vals.length - 1];
+    if (vals.length > 0) {
+      const principal = vals[0];
       cambios.production = {
         ...proyecto.production,
-        modulos: modulos.map(m => (m.arquitectura?.liberadoA3D && !m.diseno3d?.disenador) ? { ...m, diseno3d: { ...m.diseno3d, disenador: nuevo } } : m),
+        modulos: modulos.map(m => m.arquitectura?.liberadoA3D ? { ...m, diseno3d: { ...m.diseno3d, disenador: principal } } : m),
       };
     }
     onUpdate(cambios);
