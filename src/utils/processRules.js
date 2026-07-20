@@ -101,6 +101,14 @@ export const generarAlertasAutomaticas = (proyectos) => {
     if (modsListosParaProduccion.length > 0) {
       alertas.push({ id: `AUTO_${p.id}_d3listo`, proyectoId: p.id, proyecto: p.nombre, cliente: p.cliente, departamentoOrigen: 'Diseño 3D', tipo: 'Listo para producción', motivo: `${modsListosParaProduccion.length} módulo${modsListosParaProduccion.length !== 1 ? 's' : ''} con modelado y despiece terminados.`, accionNecesaria: 'Diseño 3D: liberar el/los módulo(s) listos a Producción.', prioridad: 'Urgente', estado: 'Pendiente', fecha: hoy, auto: true });
     }
+    // Todos los planos de corte del proyecto ya están subidos, pero la
+    // carpeta física (se entrega por proyecto completo, no por módulo)
+    // todavía no se marcó como entregada al Jefe de Producción.
+    const modulosProyecto = p.production?.modulos || [];
+    const todosPlanosSubidos = modulosProyecto.length > 0 && modulosProyecto.every(m => !!m.diseno3d?.planCorteLink);
+    if (todosPlanosSubidos && !p.diseno3d?.carpetaFisicaEntregada) {
+      alertas.push({ id: `AUTO_${p.id}_carpeta`, proyectoId: p.id, proyecto: p.nombre, cliente: p.cliente, departamentoOrigen: 'Diseño 3D', tipo: 'Carpeta física pendiente', motivo: 'Todos los planos de corte están listos.', accionNecesaria: 'Diseño 3D: entregar la carpeta física completa al Jefe de Producción.', prioridad: 'Alta', estado: 'Pendiente', fecha: hoy, auto: true });
+    }
   });
   return alertas;
 };

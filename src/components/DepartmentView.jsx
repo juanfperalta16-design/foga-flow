@@ -571,6 +571,25 @@ function ProyectoDetalleDept({ proyecto, departamento, onUpdate, onBack }) {
         </div>
       )}
       {departamento !== 'Instalaciones' && modulos.length === 0 && <div style={{ textAlign: 'center', padding: '30px', color: '#4B5563', fontSize: 12 }}>Sin módulos. Edita el proyecto desde "Proyectos".</div>}
+      {departamento === 'Diseño 3D' && modulos.length > 0 && modulos.every(m => !!m.diseno3d?.planCorteLink) && (() => {
+        const entregada = !!proyecto.diseno3d?.carpetaFisicaEntregada;
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, background: entregada ? '#052E1660' : '#451A0360', border: `1px solid ${entregada ? '#16653480' : '#B4530980'}`, borderRadius: 10, padding: '10px 14px', marginBottom: 14 }}>
+            <span style={{ fontSize: 12, color: entregada ? '#86EFAC' : '#FCD34D', fontWeight: 600 }}>
+              {entregada
+                ? `✓ Carpeta física entregada al Jefe de Producción${proyecto.diseno3d?.carpetaFisicaEntregadaAt ? ` — ${proyecto.diseno3d.carpetaFisicaEntregadaAt}` : ''}`
+                : '⚠ Todos los planos de corte están listos — no olvides entregar la carpeta física completa al Jefe de Producción.'}
+            </span>
+            {!entregada && (
+              <button
+                onClick={() => onUpdate({ ...proyecto, diseno3d: { ...proyecto.diseno3d, carpetaFisicaEntregada: true, carpetaFisicaEntregadaAt: new Date().toISOString().slice(0,10) } })}
+                style={{ fontSize: 11, fontWeight: 700, padding: '6px 12px', background: '#B45309', color: '#fff', border: 'none', borderRadius: 7, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                ✓ Marcar carpeta entregada
+              </button>
+            )}
+          </div>
+        );
+      })()}
       {departamento === 'Arquitectura'  && <SeccionArquitectura proyecto={proyectoActualRef} onUpdate={onUpdate} />}
       {departamento === 'Diseño 3D'     && modulos.map(m => <ModuloD3D  key={m.id} mod={m} onUpdate={updateModulo} />)}
       {departamento === 'Producción'    && modulos.map(m => <ModuloProd key={m.id} mod={m} onUpdate={updateModulo} />)}

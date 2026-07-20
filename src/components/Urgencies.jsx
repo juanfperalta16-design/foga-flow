@@ -112,12 +112,16 @@ function TarjetaAlerta({ alerta, goToProject, onResolver }) {
           <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 3 }}>{alerta.motivo}</div>
           {alerta.accionNecesaria && <div style={{ fontSize: 10, color: '#93C5FD', marginTop: 4, fontWeight: 600 }}>{alerta.accionNecesaria}</div>}
         </div>
-        <button onClick={e => { e.stopPropagation(); onResolver(alerta); }}
-          style={{ fontSize: 10, color: '#9CA3AF', background: 'none', border: '1px solid #ffffff20', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}
-          onMouseEnter={e => { e.currentTarget.style.color = '#86EFAC'; e.currentTarget.style.borderColor = '#16653480'; }}
-          onMouseLeave={e => { e.currentTarget.style.color = '#9CA3AF'; e.currentTarget.style.borderColor = '#ffffff20'; }}>
-          ✓ Marcar resuelta
-        </button>
+        {alerta.auto ? (
+          <span style={{ fontSize: 9, color: '#4B5563', whiteSpace: 'nowrap', flexShrink: 0 }}>se resuelve sola</span>
+        ) : (
+          <button onClick={e => { e.stopPropagation(); onResolver(alerta); }}
+            style={{ fontSize: 10, color: '#9CA3AF', background: 'none', border: '1px solid #ffffff20', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#86EFAC'; e.currentTarget.style.borderColor = '#16653480'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#9CA3AF'; e.currentTarget.style.borderColor = '#ffffff20'; }}>
+            ✓ Marcar resuelta
+          </button>
+        )}
       </div>
     </div>
   );
@@ -156,7 +160,7 @@ export default function Urgencies() {
   // (ej. botón "🔔 Enviar alerta" en Arquitectura) — antes solo se
   // veían en Proyectos → pestaña Alertas; el contador del sidebar las
   // cuenta pero esta página no las mostraba, así que "desaparecían".
-  const alertasReportadas = (alertas || []).filter(a => !a.auto && a.estado === 'Pendiente');
+  const alertasReportadas = (alertas || []).filter(a => a.estado === 'Pendiente' && (!a.auto || a.tipo === 'Carpeta física pendiente'));
   const resolverAlerta = (al) => saveAlertas([{ ...al, estado: 'Resuelta' }]);
 
   // ── 1. Proyectos atrasados (fecha general) ──
@@ -223,8 +227,8 @@ export default function Urgencies() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-        {/* Alertas reportadas manualmente por un departamento */}
-        <Seccion titulo="Alertas reportadas" subtitulo="Reportadas manualmente por un departamento (ej. bloqueos para liberar a otra área)" items={alertasReportadas.length} color="#DC2626" icon="🔔">
+        {/* Alertas reportadas manualmente + pendientes de acción física (ej. entrega de carpeta) */}
+        <Seccion titulo="Alertas reportadas" subtitulo="Bloqueos reportados por un departamento y pendientes de una acción puntual" items={alertasReportadas.length} color="#DC2626" icon="🔔">
           {alertasReportadas.map(al => <TarjetaAlerta key={al.id} alerta={al} goToProject={goToProject} onResolver={resolverAlerta} />)}
         </Seccion>
 
