@@ -98,7 +98,8 @@ function etapaActual(p) {
 }
 
 export default function Projects() {
-  const { proyectos, prospectos, goToProject, deleteProyecto } = useApp();
+  const { proyectos, prospectos, goToProject, deleteProyecto, miRol } = useApp();
+  const esAdmin = miRol === 'Administrador';
   const [tab, setTab]                         = useState('proyectos');
   const [search, setSearch]                   = useState('');
   const [filterEstado, setFilterEstado]       = useState('');
@@ -161,10 +162,12 @@ export default function Projects() {
           <h1 className="text-2xl font-display font-bold text-white">Proyectos</h1>
           <p className="text-steel-muted text-sm">{filtered.length} de {(proyectos||[]).length} proyectos</p>
         </div>
-        <button onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 bg-flame hover:bg-flame-dim text-white text-sm px-4 py-2 rounded-lg transition-colors font-medium">
-          <Plus size={14} /> Nuevo proyecto
-        </button>
+        {esAdmin && (
+          <button onClick={() => setShowForm(true)}
+            className="flex items-center gap-2 bg-flame hover:bg-flame-dim text-white text-sm px-4 py-2 rounded-lg transition-colors font-medium">
+            <Plus size={14} /> Nuevo proyecto
+          </button>
+        )}
       </div>
 
       {/* Tabs */}
@@ -403,10 +406,12 @@ export default function Projects() {
                             <button onClick={() => goToProject(p.id)} className="text-steel-faint hover:text-white transition-colors">
                               <ChevronRight size={14} />
                             </button>
-                            <button onClick={e => { e.stopPropagation(); setConfirmDelete(p.id); }}
-                              className="text-steel-faint hover:text-red-400 transition-colors">
-                              <Trash2 size={13} />
-                            </button>
+                            {esAdmin && (
+                              <button onClick={e => { e.stopPropagation(); setConfirmDelete(p.id); }}
+                                className="text-steel-faint hover:text-red-400 transition-colors">
+                                <Trash2 size={13} />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>

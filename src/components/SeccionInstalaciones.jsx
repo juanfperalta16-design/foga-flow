@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useApp } from '../App';
 import { CheckCircle2, Circle, ExternalLink, AlertTriangle } from 'lucide-react';
 import { getResponsablesPorDept, getNombresResponsables } from '../utils/settingsStorage';
+import SoloLectura from './SoloLectura';
 
 const CHECKLIST_INST = [
   { id: 'firstVisitDate',              label: '1ª visita técnica',        desc: 'Primera visita a obra realizada', esFecha: true },
@@ -17,7 +18,7 @@ const CHECKLIST_INST = [
 ];
 
 export default function SeccionInstalaciones({ proyecto, onUpdate }) {
-  const { responsables, saveAlertas, currentUser } = useApp();
+  const { responsables, saveAlertas, currentUser, puedeEditar } = useApp();
   const inst = proyecto.installations || {};
   const responsablesInst = getResponsablesPorDept(responsables, 'Instalaciones');
   const nombresGenerales = getNombresResponsables(responsables);
@@ -60,6 +61,7 @@ export default function SeccionInstalaciones({ proyecto, onUpdate }) {
   const pct              = Math.round((pasosCompletados / pasosTotal) * 100);
 
   return (
+    <SoloLectura permitido={puedeEditar('Instalaciones')} mensaje="Solo lectura — la edición de Instalaciones no te corresponde a ti">
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       {/* Responsable */}
@@ -168,6 +170,7 @@ export default function SeccionInstalaciones({ proyecto, onUpdate }) {
           style={{ ...inp, resize: 'none', width: '100%' }} />
       </div>
     </div>
+    </SoloLectura>
   );
 }
 

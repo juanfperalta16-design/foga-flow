@@ -9,6 +9,7 @@ import Prospectos from './Prospectos';
 import { paseInstalacionAbierto } from '../utils/processRules';
 import { getResponsablesAgrupados } from '../utils/settingsStorage';
 import { LineaBadge } from './Badge';
+import SoloLectura from './SoloLectura';
 
 // Sin "Instalando" — esa fase no le corresponde a Producción, es de Instalaciones.
 const FASES_PRODUCCION = [
@@ -533,7 +534,7 @@ function ModuloProd({ mod, onUpdate }) {
 
 // ── Vista detalle proyecto ───────────────────────
 function ProyectoDetalleDept({ proyecto, departamento, onUpdate, onBack }) {
-  const { saveAlertas } = useApp();
+  const { saveAlertas, puedeEditar } = useApp();
   const cfg = DEPT_CONFIG[departamento] || { color: '#D4A017', bg: '#1F2937', text: '#F0D687', icon: '📋' };
   const modulos = proyecto.production?.modulos || [];
   const proyectoActualRef = proyecto;
@@ -655,7 +656,7 @@ function ProyectoDetalleDept({ proyecto, departamento, onUpdate, onBack }) {
                 : '⚠ Todos los planos de corte están listos — no olvides entregar la carpeta física completa al Jefe de Producción.'}
               {fechaProyectoCompleto && <span style={{ display: 'block', fontSize: 10, fontWeight: 400, color: '#9CA3AF', marginTop: 2 }}>Proyecto completo (todos los planos subidos) desde el {fechaProyectoCompleto}</span>}
             </span>
-            {!entregada && (
+            {!entregada && puedeEditar('Diseño 3D') && (
               <button
                 onClick={() => onUpdate({ ...proyecto, diseno3d: { ...proyecto.diseno3d, carpetaFisicaEntregada: true, carpetaFisicaEntregadaAt: new Date().toISOString().slice(0,10) } })}
                 style={{ fontSize: 11, fontWeight: 700, padding: '6px 12px', background: '#B45309', color: '#fff', border: 'none', borderRadius: 7, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
@@ -666,8 +667,16 @@ function ProyectoDetalleDept({ proyecto, departamento, onUpdate, onBack }) {
         );
       })()}
       {departamento === 'Arquitectura'  && <SeccionArquitectura proyecto={proyectoActualRef} onUpdate={onUpdate} />}
-      {departamento === 'Diseño 3D'     && modulos.map(m => <ModuloD3D  key={m.id} mod={m} onUpdate={updateModulo} />)}
-      {departamento === 'Producción'    && modulos.map(m => <ModuloProd key={m.id} mod={m} onUpdate={updateModulo} />)}
+      {departamento === 'Diseño 3D'     && (
+        <SoloLectura permitido={puedeEditar('Diseño 3D')} mensaje="Solo lectura — la edición de Diseño 3D no te corresponde a ti">
+          {modulos.map(m => <ModuloD3D key={m.id} mod={m} onUpdate={updateModulo} />)}
+        </SoloLectura>
+      )}
+      {departamento === 'Producción'    && (
+        <SoloLectura permitido={puedeEditar('Producción')} mensaje="Solo lectura — la edición de Producción no te corresponde a ti">
+          {modulos.map(m => <ModuloProd key={m.id} mod={m} onUpdate={updateModulo} />)}
+        </SoloLectura>
+      )}
       {departamento === 'Instalaciones' && <SeccionInstalaciones proyecto={proyectoActualRef} onUpdate={onUpdate} />}
     </div>
   );
@@ -681,7 +690,7 @@ function labelMes(ym) {
 }
 
 export default function DepartmentView({ departamento, proyectos = [] }) {
-  const { updateProyecto } = useApp();
+  const { updateProyecto, puedeEditar } = useApp();
   const [seleccionado, setSeleccionado] = useState(null);
   const [vista, setVista] = useState('proyectos');
   const [filtroPersona, setFiltroPersona] = useState('');
@@ -776,7 +785,9 @@ export default function DepartmentView({ departamento, proyectos = [] }) {
 
       {/* Prospectos — solo Arquitectura */}
       {vista === 'prospectos' && departamento === 'Arquitectura' && (
-        <Prospectos onProyectoGenerado={proyecto => { setVista('proyectos'); setSeleccionado(proyecto); }} />
+        <SoloLectura permitido={puedeEditar('Arquitectura')} mensaje="Solo lectura — la edición de Arquitectura no te corresponde a ti">
+          <Prospectos onProyectoGenerado={proyecto => { setVista('proyectos'); setSeleccionado(proyecto); }} />
+        </SoloLectura>
       )}
 
       {/* Lista proyectos */}

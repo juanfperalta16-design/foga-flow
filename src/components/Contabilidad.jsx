@@ -14,7 +14,8 @@ function diasPara(fecha) {
 }
 
 export default function Contabilidad() {
-  const { proyectos, updateProyecto, saveAlertas, currentUser, goToProject } = useApp();
+  const { proyectos, updateProyecto, saveAlertas, currentUser, goToProject, miRol } = useApp();
+  const esAdmin = miRol === 'Administrador';
   const [filtro, setFiltro] = useState('todas');
 
   const todosActivos = (proyectos || []).filter(p => p.estadoGeneral !== 'Finalizado');
@@ -151,8 +152,9 @@ export default function Contabilidad() {
                         {fab ? <CheckCircle2 size={16} className="text-green-500" /> : <Circle size={16} className="text-steel-faint" />}
                       </td>
                       <td className="px-3 py-3">
-                        <button onClick={() => toggleAutorizado(p)}
-                          title={aut ? `Autorizado por ${p.contabilidad?.autorizadoPor || '—'} el ${p.contabilidad?.autorizadoAt?.slice(0,10) || ''}` : 'Marcar como autorizado'}>
+                        <button onClick={() => esAdmin && toggleAutorizado(p)} disabled={!esAdmin}
+                          style={{ cursor: esAdmin ? 'pointer' : 'not-allowed', opacity: esAdmin ? 1 : 0.5 }}
+                          title={esAdmin ? (aut ? `Autorizado por ${p.contabilidad?.autorizadoPor || '—'} el ${p.contabilidad?.autorizadoAt?.slice(0,10) || ''}` : 'Marcar como autorizado') : 'Solo Administrador puede autorizar'}>
                           {aut ? <CheckCircle2 size={16} className="text-green-500" /> : <Circle size={16} className="text-steel-faint hover:text-steel-muted" />}
                         </button>
                       </td>

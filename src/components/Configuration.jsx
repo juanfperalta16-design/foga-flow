@@ -4,6 +4,7 @@ import { useApp } from '../App';
 import { listenToCollection, setWithId, remove, COLLECTIONS } from '../firebase/firestoreService';
 import ResponsibleForm from './ResponsibleForm';
 import DepartmentSettings from './DepartmentSettings';
+import SoloLectura from './SoloLectura';
 
 // Mismos colores de temple usados en el resto del sistema (ver statusHelpers.js),
 // con los mismos nombres de departamento que src/utils/settingsStorage.js.
@@ -24,7 +25,8 @@ const TABS = [
 ];
 
 export default function Configuration() {
-  const { currentUser } = useApp();
+  const { currentUser, miRol } = useApp();
+  const esAdmin = miRol === 'Administrador';
   const [tab, setTab] = useState('responsables');
   const [responsables, setResp] = useState([]);
   const [departamentos, setDepts] = useState([]);
@@ -87,6 +89,7 @@ export default function Configuration() {
 
       {/* ── TAB: Responsables ── */}
       {tab === 'responsables' && (
+        <SoloLectura permitido={esAdmin} mensaje="Solo lectura — administrar responsables es solo para Administrador">
         <div>
           <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
             <div>
@@ -181,10 +184,12 @@ export default function Configuration() {
             })}
           </div>
         </div>
+        </SoloLectura>
       )}
 
       {/* ── TAB: Departamentos ── */}
       {tab === 'departamentos' && (
+        <SoloLectura permitido={esAdmin} mensaje="Solo lectura — administrar departamentos es solo para Administrador">
         <div>
           <div className="mb-4">
             <h2 className="font-display text-base font-bold text-white">Departamentos</h2>
@@ -196,6 +201,7 @@ export default function Configuration() {
             onUpdateDept={handleUpdateDept}
           />
         </div>
+        </SoloLectura>
       )}
 
       {/* ── TAB: Sistema ── */}

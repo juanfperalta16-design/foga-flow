@@ -126,11 +126,29 @@ export default function App() {
   const alertas = [...alertasManualesVivas, ...generarAlertasAutomaticas(proyectos)];
   const currentUser = user?.email || '';
 
+  // ── Permisos por rol ──
+  // Se enlaza la cuenta logueada con su ficha de Responsable por correo. Sin
+  // ficha vinculada (correo no cargado) o sin rol asignado, se trata como
+  // Administrador (acceso completo) para no bloquear cuentas existentes que
+  // todavía no tengan el correo cargado en Configuración → Responsables.
+  // Esto es una restricción a nivel de interfaz, no de base de datos: las
+  // reglas de Firestore (firestore.rules) siguen permitiendo leer/escribir
+  // todo a cualquier cuenta logueada.
+  const miResponsable = responsables.find(r => (r.correo || '').trim().toLowerCase() === currentUser.trim().toLowerCase());
+  const miRol = miResponsable?.rol || 'Administrador';
+  const ROL_A_DEPTO_EDITABLE = { 'Arquitectura': 'Arquitectura', 'Diseño': 'Diseño 3D', 'Producción': 'Producción', 'Instalación': 'Instalaciones' };
+  const puedeEditar = (depto) => {
+    if (miRol === 'Administrador') return true;
+    if (miRol === 'Consulta') return false;
+    return ROL_A_DEPTO_EDITABLE[miRol] === depto;
+  };
+
   const ctx = {
     proyectos, actividades, alertas, historial, responsables, prospectos, currentUser, departamentosConfig,
     updateProyecto, deleteProyecto, updateActividad, addActividad, addHistorial,
     saveAlertas, updateProspecto, deleteProspecto,
     goToProject, setPage,
+    miRol, puedeEditar,
   };
 
   const urgentCount    = alertas.filter(a => a.estado === 'Pendiente' && a.prioridad === 'Urgente').length;

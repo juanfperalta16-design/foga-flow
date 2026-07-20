@@ -3,6 +3,7 @@ import { useApp } from '../App';
 import { ExternalLink, Lock, Unlock, CheckCircle2, Circle, ChevronDown, ChevronUp, Send } from 'lucide-react';
 import { getResponsablesAgrupados } from '../utils/settingsStorage';
 import { LineaBadge } from './Badge';
+import SoloLectura from './SoloLectura';
 
 const CHECKLIST_ARQ = [
   { id: 'propuestaInicial',   label: 'Propuesta de diseño inicial',      desc: 'Primera propuesta presentada al equipo' },
@@ -111,7 +112,7 @@ function ModuloArqCard({ mod, planLink, onUpdateModulo }) {
 }
 
 export default function SeccionArquitectura({ proyecto, onUpdate }) {
-  const { responsables } = useApp();
+  const { responsables, puedeEditar } = useApp();
   const arch      = proyecto.architecture || {};
   const modulos   = proyecto.production?.modulos || [];
   const checklist = arch.checklist || {};
@@ -179,6 +180,7 @@ export default function SeccionArquitectura({ proyecto, onUpdate }) {
   }
 
   return (
+    <SoloLectura permitido={puedeEditar('Arquitectura')} mensaje="Solo lectura — la edición de Arquitectura no te corresponde a ti">
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       {/* ── 1. CHECKLIST DE PROCESO ── */}
@@ -373,6 +375,7 @@ export default function SeccionArquitectura({ proyecto, onUpdate }) {
         </div>
       )}
     </div>
+    </SoloLectura>
   );
 }
 

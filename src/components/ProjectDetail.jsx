@@ -8,6 +8,7 @@ import ProjectForm from './ProjectForm';
 import { getNombresResponsables, getResponsablesAgrupados } from '../utils/settingsStorage';
 import { crearEntradaHistorial } from '../utils/historyHelpers';
 import { calcularEstadoGeneral } from '../utils/processRules';
+import SoloLectura from './SoloLectura';
 
 // ── Select de responsable limpio ──────────────────
 function ResponsableSelect({ label, value, onChange, color = '#D4A017', bg = '#332905', textColor = '#F0D687', grupos, responsables }) {
@@ -342,7 +343,8 @@ function PestanaEquipo({ proyecto, onUpdate, responsables }) {
 
 // ── Componente principal ──────────────────────────
 export default function ProjectDetail({ proyectoId }) {
-  const { proyectos, historial, actividades, updateProyecto, addHistorial, currentUser, setPage, responsables } = useApp();
+  const { proyectos, historial, actividades, updateProyecto, addHistorial, currentUser, setPage, responsables, miRol } = useApp();
+  const esAdmin = miRol === 'Administrador';
   const [activeTab, setActiveTab]   = useState('flujo');
   const [showEditForm, setShowEditForm] = useState(false);
 
@@ -434,9 +436,11 @@ export default function ProjectDetail({ proyectoId }) {
                 {diasRestantes < 0 ? `Vencido hace ${Math.abs(diasRestantes)}d` : `${diasRestantes}d restantes`}
               </div>
             )}
-            <button onClick={() => setShowEditForm(true)} className="mt-2 text-xs text-flame hover:brightness-110 flex items-center gap-1 ml-auto">
-              <Edit size={11} /> Editar
-            </button>
+            {esAdmin && (
+              <button onClick={() => setShowEditForm(true)} className="mt-2 text-xs text-flame hover:brightness-110 flex items-center gap-1 ml-auto">
+                <Edit size={11} /> Editar
+              </button>
+            )}
           </div>
         </div>
 
@@ -484,7 +488,11 @@ export default function ProjectDetail({ proyectoId }) {
       <div className="bg-[#1B1E23] border border-steel-line rounded-xl p-5">
         <div key={activeTab} className="anim-fade-in">
           {activeTab === 'flujo'    && <ProjectFlow proyecto={proyecto} onUpdateProyecto={handleUpdate} />}
-          {activeTab === 'equipo'   && <PestanaEquipo proyecto={proyecto} onUpdate={handleUpdate} responsables={responsables} />}
+          {activeTab === 'equipo'   && (
+            <SoloLectura permitido={esAdmin} mensaje="Solo lectura — asignar responsables es solo para Administrador">
+              <PestanaEquipo proyecto={proyecto} onUpdate={handleUpdate} responsables={responsables} />
+            </SoloLectura>
+          )}
           {activeTab === 'historial' && (
             <div className="divide-y divide-steel-line">
               {pHistorial.length === 0 && <div className="py-8 text-center text-steel-faint text-sm">Sin historial registrado</div>}
