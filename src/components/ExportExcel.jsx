@@ -148,6 +148,13 @@ const claseSemaforoLiteral = (v) => {
   return null;
 };
 const claseProspectoEstado = (v) => (v === 'Convertido a proyecto' ? 'verde' : null);
+const claseEtapaGeneral = (v) => {
+  const t = String(v || '').toUpperCase();
+  if (t.includes('BLOQUEADO')) return 'gris';
+  if (t.includes('TERMINADO') || t.includes('LIBERADO') || t.includes('REALIZADA') || t === 'FINALIZADO') return 'verde';
+  if (t.includes('EN ') || t.includes('PENDIENTE')) return 'amarillo';
+  return null;
+};
 const claseDiasSinAvanzar = (v) => {
   const n = Number(v);
   if (v === '—' || isNaN(n)) return null;
@@ -224,6 +231,58 @@ export default function ExportExcel() {
       });
       pintarColumna(ws1, hdr1, 'SEMÁFORO', claseSemaforoTexto);
 
+      // ── HOJA 1B: FLUJO GENERAL ───────────────────
+      // Un renglón por módulo con las 4 etapas (Arquitectura → Diseño 3D →
+      // Producción → Instalaciones) y en qué estado está cada una, más una
+      // columna "ETAPA ACTUAL" con el resumen de dónde está parado hoy
+      // (ej. "Producción — 3. Plegado") — para ver todo el panorama sin
+      // tener que cruzar las 4 hojas detalladas por departamento.
+      const headers1B = ['PROYECTO', 'CLIENTE', 'PEC MÓDULO', 'MÓDULO', 'LÍNEA', 'ARQUITECTURA', 'DISEÑO 3D', 'PRODUCCIÓN', 'INSTALACIONES', 'ETAPA ACTUAL'];
+      const { sheet: ws1B, rowHeader: hdr1B } = nuevaHoja(wb, 'Flujo General', 'FOGA FLOW — FLUJO GENERAL POR MÓDULO', headers1B, [28,20,14,20,12,20,20,20,20,26]);
+
+      (proyectos || []).filter(p => p.estadoGeneral !== 'Finalizado').forEach(p => {
+        const inst = p.installations || {};
+        const instEstado = inst.finalVisitDate ? 'Instalación realizada'
+          : inst.secondVisitDate ? '2ª visita hecha'
+          : inst.firstVisitDate  ? '1ª visita hecha'
+          : (p.releasedToInstallations || p.releasedToDesign3D) ? 'Pendiente visita'
+          : 'Bloqueado';
+
+        (p.production?.modulos || []).forEach(mod => {
+          const arch = mod.arquitectura || {};
+          const md3  = mod.diseno3d || {};
+          const liberadoA3D = !!arch.liberadoA3D;
+
+          const arqEstado = liberadoA3D ? 'Liberado a D3D' : (arch.estado || 'En proceso');
+
+          const d3Estado = !liberadoA3D ? 'Bloqueado'
+            : md3.liberadoProduccion       ? 'Liberado a Producción'
+            : md3.autocadBreakdownFinished ? 'Despiece terminado'
+            : md3.autocadBreakdownStarted  ? 'En despiece'
+            : md3.solidworksFinished       ? 'SolidWorks terminado'
+            : md3.solidworksStarted        ? 'En SolidWorks'
+            : 'Pendiente';
+
+          const prodEstado = !md3.liberadoProduccion ? 'Bloqueado' : (mod.produccion?.faseActual || '1. Despacho Materia Prima');
+
+          const etapaActual =
+            (prodEstado === '✓ Terminado' && instEstado === 'Instalación realizada') ? 'Finalizado'
+            : md3.liberadoProduccion ? `Producción — ${prodEstado}`
+            : liberadoA3D            ? `Diseño 3D — ${d3Estado}`
+            : `Arquitectura — ${arqEstado}`;
+
+          ws1B.addRow([
+            p.nombre || '—', p.cliente || '—', mod.pec || '—', mod.nombre || '—', mod.linea || p.lineaProyecto || '—',
+            arqEstado, d3Estado, prodEstado, instEstado, etapaActual,
+          ]);
+        });
+      });
+      pintarColumna(ws1B, hdr1B, 'ARQUITECTURA', claseEtapaGeneral);
+      pintarColumna(ws1B, hdr1B, 'DISEÑO 3D', claseEtapaGeneral);
+      pintarColumna(ws1B, hdr1B, 'PRODUCCIÓN', claseEtapaGeneral);
+      pintarColumna(ws1B, hdr1B, 'INSTALACIONES', claseEtapaGeneral);
+      pintarColumna(ws1B, hdr1B, 'ETAPA ACTUAL', claseEtapaGeneral);
+
       // ── HOJA 2: POR PERSONA ──────────────────────
       const headers2 = ['PERSONA', 'DEPARTAMENTO', 'PROYECTO', 'CLIENTE', 'PEC', 'MÓDULO / ROL', 'ESTADO', 'FECHA ENTREGA DEPT.', 'DÍAS RESTANTES', 'SEMÁFORO'];
       const { sheet: ws2, rowHeader: hdr2 } = nuevaHoja(wb, 'Por Persona', 'FOGA FLOW — CARGA DE TRABAJO POR PERSONA', headers2, [20,14,28,20,12,20,18,16,14,12]);
@@ -293,11 +352,23 @@ export default function ExportExcel() {
       pintarColumna(ws3, hdr3, 'SEMÁFORO', claseSemaforoTexto);
       pintarColumna(ws3, hdr3, 'REPROCESO', claseReproceso);
 
-      // ── HOJA 4: PROSPECTOS DE DISEÑO ─────────────
-      const headers4 = ['#', 'CLIENTE', 'VENDEDOR', 'DISEÑADORA', 'LÍNEA', 'ESTADO', 'N° CAMBIOS', 'FECHA INGRESO', 'OBSERVACIÓN'];
-      const { sheet: ws4, rowHeader: hdr4 } = nuevaHoja(wb, 'Prospectos Diseño', 'FOGA FLOW — PROSPECTOS DE DISEÑO', headers4, [5,25,18,18,16,20,12,14,30]);
+      // ── HOJA 4: PROSPECTOS DE DISEÑO (Y CONTROL DE BORRADORES) ──
+      // Antes eran dos hojas separadas ("Prospectos Diseño" y "Control
+      // Borradores Arq.") que repetían cliente/diseñadora/vendedor/línea/
+      // estado/fecha ingreso/observación casi idénticos — se fusionan en
+      // una sola con todo junto: datos del prospecto + fecha de cada paso
+      // del checklist + días sin avanzar.
+      const headers4 = ['#', 'CLIENTE', 'VENDEDOR', 'DISEÑADORA', 'LÍNEA', 'ESTADO', 'N° CAMBIOS', 'FECHA INGRESO', '1. PROPUESTA INICIAL', '2. BORRADOR CONCEPTUAL', '3. ENVIADO A VENTAS', '4. AJUSTES REALIZADOS', '5. PLANOS APROBADOS', 'DÍAS SIN AVANZAR', 'OBSERVACIÓN'];
+      const { sheet: ws4, rowHeader: hdr4 } = nuevaHoja(wb, 'Prospectos Diseño', 'FOGA FLOW — PROSPECTOS DE DISEÑO', headers4, [5,25,18,18,16,20,12,14,16,18,16,16,16,14,30]);
 
+      const hoyStr = new Date().toISOString().slice(0,10);
       (prospectos || []).forEach((p, i) => {
+        const ch = p.checklist || {};
+        const pasos = ['propuestaInicial','borradorConceptual','enviadoAVentas','ajustesRealizados','planosAprobados'];
+        const fechas = pasos.map(id => ch[`${id}Fecha`]).filter(Boolean);
+        const ultimoAvance = fechas.length ? fechas.sort().at(-1) : p.fechaIngreso;
+        const diasSinAvanzar = (p.convertido || ch.planosAprobados || !ultimoAvance) ? '—'
+          : Math.floor((new Date(hoyStr) - new Date(ultimoAvance)) / 86400000);
         ws4.addRow([
           i + 1,
           p.cliente || '—',
@@ -306,33 +377,6 @@ export default function ExportExcel() {
           p.linea || '—',
           p.convertido ? 'Convertido a proyecto' : (p.estado || '—'),
           p.nCambios || 0,
-          p.fechaIngreso || '—',
-          p.observacion || '—',
-        ]);
-      });
-      pintarColumna(ws4, hdr4, 'ESTADO', claseProspectoEstado);
-
-      // ── HOJA 4B: CONTROL DE BORRADORES (ARQUITECTURA) ──
-      // Fecha de cada paso del checklist de diseño conceptual, para dar
-      // seguimiento a los borradores en proceso — aparte de proyectos ya
-      // confirmados. "Días sin avanzar" ayuda a ver dónde se atascan.
-      const headers4B = ['CLIENTE', 'DISEÑADORA', 'VENDEDOR', 'LÍNEA', 'ESTADO ACTUAL', 'FECHA INGRESO', '1. PROPUESTA INICIAL', '2. BORRADOR CONCEPTUAL', '3. ENVIADO A VENTAS', '4. AJUSTES REALIZADOS', '5. PLANOS APROBADOS', 'DÍAS SIN AVANZAR', 'OBSERVACIÓN'];
-      const { sheet: ws4B, rowHeader: hdr4B } = nuevaHoja(wb, 'Control Borradores Arq.', 'FOGA FLOW — CONTROL DE BORRADORES · ARQUITECTURA', headers4B, [25,18,18,12,20,14,16,18,16,16,16,14,30]);
-
-      const hoyStr = new Date().toISOString().slice(0,10);
-      (prospectos || []).forEach(p => {
-        const ch = p.checklist || {};
-        const pasos = ['propuestaInicial','borradorConceptual','enviadoAVentas','ajustesRealizados','planosAprobados'];
-        const fechas = pasos.map(id => ch[`${id}Fecha`]).filter(Boolean);
-        const ultimoAvance = fechas.length ? fechas.sort().at(-1) : p.fechaIngreso;
-        const diasSinAvanzar = (p.convertido || ch.planosAprobados || !ultimoAvance) ? '—'
-          : Math.floor((new Date(hoyStr) - new Date(ultimoAvance)) / 86400000);
-        ws4B.addRow([
-          p.cliente || '—',
-          p.disenadora || '—',
-          p.vendedor || '—',
-          p.linea || '—',
-          p.convertido ? 'Convertido a proyecto' : (p.estado || '—'),
           p.fechaIngreso || '—',
           ch.propuestaInicialFecha   || (ch.propuestaInicial   ? '✓' : '—'),
           ch.borradorConceptualFecha || (ch.borradorConceptual ? '✓' : '—'),
@@ -343,7 +387,8 @@ export default function ExportExcel() {
           p.observacion || '—',
         ]);
       });
-      pintarColumna(ws4B, hdr4B, 'DÍAS SIN AVANZAR', claseDiasSinAvanzar);
+      pintarColumna(ws4, hdr4, 'ESTADO', claseProspectoEstado);
+      pintarColumna(ws4, hdr4, 'DÍAS SIN AVANZAR', claseDiasSinAvanzar);
 
       // ── HOJA 5: ARQUITECTURA DETALLADA ───────────
       const headers5 = ['PROYECTO', 'CLIENTE', 'PEC', 'RESPONSABLE', 'ESTADO', 'CHECKLIST', 'MÓDULOS LIBERADOS A D3D', 'OBSERVACIONES'];
@@ -572,10 +617,10 @@ export default function ExportExcel() {
           </div>
           {[
             { icon: '📊', label: 'Resumen general',    desc: 'Todos los proyectos con estado y fechas' },
+            { icon: '🧭', label: 'Flujo General',       desc: 'Cada módulo, sus 4 etapas y en cuál está hoy' },
             { icon: '👤', label: 'Por persona',         desc: 'Carga de trabajo por responsable' },
             { icon: '🏭', label: 'Producción',          desc: 'Módulos, fases y material faltante' },
-            { icon: '✏️', label: 'Prospectos',           desc: 'Prospectos de diseño en proceso' },
-            { icon: '📝', label: 'Control Borradores Arq.', desc: 'Fecha por paso del checklist y días sin avanzar' },
+            { icon: '✏️', label: 'Prospectos',           desc: 'Prospectos + checklist de diseño con fechas por paso' },
             { icon: '📐', label: 'Arquitectura',         desc: 'Checklist, contrato y liberación a D3D' },
             { icon: '🖥️', label: 'Diseño 3D',            desc: 'SolidWorks, despiece y plan de corte' },
             { icon: '🔧', label: 'Instalaciones',        desc: 'Visitas, medidas y obra lista' },
