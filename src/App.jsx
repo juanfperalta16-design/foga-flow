@@ -126,21 +126,25 @@ export default function App() {
   const alertas = [...alertasManualesVivas, ...generarAlertasAutomaticas(proyectos)];
   const currentUser = user?.email || '';
 
-  // ── Permisos por rol ──
+  // ── Permisos por departamento ──
   // Se enlaza la cuenta logueada con su ficha de Responsable por correo. Sin
-  // ficha vinculada (correo no cargado) o sin rol asignado, se trata como
-  // Administrador (acceso completo) para no bloquear cuentas existentes que
-  // todavía no tengan el correo cargado en Configuración → Responsables.
+  // ficha vinculada (correo no cargado), se trata como Administrador (acceso
+  // completo) para no bloquear cuentas existentes que todavía no tengan el
+  // correo cargado en Configuración → Responsables.
+  // El campo "Departamento" (no "Rol") es el que decide qué puede editar —
+  // "Rol" en los datos existentes es un título de cargo libre ("Maestro",
+  // "Diseñador", "Arquitecta"...) que no coincide con ninguna opción fija,
+  // así que no sirve para esto. "Rol" solo se usa para los dos casos
+  // especiales: Administrador (todo) y Consulta (nada, ni su propio depto).
   // Esto es una restricción a nivel de interfaz, no de base de datos: las
   // reglas de Firestore (firestore.rules) siguen permitiendo leer/escribir
   // todo a cualquier cuenta logueada.
   const miResponsable = responsables.find(r => (r.correo || '').trim().toLowerCase() === currentUser.trim().toLowerCase());
   const miRol = miResponsable?.rol || 'Administrador';
-  const ROL_A_DEPTO_EDITABLE = { 'Arquitectura': 'Arquitectura', 'Diseño': 'Diseño 3D', 'Producción': 'Producción', 'Instalación': 'Instalaciones' };
   const puedeEditar = (depto) => {
     if (miRol === 'Administrador') return true;
     if (miRol === 'Consulta') return false;
-    return ROL_A_DEPTO_EDITABLE[miRol] === depto;
+    return miResponsable?.departamento === depto;
   };
 
   const ctx = {
