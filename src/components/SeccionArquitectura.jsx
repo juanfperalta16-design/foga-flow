@@ -65,7 +65,7 @@ function ModuloArqCard({ mod, planLink, onUpdateModulo }) {
         </div>
       </div>
       {expanded && (
-        <div style={{ padding: '0 14px 12px', borderTop: '1px solid #1E2433' }}>
+        <div className="anim-fade-in" style={{ padding: '0 14px 12px', borderTop: '1px solid #1E2433' }}>
           <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             <div>
               <label style={lbl}>Estado</label>

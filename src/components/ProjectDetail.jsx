@@ -482,29 +482,31 @@ export default function ProjectDetail({ proyectoId }) {
 
       {/* Contenido */}
       <div className="bg-[#1B1E23] border border-steel-line rounded-xl p-5">
-        {activeTab === 'flujo'    && <ProjectFlow proyecto={proyecto} onUpdateProyecto={handleUpdate} />}
-        {activeTab === 'equipo'   && <PestanaEquipo proyecto={proyecto} onUpdate={handleUpdate} responsables={responsables} />}
-        {activeTab === 'historial' && (
-          <div className="divide-y divide-steel-line">
-            {pHistorial.length === 0 && <div className="py-8 text-center text-steel-faint text-sm">Sin historial registrado</div>}
-            {pHistorial.map((h, i) => (
-              <div key={h.id || i} className="py-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] font-mono text-steel-faint">{h.fecha} {h.hora}</span>
-                  <span className="text-[10px] text-white font-medium">{h.usuario || h.user}</span>
-                  <span className="text-[10px] text-steel-faint">·</span>
-                  <span className="text-[10px] text-steel-muted">{h.departamento}</span>
-                </div>
-                <div className="text-xs text-white">{h.accion || h.action}</div>
-                {(h.valorAnterior || h.previousStatus) && (
-                  <div className="text-[10px] text-steel-faint mt-0.5">
-                    {h.valorAnterior || h.previousStatus} → <span className="text-green-400">{h.valorNuevo || h.newStatus}</span>
+        <div key={activeTab} className="anim-fade-in">
+          {activeTab === 'flujo'    && <ProjectFlow proyecto={proyecto} onUpdateProyecto={handleUpdate} />}
+          {activeTab === 'equipo'   && <PestanaEquipo proyecto={proyecto} onUpdate={handleUpdate} responsables={responsables} />}
+          {activeTab === 'historial' && (
+            <div className="divide-y divide-steel-line">
+              {pHistorial.length === 0 && <div className="py-8 text-center text-steel-faint text-sm">Sin historial registrado</div>}
+              {pHistorial.map((h, i) => (
+                <div key={h.id || i} className="py-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] font-mono text-steel-faint">{h.fecha} {h.hora}</span>
+                    <span className="text-[10px] text-white font-medium">{h.usuario || h.user}</span>
+                    <span className="text-[10px] text-steel-faint">·</span>
+                    <span className="text-[10px] text-steel-muted">{h.departamento}</span>
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+                  <div className="text-xs text-white">{h.accion || h.action}</div>
+                  {(h.valorAnterior || h.previousStatus) && (
+                    <div className="text-[10px] text-steel-faint mt-0.5">
+                      {h.valorAnterior || h.previousStatus} → <span className="text-green-400">{h.valorNuevo || h.newStatus}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {showEditForm && <ProjectForm proyecto={proyecto} onClose={() => setShowEditForm(false)} />}

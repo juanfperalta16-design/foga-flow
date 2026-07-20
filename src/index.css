@@ -31,3 +31,30 @@ body { background: #101215; }
   .corner-brackets::before { top: -1px; left: -1px; border-top: 1.5px solid; border-left: 1.5px solid; }
   .corner-brackets::after { bottom: -1px; right: -1px; border-bottom: 1.5px solid; border-right: 1.5px solid; }
 }
+
+@keyframes foga-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes foga-panel-in {
+  from { opacity: 0; transform: scale(0.97) translateY(6px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes foga-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.anim-fade-in { animation: foga-fade-in 180ms cubic-bezier(0.23, 1, 0.32, 1) both; }
+.anim-panel-in { animation: foga-panel-in 220ms cubic-bezier(0.23, 1, 0.32, 1) both; }
+.anim-backdrop-in { animation: foga-backdrop-in 180ms ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-fade-in, .anim-panel-in, .anim-backdrop-in { animation-duration: 1ms; }
+}
+
+.btn-press { transition: transform 100ms ease-out; }
+.btn-press:active { transform: scale(0.97); }
+@media (prefers-reduced-motion: reduce) {
+  .btn-press:active { transform: none; }
+}

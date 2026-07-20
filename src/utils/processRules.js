@@ -120,6 +120,16 @@ export const generarAlertasAutomaticas = (proyectos) => {
     if (todosPlanosSubidos && !p.diseno3d?.carpetaFisicaEntregada) {
       alertas.push({ id: `AUTO_${p.id}_carpeta`, proyectoId: p.id, proyecto: p.nombre, cliente: p.cliente, departamentoOrigen: 'Diseño 3D', tipo: 'Carpeta física pendiente', motivo: 'Todos los planos de corte están listos.', accionNecesaria: 'Diseño 3D: entregar la carpeta física completa al Jefe de Producción.', prioridad: 'Alta', estado: 'Pendiente', fecha: hoy, auto: true });
     }
+    // Reproceso: Producción encontró un problema de diseño en un módulo ya
+    // liberado y lo marcó como reproceso — hay que avisarle a Diseño 3D (al
+    // diseñador asignado, si lo hay) para que revise y suba el archivo
+    // corregido. No hace falta "resolverla" a mano: en cuanto Diseño 3D marca
+    // el reproceso como resuelto (produccion.reproceso vuelve a false), esta
+    // alerta deja de generarse sola, igual que el resto de alertas automáticas.
+    (p.production?.modulos || []).filter(m => m.produccion?.reproceso).forEach(mod => {
+      const disenador = mod.diseno3d?.disenador;
+      alertas.push({ id: `AUTO_${p.id}_${mod.id}_reproceso`, proyectoId: p.id, proyecto: p.nombre, cliente: p.cliente, departamentoOrigen: 'Producción', tipo: 'Reproceso de diseño', motivo: `Módulo "${mod.nombre || mod.pec}" marcado en reproceso${mod.produccion?.observaciones ? ` — ${mod.produccion.observaciones}` : ''}.`, accionNecesaria: `Diseño 3D${disenador ? ` (${disenador})` : ' (sin diseñador asignado)'}: revisar y subir el archivo corregido.`, prioridad: 'Urgente', estado: 'Pendiente', fecha: hoy, auto: true });
+    });
   });
   return alertas;
 };

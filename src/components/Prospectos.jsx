@@ -66,7 +66,7 @@ function ProspectoForm({ prospecto, onSave, onClose }) {
   }
 
   return (
-    <div style={{ background: '#0A0D14', border: '1.5px solid #D4A01740', borderRadius: 12, padding: 18, marginBottom: 12 }}>
+    <div className="anim-fade-in" style={{ background: '#0A0D14', border: '1.5px solid #D4A01740', borderRadius: 12, padding: 18, marginBottom: 12 }}>
       <div style={{ fontSize: 13, fontWeight: 700, color: '#F0D687', marginBottom: 14 }}>
         {prospecto.cliente ? `Editar — ${prospecto.cliente}` : 'Nuevo prospecto'}
       </div>
@@ -128,7 +128,7 @@ function ProspectoForm({ prospecto, onSave, onClose }) {
       </div>
       <div style={{ display: 'flex', gap: 8, marginTop: 14, justifyContent: 'flex-end' }}>
         <button onClick={onClose} style={btn('#374151')}>Cancelar</button>
-        <button onClick={() => { if (!form.cliente.trim()) return alert('El cliente es requerido'); onSave(form); onClose(); }} style={btn('#D4A017')}>Guardar</button>
+        <button onClick={() => { if (!form.cliente.trim()) return alert('El cliente es requerido'); onSave(form); onClose(); }} className="btn-press" style={btn('#D4A017')}>Guardar</button>
       </div>
     </div>
   );
@@ -206,7 +206,7 @@ function ProspectoCard({ prospecto, onUpdate, onEdit, onDelete, onGenerarProyect
         {/* Acciones */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
           {esAprobado && !prospecto.convertido && (
-            <button onClick={() => onGenerarProyecto(prospecto)}
+            <button onClick={() => onGenerarProyecto(prospecto)} className="btn-press"
               style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#16A34A', color: '#fff', border: 'none', borderRadius: 8, fontSize: 11, fontWeight: 700, padding: '5px 12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
               <ArrowRight size={12} /> Generar proyecto
             </button>
@@ -222,7 +222,7 @@ function ProspectoCard({ prospecto, onUpdate, onEdit, onDelete, onGenerarProyect
 
       {/* Detalle expandido */}
       {expanded && (
-        <div style={{ padding: '0 14px 14px', borderTop: '1px solid #1E2433' }}>
+        <div className="anim-fade-in" style={{ padding: '0 14px 14px', borderTop: '1px solid #1E2433' }}>
 
           {/* ── CHECKLIST ── */}
           <div style={{ marginTop: 14, background: '#0A0D14', border: '1px solid #33290540', borderRadius: 10, padding: '12px 14px' }}>
@@ -331,7 +331,7 @@ function ProspectoCard({ prospecto, onUpdate, onEdit, onDelete, onGenerarProyect
           {esAprobado && !prospecto.convertido && (
             <div style={{ marginTop: 12, padding: '12px 14px', background: '#052E1640', border: '1px dashed #16A34A60', borderRadius: 10, textAlign: 'center' }}>
               <div style={{ fontSize: 12, color: '#86EFAC', marginBottom: 8 }}>✓ Planos aprobados — listo para convertir en proyecto oficial</div>
-              <button onClick={() => onGenerarProyecto(prospecto)}
+              <button onClick={() => onGenerarProyecto(prospecto)} className="btn-press"
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#16A34A', color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, padding: '8px 20px', cursor: 'pointer' }}>
                 <ArrowRight size={14} /> Generar proyecto con PEC y módulos
               </button>
@@ -513,13 +513,13 @@ export default function Prospectos({ onProyectoGenerado }) {
 
       {/* Confirm delete */}
       {confirmDel && (
-        <div style={{ position: 'fixed', inset: 0, background: '#000000A0', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div style={{ background: '#1B1E23', border: '1px solid #1E2433', borderRadius: 16, padding: 24, maxWidth: 320, width: '100%' }}>
+        <div className="anim-backdrop-in" style={{ position: 'fixed', inset: 0, background: '#000000A0', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div className="anim-panel-in" style={{ background: '#1B1E23', border: '1px solid #1E2433', borderRadius: 16, padding: 24, maxWidth: 320, width: '100%' }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: '#F1F5F9', marginBottom: 8 }}>¿Eliminar prospecto?</div>
             <div style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 20 }}>Esta acción no se puede deshacer.</div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => setConfirmDel(null)} style={{ flex: 1, ...btn('#1F2937') }}>Cancelar</button>
-              <button onClick={() => eliminar(confirmDel)} style={{ flex: 1, ...btn('#DC2626') }}>Eliminar</button>
+              <button onClick={() => setConfirmDel(null)} className="btn-press" style={{ flex: 1, ...btn('#1F2937') }}>Cancelar</button>
+              <button onClick={() => eliminar(confirmDel)} className="btn-press" style={{ flex: 1, ...btn('#DC2626') }}>Eliminar</button>
             </div>
           </div>
         </div>

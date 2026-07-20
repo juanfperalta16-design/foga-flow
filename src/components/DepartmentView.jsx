@@ -220,7 +220,7 @@ function ModuloArq({ mod, planLink, onUpdate }) {
         </div>
       </div>
       {expanded && (
-        <div style={{ padding: '0 14px 12px', borderTop: '1px solid #1E2433' }}>
+        <div className="anim-fade-in" style={{ padding: '0 14px 12px', borderTop: '1px solid #1E2433' }}>
           <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             <div>
               <label style={lbl}>Estado</label>
@@ -247,7 +247,10 @@ function ModuloD3D({ mod, onUpdate }) {
   const [expanded, setExpanded] = useState(false);
   const [showPlan, setShowPlan] = useState(false);
   const [planInput, setPlanInput] = useState('');
+  const [showArchivoReproceso, setShowArchivoReproceso] = useState(false);
+  const [archivoReprocesoInput, setArchivoReprocesoInput] = useState('');
   const d3 = mod.diseno3d || {};
+  const prod = mod.produccion || {};
   const liberadoArq = !!mod.arquitectura?.liberadoA3D;
   const liberadoProd = !!d3.liberadoProduccion;
   const dims = formatDimensiones(mod);
@@ -282,6 +285,15 @@ function ModuloD3D({ mod, onUpdate }) {
     onUpdate({ ...mod, diseno3d: { ...d3, planCorteLink: planInput, fechaDespachoPlano: hoy, fechaDiseno: d3.fechaDiseno || hoy } });
     setPlanInput(''); setShowPlan(false);
   }
+  function subirArchivoReproceso() {
+    if (!archivoReprocesoInput.trim()) return;
+    onUpdate({ ...mod, diseno3d: { ...d3, archivoReproceso: archivoReprocesoInput } });
+    setArchivoReprocesoInput(''); setShowArchivoReproceso(false);
+  }
+  function resolverReproceso() {
+    const hoy = new Date().toISOString().slice(0,10);
+    onUpdate({ ...mod, diseno3d: { ...d3, fechaReprocesoResuelto: hoy }, produccion: { ...prod, reproceso: false } });
+  }
   if (!liberadoArq) return (
     <div style={{ background: '#0A0D14', border: '1px solid #1E2433', borderRadius: 10, padding: '10px 14px', marginBottom: 8, opacity: 0.45 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -293,7 +305,7 @@ function ModuloD3D({ mod, onUpdate }) {
   );
   const puedeLiberar = d3.design3DCompleted && d3.breakdownCompleted && !!d3.planCorteLink;
   return (
-    <div style={{ background: '#141824', border: `1.5px solid ${liberadoProd ? '#16A34A40' : '#B5651D40'}`, borderRadius: 10, marginBottom: 8 }}>
+    <div style={{ background: '#141824', border: `1.5px solid ${prod.reproceso ? '#EF444470' : liberadoProd ? '#16A34A40' : '#B5651D40'}`, borderRadius: 10, marginBottom: 8 }}>
       <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
         <Unlock size={14} color="#B5651D" style={{ flexShrink: 0 }} />
         <div style={{ flex: 1 }}>
@@ -302,6 +314,7 @@ function ModuloD3D({ mod, onUpdate }) {
             <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: '#6B7280' }}>{mod.pec}</span>
             <LineaBadge linea={mod.linea} />
             <span style={{ fontSize: 9, background: '#2E1A08', color: '#E3A868', padding: '1px 6px', borderRadius: 4 }}>{d3.estado || 'Pendiente'}</span>
+            {prod.reproceso && <span style={{ fontSize: 9, fontWeight: 700, background: '#450A0A', color: '#FCA5A5', padding: '1px 6px', borderRadius: 4 }}>⚠ REPROCESO</span>}
             {mod.maestro && <span style={{ fontSize: 10, color: '#6B7280' }}>👤 {mod.maestro}</span>}
             {dims && <span style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF' }}>📐 {dims}</span>}
           </div>
@@ -310,7 +323,38 @@ function ModuloD3D({ mod, onUpdate }) {
         <button onClick={() => setExpanded(v => !v)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4B5563' }}>{expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>
       </div>
       {expanded && (
-        <div style={{ padding: '0 14px 14px', borderTop: '1px solid #1E2433' }}>
+        <div className="anim-fade-in" style={{ padding: '0 14px 14px', borderTop: '1px solid #1E2433' }}>
+          {prod.reproceso && (
+            <div style={{ marginTop: 10, padding: '10px 12px', background: '#2E0B0B30', border: '1px solid #7A4B8C50', borderRadius: 8 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#FCA5A5', marginBottom: 4 }}>⚠ Reproceso solicitado por Producción</div>
+              {prod.fechaReproceso && <div style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 4 }}>Marcado el {prod.fechaReproceso}</div>}
+              {prod.observaciones && <div style={{ fontSize: 11, color: '#E2E8F0', marginBottom: 8 }}>{prod.observaciones}</div>}
+              <label style={lbl}>Archivo corregido</label>
+              {d3.archivoReproceso ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <a href={d3.archivoReproceso} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: '#60A5FA', display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none' }}>Ver archivo <ExternalLink size={10} /></a>
+                  <button onClick={() => setShowArchivoReproceso(true)} style={{ fontSize: 10, color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer' }}>Cambiar</button>
+                </div>
+              ) : !showArchivoReproceso ? (
+                <button onClick={() => setShowArchivoReproceso(true)} style={{ fontSize: 11, color: '#C9A8D6', background: '#241A2B', border: '1px solid #7A4B8C50', borderRadius: 6, padding: '5px 10px', cursor: 'pointer', width: '100%', marginBottom: 8 }}>+ Subir archivo corregido</button>
+              ) : null}
+              {showArchivoReproceso && (
+                <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                  <input value={archivoReprocesoInput} onChange={e => setArchivoReprocesoInput(e.target.value)} placeholder="https://drive.google.com/..." style={{ ...inp, flex: 1 }} />
+                  <button onClick={subirArchivoReproceso} style={{ background: '#7A4B8C', color: '#fff', border: 'none', borderRadius: 6, fontSize: 11, padding: '5px 10px', cursor: 'pointer' }}>✓</button>
+                  <button onClick={() => setShowArchivoReproceso(false)} style={{ background: '#374151', color: '#fff', border: 'none', borderRadius: 6, fontSize: 11, padding: '5px 10px', cursor: 'pointer' }}>✕</button>
+                </div>
+              )}
+              <button onClick={resolverReproceso} disabled={!d3.archivoReproceso}
+                style={{ width: '100%', background: d3.archivoReproceso ? '#7A4B8C' : '#1F2937', color: d3.archivoReproceso ? '#fff' : '#4B5563', border: 'none', borderRadius: 8, fontSize: 11, fontWeight: 700, padding: '7px', cursor: d3.archivoReproceso ? 'pointer' : 'not-allowed' }}>
+                ✓ Marcar reproceso resuelto
+              </button>
+              {!d3.archivoReproceso && <div style={{ fontSize: 10, color: '#6B7280', textAlign: 'center', marginTop: 4 }}>Sube el archivo corregido para poder resolverlo</div>}
+            </div>
+          )}
+          {!prod.reproceso && d3.fechaReprocesoResuelto && (
+            <div style={{ marginTop: 10, fontSize: 10, color: '#6B7280' }}>✓ Último reproceso resuelto el {d3.fechaReprocesoResuelto}</div>
+          )}
           <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
             {ITEMS.map(item => (
               <div key={item.key} onClick={() => toggleItem(item.key)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: d3[item.key] ? '#2E1A0840' : '#0A0D14', border: `1px solid ${d3[item.key] ? '#B5651D40' : '#1E2433'}`, borderRadius: 8, cursor: 'pointer' }}>
@@ -388,6 +432,17 @@ function ModuloProd({ mod, onUpdate }) {
   const sem = semaforo(mod.fechaEntrega);
   const dims = formatDimensiones(mod);
   const idxActual = FASES_PRODUCCION.indexOf(prod.faseActual || FASES_PRODUCCION[0]);
+  function toggleReproceso() {
+    if (!prod.reproceso) {
+      // Nuevo reproceso: se guarda la fecha y se limpia cualquier archivo/fecha
+      // de resolución de un reproceso anterior en este mismo módulo, para que
+      // Diseño 3D no vea como "ya resuelto" algo que en realidad es un caso nuevo.
+      const hoy = new Date().toISOString().slice(0,10);
+      onUpdate({ ...mod, produccion: { ...prod, reproceso: true, fechaReproceso: hoy }, diseno3d: { ...mod.diseno3d, archivoReproceso: '', fechaReprocesoResuelto: '' } });
+    } else {
+      onUpdate({ ...mod, produccion: { ...prod, reproceso: false } });
+    }
+  }
   if (!liberado) return (
     <div style={{ background: '#0A0D14', border: '1px solid #1E2433', borderRadius: 10, padding: '10px 14px', marginBottom: 8, opacity: 0.45 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -420,7 +475,7 @@ function ModuloProd({ mod, onUpdate }) {
         <button onClick={() => setExpanded(v => !v)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4B5563' }}>{expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>
       </div>
       {expanded && (
-        <div style={{ padding: '0 14px 14px', borderTop: '1px solid #1E2433' }}>
+        <div className="anim-fade-in" style={{ padding: '0 14px 14px', borderTop: '1px solid #1E2433' }}>
           <div style={{ marginTop: 10 }}>
             <label style={lbl}>Maestro asignado</label>
             <select value={mod.maestro || ''} onChange={e => onUpdate({ ...mod, maestro: e.target.value })} style={inp}>
@@ -451,11 +506,17 @@ function ModuloProd({ mod, onUpdate }) {
             <label style={lbl}>Fecha validación (Jefe de Producción)</label>
             <input type="date" value={prod.fechaValidacionJP || ''} onChange={e => onUpdate({ ...mod, produccion: { ...prod, fechaValidacionJP: e.target.value } })} style={inp} />
           </div>
-          <div onClick={() => onUpdate({ ...mod, produccion: { ...prod, reproceso: !prod.reproceso } })}
+          <div onClick={toggleReproceso}
             style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', background: prod.reproceso ? '#45140320' : '#0A0D14', border: `1px solid ${prod.reproceso ? '#7A4B8C50' : '#1E2433'}`, borderRadius: 7, cursor: 'pointer' }}>
             {prod.reproceso ? <CheckCircle2 size={13} color="#7A4B8C" /> : <Circle size={13} color="#374151" />}
             <span style={{ fontSize: 11, color: prod.reproceso ? '#C9A8D6' : '#6B7280' }}>Marcar como Reproceso</span>
           </div>
+          {prod.reproceso && prod.fechaReproceso && (
+            <div style={{ fontSize: 10, color: '#9CA3AF', marginTop: 4 }}>Marcado el {prod.fechaReproceso} — Diseño 3D ya recibió la alerta</div>
+          )}
+          {!prod.reproceso && mod.diseno3d?.fechaReprocesoResuelto && (
+            <div style={{ fontSize: 10, color: '#6B7280', marginTop: 4 }}>✓ Último reproceso resuelto el {mod.diseno3d.fechaReprocesoResuelto}</div>
+          )}
           <div style={{ marginTop: 8 }}>
             <label style={lbl}>Observaciones</label>
             <textarea value={prod.observaciones || ''} onChange={e => onUpdate({ ...mod, produccion: { ...prod, observaciones: e.target.value } })} rows={2} style={{ ...inp, resize: 'none', width: '100%' }} />

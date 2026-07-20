@@ -133,6 +133,7 @@ export default function DepartmentSettings({ departamentos = [], responsables = 
                   <div style={{ marginTop: 14, display: 'flex', gap: 8 }}>
                     <button
                       onClick={() => handleSave(dept)}
+                      className="btn-press"
                       style={{ padding: '7px 16px', borderRadius: 8, border: 'none', background: color, color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                       Guardar cambios
                     </button>

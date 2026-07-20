@@ -214,8 +214,8 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
   const equifrigo  = modulos.filter(m => m.linea === 'Equifrigo').length;
 
   return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-      <div className="bg-[#1B1E23] border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 anim-backdrop-in">
+      <div className="bg-[#1B1E23] border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto anim-panel-in">
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-steel-line">
@@ -365,7 +365,7 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
                   </div>
 
                   {expandedMod === mod.id && (
-                    <div className="px-4 pb-4 border-t border-steel-line pt-3 space-y-3">
+                    <div className="anim-fade-in px-4 pb-4 border-t border-steel-line pt-3 space-y-3">
                       {(() => {
                         const categorias = mod.tipoModulo ? (CATEGORIAS_POR_TIPO[mod.tipoModulo] ?? TODAS_LAS_CATEGORIAS) : TODAS_LAS_CATEGORIAS;
                         return (
@@ -545,7 +545,7 @@ export default function ProjectForm({ onClose, proyecto: existing, onCreated }) 
         <div className="px-6 py-4 border-t border-steel-line flex justify-end gap-2">
           <button onClick={onClose} className="text-steel-muted hover:text-white text-sm px-4 py-2 rounded-lg hover:bg-white/5 transition-colors">Cancelar</button>
           <button onClick={handleSave} disabled={!isEdit && totalMods === 0}
-            className={`text-sm px-5 py-2 rounded-lg transition-colors font-medium ${!isEdit && totalMods === 0 ? 'bg-slate-700 text-steel-muted cursor-not-allowed' : 'bg-flame hover:bg-flame-dim text-white'}`}>
+            className={`text-sm px-5 py-2 rounded-lg transition-colors transition-transform duration-100 active:scale-[0.97] font-medium ${!isEdit && totalMods === 0 ? 'bg-slate-700 text-steel-muted cursor-not-allowed' : 'bg-flame hover:bg-flame-dim text-white'}`}>
             {isEdit ? 'Guardar cambios' : totalMods > 0 ? `Crear proyecto con ${totalMods} módulo${totalMods > 1 ? 's' : ''}` : 'Agrega un módulo para continuar'}
           </button>
         </div>

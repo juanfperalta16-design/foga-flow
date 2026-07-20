@@ -245,7 +245,7 @@ function ModuloCard({ modulo, onUpdate, onDelete }) {
 
       {/* Expandido */}
       {expanded && (
-        <div style={{ padding: '0 14px 14px', borderTop: '1px solid #1E2433' }}>
+        <div className="anim-fade-in" style={{ padding: '0 14px 14px', borderTop: '1px solid #1E2433' }}>
           {/* Cambiar fase */}
           <div style={{ marginTop: 12 }}>
             <label style={lbl}>Fase actual</label>

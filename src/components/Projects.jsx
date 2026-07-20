@@ -455,8 +455,8 @@ export default function Projects() {
 
       {/* Modal eliminar */}
       {confirmDelete && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-          <div className="bg-[#1B1E23] border border-white/10 rounded-2xl p-6 w-full max-w-sm">
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 anim-backdrop-in">
+          <div className="bg-[#1B1E23] border border-white/10 rounded-2xl p-6 w-full max-w-sm anim-panel-in">
             <h3 className="text-white font-bold text-lg mb-2">¿Eliminar proyecto?</h3>
             <p className="text-steel-muted text-sm mb-6">Esta acción no se puede deshacer.</p>
             <div className="flex gap-3">
@@ -465,7 +465,7 @@ export default function Projects() {
                 Cancelar
               </button>
               <button onClick={() => eliminarProyecto(confirmDelete)}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm py-2 rounded-lg transition-colors font-medium">
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm py-2 rounded-lg transition-colors transition-transform duration-100 active:scale-[0.97] font-medium">
                 Sí, eliminar
               </button>
             </div>

@@ -105,7 +105,7 @@ export default function Dashboard() {
           </div>
           <div className="divide-y divide-steel-line max-h-72 overflow-y-auto">
             {alertas.filter(a => a.estado === 'Pendiente').slice(0, 8).map(al => (
-              <div key={al.id} className="px-4 py-3 hover:bg-white/3 cursor-pointer" onClick={() => goToProject(al.proyectoId)}>
+              <div key={al.id} className="px-4 py-3 hover:bg-white/3 cursor-pointer transition-colors duration-150" onClick={() => goToProject(al.proyectoId)}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -171,7 +171,7 @@ export default function Dashboard() {
           {activos.slice(0, 6).map(p => {
             const atrasado = isAtrasado(p.fechaEntrega, p.estadoGeneral);
             return (
-              <div key={p.id} className="px-4 py-3 flex items-center gap-4 hover:bg-white/5 cursor-pointer" onClick={() => goToProject(p.id)}>
+              <div key={p.id} className="px-4 py-3 flex items-center gap-4 hover:bg-white/5 cursor-pointer transition-colors duration-150" onClick={() => goToProject(p.id)}>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-medium text-white truncate">{p.nombre}</span>

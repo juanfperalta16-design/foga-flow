@@ -95,6 +95,23 @@ function negritaFila(sheet, rowNumber, numCols) {
   for (let i = 1; i <= numCols; i++) row.getCell(i).font = { bold: true };
 }
 
+// Bordes finos + franjas alternas en las filas de datos, para que cada hoja
+// se vea como una tabla real y no como valores sueltos. Se llama ANTES de
+// pintarColumna: el color de semáforo pisa el relleno de la franja en esas
+// celdas puntuales, pero el borde se conserva siempre.
+function bordearDatos(sheet, rowHeader, numCols) {
+  const borde = { style: 'thin', color: { argb: 'FF2B2F36' } };
+  for (let r = rowHeader.number + 1; r <= sheet.rowCount; r++) {
+    const row = sheet.getRow(r);
+    const banda = (r - rowHeader.number) % 2 === 0;
+    for (let c = 1; c <= numCols; c++) {
+      const cell = row.getCell(c);
+      cell.border = { top: borde, bottom: borde, left: borde, right: borde };
+      if (banda) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF161A22' } };
+    }
+  }
+}
+
 // ── Clasificadores de semáforo por columna ───────────
 const claseSemaforoTexto = (v) => {
   const t = String(v || '').toUpperCase();
@@ -229,6 +246,7 @@ export default function ExportExcel() {
           p.installations?.responsible || 'Sin asignar',
         ]);
       });
+      bordearDatos(ws1, hdr1, headers1.length);
       pintarColumna(ws1, hdr1, 'SEMÁFORO', claseSemaforoTexto);
 
       // ── HOJA 1B: FLUJO GENERAL ───────────────────
@@ -237,8 +255,8 @@ export default function ExportExcel() {
       // columna "ETAPA ACTUAL" con el resumen de dónde está parado hoy
       // (ej. "Producción — 3. Plegado") — para ver todo el panorama sin
       // tener que cruzar las 4 hojas detalladas por departamento.
-      const headers1B = ['PROYECTO', 'CLIENTE', 'PEC MÓDULO', 'MÓDULO', 'LÍNEA', 'ARQUITECTURA', 'DISEÑO 3D', 'PRODUCCIÓN', 'INSTALACIONES', 'ETAPA ACTUAL'];
-      const { sheet: ws1B, rowHeader: hdr1B } = nuevaHoja(wb, 'Flujo General', 'FOGA FLOW — FLUJO GENERAL POR MÓDULO', headers1B, [28,20,14,20,12,20,20,20,20,26]);
+      const headers1B = ['PROYECTO', 'CLIENTE', 'PEC MÓDULO', 'MÓDULO', 'CÓDIGO', 'LÍNEA', 'ARQUITECTURA', 'DISEÑO 3D', 'PRODUCCIÓN', 'INSTALACIONES', 'ETAPA ACTUAL'];
+      const { sheet: ws1B, rowHeader: hdr1B } = nuevaHoja(wb, 'Flujo General', 'FOGA FLOW — FLUJO GENERAL POR MÓDULO', headers1B, [28,20,14,20,20,12,20,20,20,20,26]);
 
       (proyectos || []).filter(p => p.estadoGeneral !== 'Finalizado').forEach(p => {
         const inst = p.installations || {};
@@ -272,11 +290,12 @@ export default function ExportExcel() {
             : `Arquitectura — ${arqEstado}`;
 
           ws1B.addRow([
-            p.nombre || '—', p.cliente || '—', mod.pec || '—', mod.nombre || '—', mod.linea || p.lineaProyecto || '—',
+            p.nombre || '—', p.cliente || '—', mod.pec || '—', mod.nombre || '—', mod.codigo || '—', mod.linea || p.lineaProyecto || '—',
             arqEstado, d3Estado, prodEstado, instEstado, etapaActual,
           ]);
         });
       });
+      bordearDatos(ws1B, hdr1B, headers1B.length);
       pintarColumna(ws1B, hdr1B, 'ARQUITECTURA', claseEtapaGeneral);
       pintarColumna(ws1B, hdr1B, 'DISEÑO 3D', claseEtapaGeneral);
       pintarColumna(ws1B, hdr1B, 'PRODUCCIÓN', claseEtapaGeneral);
@@ -289,8 +308,6 @@ export default function ExportExcel() {
 
       (proyectos || []).filter(p => p.estadoGeneral !== 'Finalizado').forEach(p => {
         const modulos   = p.production?.modulos || [];
-        const d3        = p.design3d || {};
-        const designers = d3.responsables || (d3.responsible ? [d3.responsible] : []);
         const fechasDepto = p.fechasDepto || {};
 
         if (p.architecture?.responsible) {
@@ -300,10 +317,19 @@ export default function ExportExcel() {
           ws2.addRow([nombre, 'Arquitectura', p.nombre, p.cliente, p.numeroContrato || '—', p.architecture?.status || '—', p.estadoGeneral, fecha || 'Sin fecha', dias !== null ? dias : '—', dias !== null ? estado(fecha) : '—']);
         }
 
-        designers.forEach(nombre => {
-          const fecha = fechasDepto.diseno3d || p.fechaEntrega;
-          const dias  = fecha ? Math.floor((new Date(fecha) - new Date()) / 86400000) : null;
-          ws2.addRow([nombre, 'Diseño 3D', p.nombre, p.cliente, p.numeroContrato || '—', d3.status || d3.estado || '—', p.estadoGeneral, fecha || 'Sin fecha', dias !== null ? dias : '—', dias !== null ? estado(fecha) : '—']);
+        modulos.forEach(mod => {
+          if (mod.diseno3d?.disenador) {
+            const md3 = mod.diseno3d || {};
+            const estadoModulo = md3.liberadoProduccion       ? 'Liberado a Producción'
+              : md3.autocadBreakdownFinished ? 'Despiece terminado'
+              : md3.autocadBreakdownStarted  ? 'En despiece'
+              : md3.solidworksFinished       ? 'SolidWorks terminado'
+              : md3.solidworksStarted        ? 'En SolidWorks'
+              : 'Pendiente';
+            const fecha = fechasDepto.diseno3d || p.fechaEntrega;
+            const dias  = fecha ? Math.floor((new Date(fecha) - new Date()) / 86400000) : null;
+            ws2.addRow([md3.disenador, 'Diseño 3D', p.nombre, p.cliente, mod.pec || '—', mod.nombre || '—', estadoModulo, fecha || 'Sin fecha', dias !== null ? dias : '—', dias !== null ? estado(fecha) : '—']);
+          }
         });
 
         if (p.installations?.responsible) {
@@ -321,11 +347,12 @@ export default function ExportExcel() {
           }
         });
       });
+      bordearDatos(ws2, hdr2, headers2.length);
       pintarColumna(ws2, hdr2, 'SEMÁFORO', claseSemaforoTexto);
 
       // ── HOJA 3: PRODUCCIÓN DETALLADA ─────────────
-      const headers3 = ['PROYECTO', 'CLIENTE', 'PEC MÓDULO', 'MÓDULO', 'LÍNEA', 'MAESTRO', 'FASE ACTUAL', 'REPROCESO', 'FECHA ENTREGA', 'DÍAS REST.', 'SEMÁFORO', 'MATERIAL FALTANTE'];
-      const { sheet: ws3, rowHeader: hdr3 } = nuevaHoja(wb, 'Producción Detallada', 'FOGA FLOW — PRODUCCIÓN DETALLADA', headers3, [28,20,14,20,14,18,22,12,14,10,12,30]);
+      const headers3 = ['PROYECTO', 'CLIENTE', 'PEC MÓDULO', 'MÓDULO', 'LÍNEA', 'MAESTRO', 'FASE ACTUAL', 'REPROCESO', 'FECHA REPROCESO', 'ARCHIVO CORREGIDO', 'FECHA RESUELTO', 'FECHA ENTREGA', 'DÍAS REST.', 'SEMÁFORO', 'MATERIAL FALTANTE'];
+      const { sheet: ws3, rowHeader: hdr3 } = nuevaHoja(wb, 'Producción Detallada', 'FOGA FLOW — PRODUCCIÓN DETALLADA', headers3, [28,20,14,20,14,18,22,12,14,30,14,14,10,12,30]);
 
       (proyectos || []).forEach(p => {
         const modulos = p.production?.modulos || [];
@@ -345,6 +372,9 @@ export default function ExportExcel() {
             mod.maestro || 'Sin asignar',
             mod.produccion?.faseActual || '—',
             mod.produccion?.reproceso ? 'Sí' : 'No',
+            mod.produccion?.fechaReproceso || '—',
+            mod.diseno3d?.archivoReproceso || '—',
+            mod.diseno3d?.fechaReprocesoResuelto || '—',
             fecha || 'Sin fecha',
             dias !== null ? dias : '—',
             dias !== null ? estado(fecha) : '—',
@@ -352,6 +382,7 @@ export default function ExportExcel() {
           ]);
         });
       });
+      bordearDatos(ws3, hdr3, headers3.length);
       pintarColumna(ws3, hdr3, 'SEMÁFORO', claseSemaforoTexto);
       pintarColumna(ws3, hdr3, 'REPROCESO', claseReproceso);
 
@@ -390,6 +421,7 @@ export default function ExportExcel() {
           p.observacion || '—',
         ]);
       });
+      bordearDatos(ws4, hdr4, headers4.length);
       pintarColumna(ws4, hdr4, 'ESTADO', claseProspectoEstado);
       pintarColumna(ws4, hdr4, 'DÍAS SIN AVANZAR', claseDiasSinAvanzar);
 
@@ -418,6 +450,7 @@ export default function ExportExcel() {
           arch.observations || '—',
         ]);
       });
+      bordearDatos(ws5, hdr5, headers5.length);
       pintarColumna(ws5, hdr5, 'SEMÁFORO', claseSemaforoTexto);
 
       // ── HOJA 6: DISEÑO 3D DETALLADA ──────────────
@@ -441,6 +474,7 @@ export default function ExportExcel() {
           ]);
         });
       });
+      bordearDatos(ws6, hdr6, headers6.length);
       pintarColumna(ws6, hdr6, 'SOLIDWORKS', claseProgreso);
       pintarColumna(ws6, hdr6, 'DESPIECE', claseProgreso);
       pintarColumna(ws6, hdr6, 'PLAN DE CORTE', claseProgreso);
@@ -463,6 +497,7 @@ export default function ExportExcel() {
           p.fechaEntrega || 'Sin fecha',
         ]);
       });
+      bordearDatos(ws7, hdr7, headers7.length);
       pintarColumna(ws7, hdr7, 'INFORME TÉCNICO / MEDIDAS', claseProgreso);
       pintarColumna(ws7, hdr7, 'OBRA LISTA', claseSiNo);
 
@@ -480,6 +515,7 @@ export default function ExportExcel() {
           paseInstalacionAbierto(p) ? 'ABIERTO' : 'SIN PASE',
         ]);
       });
+      bordearDatos(wsC, hdrC, headersC.length);
       pintarColumna(wsC, hdrC, 'FÁBRICA TERMINADA', claseSiNo);
       pintarColumna(wsC, hdrC, 'AUTORIZADO CONTABILIDAD', claseSiNo);
       pintarColumna(wsC, hdrC, 'PASE', clasePase);
@@ -519,6 +555,7 @@ export default function ExportExcel() {
         r.fechaDiseno, r.fechaValidacionJP, r.semanaIso, r.anio, r.mes, r.semanaMes,
         r.disenador, r.linea, r.pec, r.clienteModulo, Number(r.ml.toFixed(2)), r.estado, r.observaciones,
       ]));
+      bordearDatos(ws8, hdr8, headers8.length);
       pintarColumna(ws8, hdr8, 'ESTADO', claseRegistroEstado);
 
       // ── HOJA 9 y 10: RESUMEN DEL MES (semana / diseñador) ──
@@ -540,7 +577,7 @@ export default function ExportExcel() {
 
       // Por semana del mes
       const headers9 = ['SEMANA DEL MES', 'GENERADOS (ML)', 'VALIDADOS (ML)', 'REPROCESO (ML)', 'PENDIENTE (ML)', '% VALIDADO'];
-      const { sheet: ws9 } = nuevaHoja(wb, 'Resumen Mes-Semana', `FOGA FLOW — RESUMEN DEL MES POR SEMANA (${MESES_NOMBRE[ahora.getMonth()]} ${ahora.getFullYear()})`, headers9, [16,16,16,16,16,12], { conGenerado: false });
+      const { sheet: ws9, rowHeader: hdr9 } = nuevaHoja(wb, 'Resumen Mes-Semana', `FOGA FLOW — RESUMEN DEL MES POR SEMANA (${MESES_NOMBRE[ahora.getMonth()]} ${ahora.getFullYear()})`, headers9, [16,16,16,16,16,12], { conGenerado: false });
 
       for (let s = 1; s <= 5; s++) {
         const r = resumenDe(delMesActual.filter(x => x.semanaMes === s));
@@ -550,6 +587,7 @@ export default function ExportExcel() {
       const totalMes = resumenDe(delMesActual);
       ws9.addRow(['TOTAL MES', totalMes.generados.toFixed(2), totalMes.validados.toFixed(2), totalMes.reproceso.toFixed(2), totalMes.pendiente.toFixed(2), `${totalMes.pctValidado.toFixed(1)}%`]);
       negritaFila(ws9, ws9.rowCount, headers9.length);
+      bordearDatos(ws9, hdr9, headers9.length);
 
       // Por diseñador, con meta y semáforo
       const deptD3D = (departamentosConfig || []).find(d => d.nombre === 'Diseño 3D');
@@ -569,6 +607,7 @@ export default function ExportExcel() {
       const pctMetaTotal = metaTotal > 0 ? (totalDis.generados / metaTotal) * 100 : 0;
       ws10.addRow(['TOTAL', totalDis.generados.toFixed(2), totalDis.validados.toFixed(2), totalDis.reproceso.toFixed(2), totalDis.pendiente.toFixed(2), metaTotal.toFixed(2), `${pctMetaTotal.toFixed(1)}%`, '']);
       negritaFila(ws10, ws10.rowCount, headers10.length);
+      bordearDatos(ws10, hdr10, headers10.length);
       pintarColumna(ws10, hdr10, 'SEMAFORO', claseSemaforoLiteral);
 
       // ── DESCARGAR ─────────────────────────────────
@@ -614,7 +653,7 @@ export default function ExportExcel() {
 
       {/* Menú */}
       {showMenu && (
-        <div style={{
+        <div className="anim-fade-in" style={{
           position: 'fixed', bottom: 86, right: 24, zIndex: 1000,
           background: '#1B1E23', border: '1px solid #1E2433',
           borderRadius: 14, padding: '16px 18px', minWidth: 260,

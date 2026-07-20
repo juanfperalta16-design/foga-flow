@@ -41,10 +41,11 @@ export default function ResponsibleForm({ responsable, onSave, onClose }) {
 
   return (
     <div
+      className="anim-backdrop-in"
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}
       onClick={e => e.target === e.currentTarget && onClose()}
     >
-      <div style={{ background: '#fff', borderRadius: 16, padding: 28, width: '100%', maxWidth: 480, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+      <div className="anim-panel-in" style={{ background: '#fff', borderRadius: 16, padding: 28, width: '100%', maxWidth: 480, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <h2 style={{ fontWeight: 700, fontSize: 17, color: '#0F172A' }}>
@@ -105,7 +106,7 @@ export default function ResponsibleForm({ responsable, onSave, onClose }) {
           <button onClick={onClose} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #E2E8F0', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#475569', fontWeight: 500 }}>
             Cancelar
           </button>
-          <button onClick={handleSubmit} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: '#D4A017', color: '#fff', fontSize: 13, cursor: 'pointer', fontWeight: 600 }}>
+          <button onClick={handleSubmit} className="btn-press" style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: '#D4A017', color: '#fff', fontSize: 13, cursor: 'pointer', fontWeight: 600 }}>
             {editando ? 'Guardar cambios' : 'Crear persona'}
           </button>
         </div>

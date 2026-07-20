@@ -48,7 +48,7 @@ function ModuloRow({ mod, index }) {
   return (
     <div style={{
       background: '#101215',
-      border: `1px solid ${atrasado ? '#EF444430' : '#1E2433'}`,
+      border: `1px solid ${atrasado || prod.reproceso ? '#EF444430' : '#1E2433'}`,
       borderRadius: 10, padding: '12px 14px', marginBottom: 8,
     }}>
       {/* Fila principal */}
@@ -62,6 +62,7 @@ function ModuloRow({ mod, index }) {
             <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: '#4B5563' }}>{mod.pec}</span>
             <LineaBadge linea={mod.linea} />
             {atrasado && <span style={{ fontSize: 9, background: '#450A0A', color: '#FCA5A5', padding: '1px 6px', borderRadius: 4, fontWeight: 700 }}>ATRASADO</span>}
+            {prod.reproceso && <span style={{ fontSize: 9, background: '#450A0A', color: '#FCA5A5', padding: '1px 6px', borderRadius: 4, fontWeight: 700 }}>⚠ REPROCESO</span>}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3, flexWrap: 'wrap' }}>
             {mod.maestro && <span style={{ fontSize: 10, color: '#6B7280' }}>👤 {mod.maestro}</span>}
@@ -165,6 +166,7 @@ export default function ProjectFlow({ proyecto, onUpdateProyecto }) {
                   background: e.done ? e.color + '30' : e.active ? e.color + '15' : '#101215',
                   border: `2px solid ${e.done ? e.color : e.active ? e.color + '60' : '#1E2433'}`,
                   opacity: e.active || e.done ? 1 : 0.4,
+                  transition: 'background 250ms ease, border-color 250ms ease, opacity 250ms ease',
                 }}>
                   {e.icon}
                 </div>
@@ -174,7 +176,7 @@ export default function ProjectFlow({ proyecto, onUpdateProyecto }) {
                 </div>
               </div>
               {i < arr.length - 1 && (
-                <div style={{ height: 2, width: 32, background: e.done ? e.color : '#1E2433', flexShrink: 0, marginBottom: 28, borderRadius: 1 }} />
+                <div style={{ height: 2, width: 32, background: e.done ? e.color : '#1E2433', flexShrink: 0, marginBottom: 28, borderRadius: 1, transition: 'background 250ms ease' }} />
               )}
             </div>
           ))}
