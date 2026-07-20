@@ -156,11 +156,15 @@ export default function Urgencies() {
   const { proyectos, alertas, saveAlertas, goToProject } = useApp();
   const safeProys = (proyectos || []);
 
-  // ── 0. Alertas reportadas manualmente por un departamento ──
-  // (ej. botón "🔔 Enviar alerta" en Arquitectura) — antes solo se
-  // veían en Proyectos → pestaña Alertas; el contador del sidebar las
-  // cuenta pero esta página no las mostraba, así que "desaparecían".
-  const alertasReportadas = (alertas || []).filter(a => a.estado === 'Pendiente' && (!a.auto || a.tipo === 'Carpeta física pendiente'));
+  // ── 0. Todas las alertas de la colección "alertas" (manuales + automáticas) ──
+  // FOGA 22 y FOGA 29: el badge del sidebar cuenta TODA alerta Urgente de
+  // `alertas` (manual o automática, sea cual sea su tipo), pero esta página
+  // tenía secciones fijas que solo cubrían algunos tipos — cualquier alerta
+  // de un tipo no contemplado (ej. "Listo para producción") sumaba al
+  // número rojo sin tener dónde mostrarse, y parecía "salir de la nada" o
+  // "no tener nada que ver". Para que no vuelva a pasar con un tipo nuevo,
+  // esta sección muestra TODAS las pendientes, sin filtrar por tipo.
+  const alertasReportadas = (alertas || []).filter(a => a.estado === 'Pendiente');
   const resolverAlerta = (al) => saveAlertas([{ ...al, estado: 'Resuelta' }]);
 
   // ── 1. Proyectos atrasados (fecha general) ──
@@ -227,8 +231,8 @@ export default function Urgencies() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-        {/* Alertas reportadas manualmente + pendientes de acción física (ej. entrega de carpeta) */}
-        <Seccion titulo="Alertas reportadas" subtitulo="Bloqueos reportados por un departamento y pendientes de una acción puntual" items={alertasReportadas.length} color="#DC2626" icon="🔔">
+        {/* Todas las alertas pendientes — manuales y automáticas, cualquier tipo */}
+        <Seccion titulo="Alertas del sistema" subtitulo="Reportadas por un departamento o generadas automáticamente (ej. módulo listo para liberar)" items={alertasReportadas.length} color="#DC2626" icon="🔔">
           {alertasReportadas.map(al => <TarjetaAlerta key={al.id} alerta={al} goToProject={goToProject} onResolver={resolverAlerta} />)}
         </Seccion>
 

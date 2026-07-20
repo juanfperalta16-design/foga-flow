@@ -274,7 +274,12 @@ function ModuloD3D({ mod, onUpdate }) {
   }
   function subirPlan() {
     if (!planInput.trim()) return;
-    onUpdate({ ...mod, diseno3d: { ...d3, planCorteLink: planInput, fechaDespachoPlano: new Date().toISOString().slice(0,10) } });
+    // La fecha de diseño (para el registro de ML) queda fija al mismo
+    // momento en que se sube el plano de corte — no se escribe a mano.
+    // La fecha "objetivo" la sigue asignando el Jefe de Producción desde
+    // la pestaña Equipo (fechasDepto.diseno3d), esto es la fecha real.
+    const hoy = new Date().toISOString().slice(0,10);
+    onUpdate({ ...mod, diseno3d: { ...d3, planCorteLink: planInput, fechaDespachoPlano: hoy, fechaDiseno: d3.fechaDiseno || hoy } });
     setPlanInput(''); setShowPlan(false);
   }
   if (!liberadoArq) return (
@@ -351,7 +356,9 @@ function ModuloD3D({ mod, onUpdate }) {
             </div>
             <div>
               <label style={{ ...lbl, fontSize: 10 }}>Fecha diseño</label>
-              <input type="date" value={d3.fechaDiseno || ''} onChange={e => onUpdate({ ...mod, diseno3d: { ...d3, fechaDiseno: e.target.value } })} style={inp} />
+              <div style={{ ...inp, display: 'flex', alignItems: 'center', color: d3.fechaDiseno ? '#E2E8F0' : '#4B5563' }}>
+                {d3.fechaDiseno || 'Se guarda sola al subir el plano de corte'}
+              </div>
             </div>
           </div>
           <div style={{ marginTop: 8 }}>
