@@ -8,15 +8,15 @@ const ESTADOS = ['En propuesta','Propuesta inicial lista','Borrador conceptual l
 const LINEAS  = ['Element','Santa Ana','Equifrigo'];
 
 const LINEA_COLORS = {
-  'Element':   { color: '#C4B5FD', bg: '#2D1B69' },
-  'Santa Ana': { color: '#93C5FD', bg: '#1E3A5F' },
+  'Element':   { color: '#F0D687', bg: '#332905' },
+  'Santa Ana': { color: '#E3A868', bg: '#2E1A08' },
   'Equifrigo': { color: '#FCD34D', bg: '#452B03' },
 };
 
 const EST_COLORS = {
   'En propuesta':              { color: '#9CA3AF', bg: '#1F2937' },
-  'Propuesta inicial lista':   { color: '#93C5FD', bg: '#1E3A5F' },
-  'Borrador conceptual listo': { color: '#93C5FD', bg: '#1E3A5F' },
+  'Propuesta inicial lista':   { color: '#E3A868', bg: '#2E1A08' },
+  'Borrador conceptual listo': { color: '#E3A868', bg: '#2E1A08' },
   'Presentado al cliente':     { color: '#FCD34D', bg: '#451A03' },
   'Con cambios':               { color: '#F97316', bg: '#431407' },
   'Aprobado':                  { color: '#86EFAC', bg: '#052E16' },
@@ -66,8 +66,8 @@ function ProspectoForm({ prospecto, onSave, onClose }) {
   }
 
   return (
-    <div style={{ background: '#0A0D14', border: '1.5px solid #7C3AED40', borderRadius: 12, padding: 18, marginBottom: 12 }}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: '#C4B5FD', marginBottom: 14 }}>
+    <div style={{ background: '#0A0D14', border: '1.5px solid #D4A01740', borderRadius: 12, padding: 18, marginBottom: 12 }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: '#F0D687', marginBottom: 14 }}>
         {prospecto.cliente ? `Editar — ${prospecto.cliente}` : 'Nuevo prospecto'}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -128,7 +128,7 @@ function ProspectoForm({ prospecto, onSave, onClose }) {
       </div>
       <div style={{ display: 'flex', gap: 8, marginTop: 14, justifyContent: 'flex-end' }}>
         <button onClick={onClose} style={btn('#374151')}>Cancelar</button>
-        <button onClick={() => { if (!form.cliente.trim()) return alert('El cliente es requerido'); onSave(form); onClose(); }} style={btn('#7C3AED')}>Guardar</button>
+        <button onClick={() => { if (!form.cliente.trim()) return alert('El cliente es requerido'); onSave(form); onClose(); }} style={btn('#D4A017')}>Guardar</button>
       </div>
     </div>
   );
@@ -173,7 +173,7 @@ function ProspectoCard({ prospecto, onUpdate, onEdit, onDelete, onGenerarProyect
   }
 
   return (
-    <div style={{ background: '#141824', border: `1.5px solid ${esAprobado ? '#16A34A40' : prospecto.estado === 'No ganado' ? '#1F2937' : '#7C3AED20'}`, borderLeft: `4px solid ${est.color}`, borderRadius: 10, marginBottom: 8, opacity: prospecto.estado === 'No ganado' ? 0.6 : 1 }}>
+    <div style={{ background: '#141824', border: `1.5px solid ${esAprobado ? '#16A34A40' : prospecto.estado === 'No ganado' ? '#1F2937' : '#D4A01720'}`, borderLeft: `4px solid ${est.color}`, borderRadius: 10, marginBottom: 8, opacity: prospecto.estado === 'No ganado' ? 0.6 : 1 }}>
 
       {/* Header */}
       <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -190,13 +190,13 @@ function ProspectoCard({ prospecto, onUpdate, onEdit, onDelete, onGenerarProyect
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap', alignItems: 'center' }}>
             {prospecto.vendedor    && <span style={{ fontSize: 10, color: '#6B7280' }}>💼 {prospecto.vendedor}</span>}
-            {prospecto.disenadora  && <span style={{ fontSize: 10, color: '#C4B5FD' }}>✏️ {prospecto.disenadora}</span>}
+            {prospecto.disenadora  && <span style={{ fontSize: 10, color: '#F0D687' }}>✏️ {prospecto.disenadora}</span>}
             {prospecto.nCambios > 0 && <span style={{ fontSize: 10, color: '#F97316' }}>🔄 {prospecto.nCambios} cambio{prospecto.nCambios !== 1 ? 's' : ''}</span>}
             {diasEnProceso !== null && !prospecto.convertido && <span style={{ fontSize: 10, color: diasEnProceso > 15 ? '#F97316' : '#6B7280' }}>📅 {diasEnProceso}d en propuesta</span>}
             {/* Mini barra progreso checklist */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <div style={{ width: 50, height: 3, background: '#1E2433', borderRadius: 2, overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${pct}%`, background: pct === 100 ? '#16A34A' : '#7C3AED', borderRadius: 2 }} />
+                <div style={{ height: '100%', width: `${pct}%`, background: pct === 100 ? '#16A34A' : '#D4A017', borderRadius: 2 }} />
               </div>
               <span style={{ fontSize: 9, color: '#6B7280' }}>{pct}%</span>
             </div>
@@ -225,10 +225,10 @@ function ProspectoCard({ prospecto, onUpdate, onEdit, onDelete, onGenerarProyect
         <div style={{ padding: '0 14px 14px', borderTop: '1px solid #1E2433' }}>
 
           {/* ── CHECKLIST ── */}
-          <div style={{ marginTop: 14, background: '#0A0D14', border: '1px solid #2D1B6940', borderRadius: 10, padding: '12px 14px' }}>
+          <div style={{ marginTop: 14, background: '#0A0D14', border: '1px solid #33290540', borderRadius: 10, padding: '12px 14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: '#C4B5FD' }}>Proceso de diseño conceptual</span>
-              <span style={{ fontSize: 11, fontWeight: 700, color: pct === 100 ? '#86EFAC' : '#C4B5FD' }}>{pasosOk}/{pasosTot} pasos</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#F0D687' }}>Proceso de diseño conceptual</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: pct === 100 ? '#86EFAC' : '#F0D687' }}>{pasosOk}/{pasosTot} pasos</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
               {CHECKLIST.map((paso, i) => {
@@ -236,15 +236,15 @@ function ProspectoCard({ prospecto, onUpdate, onEdit, onDelete, onGenerarProyect
                 const anterior  = i === 0 || !!checklist[CHECKLIST[i-1].id];
                 const bloqueado = !anterior && !checked;
                 return (
-                  <div key={paso.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', background: checked ? '#2D1B6920' : '#141824', border: `1px solid ${checked ? '#7C3AED50' : '#1E2433'}`, borderRadius: 8, opacity: bloqueado ? 0.45 : 1 }}>
-                    <div onClick={() => !bloqueado && !paso.esEmail && toggleCheck(paso.id)} style={{ width: 20, height: 20, borderRadius: paso.esFinal ? 5 : '50%', border: `2px solid ${checked ? '#7C3AED' : '#374151'}`, background: checked ? '#7C3AED' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: paso.esEmail || bloqueado ? 'default' : 'pointer', flexShrink: 0 }}>
+                  <div key={paso.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', background: checked ? '#33290520' : '#141824', border: `1px solid ${checked ? '#D4A01750' : '#1E2433'}`, borderRadius: 8, opacity: bloqueado ? 0.45 : 1 }}>
+                    <div onClick={() => !bloqueado && !paso.esEmail && toggleCheck(paso.id)} style={{ width: 20, height: 20, borderRadius: paso.esFinal ? 5 : '50%', border: `2px solid ${checked ? '#D4A017' : '#374151'}`, background: checked ? '#D4A017' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: paso.esEmail || bloqueado ? 'default' : 'pointer', flexShrink: 0 }}>
                       {checked && <CheckCircle2 size={13} color="#fff" />}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: checked ? '#C4B5FD' : bloqueado ? '#4B5563' : '#E2E8F0' }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: checked ? '#F0D687' : bloqueado ? '#4B5563' : '#E2E8F0' }}>
                         {i+1}. {paso.label}
                         {paso.opcional && <span style={{ fontSize: 9, color: '#6B7280', marginLeft: 6 }}>(opcional)</span>}
-                        {checked && checklist[`${paso.id}Fecha`] && <span style={{ fontSize: 9, color: '#7C3AED', marginLeft: 6, fontWeight: 400 }}>· {checklist[`${paso.id}Fecha`]}</span>}
+                        {checked && checklist[`${paso.id}Fecha`] && <span style={{ fontSize: 9, color: '#D4A017', marginLeft: 6, fontWeight: 400 }}>· {checklist[`${paso.id}Fecha`]}</span>}
                       </div>
                       <div style={{ fontSize: 10, color: '#6B7280', marginTop: 1 }}>{paso.desc}</div>
                     </div>
@@ -282,10 +282,10 @@ function ProspectoCard({ prospecto, onUpdate, onEdit, onDelete, onGenerarProyect
                   : showPlanForm === campo
                     ? <div style={{ display: 'flex', gap: 4 }}>
                         <input value={planInput} onChange={e => setPlanInput(e.target.value)} placeholder="https://..." style={{ ...inp, flex: 1, fontSize: 10 }} />
-                        <button onClick={() => subirLink(campo)} style={btn('#2563EB')}>✓</button>
+                        <button onClick={() => subirLink(campo)} style={btn('#B5651D')}>✓</button>
                         <button onClick={() => setShowPlanForm(null)} style={btn('#374151')}>✕</button>
                       </div>
-                    : <button onClick={() => { setPlanInput(''); setShowPlanForm(campo); }} style={{ fontSize: 10, color: '#7C3AED', background: '#2D1B6920', border: '1px dashed #7C3AED40', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', width: '100%' }}>+ Agregar link</button>
+                    : <button onClick={() => { setPlanInput(''); setShowPlanForm(campo); }} style={{ fontSize: 10, color: '#D4A017', background: '#33290520', border: '1px dashed #D4A01740', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', width: '100%' }}>+ Agregar link</button>
                 }
               </div>
             ))}
@@ -425,8 +425,8 @@ export default function Prospectos({ onProyectoGenerado }) {
   function subgruposDe(lista) {
     return [
       { key: 'listos',  label: 'Listos para generar proyecto', color: '#16A34A', items: lista.filter(p => p.estado === 'Aprobado' && !p.convertido) },
-      { key: 'activos', label: 'En proceso',                   color: '#7C3AED', items: lista.filter(p => !['No ganado','Aprobado'].includes(p.estado) && !p.convertido) },
-      { key: 'conv',    label: 'Convertidos a proyecto',       color: '#2563EB', items: lista.filter(p => p.convertido) },
+      { key: 'activos', label: 'En proceso',                   color: '#D4A017', items: lista.filter(p => !['No ganado','Aprobado'].includes(p.estado) && !p.convertido) },
+      { key: 'conv',    label: 'Convertidos a proyecto',       color: '#B5651D', items: lista.filter(p => p.convertido) },
       { key: 'ng',      label: 'No ganados',                   color: '#6B7280', items: lista.filter(p => p.estado === 'No ganado' && !p.convertido) },
     ].filter(g => g.items.length > 0);
   }
@@ -446,9 +446,9 @@ export default function Prospectos({ onProyectoGenerado }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
         {[
           { label: 'Total',        value: stats.total,       color: '#E2E8F0' },
-          { label: 'En proceso',   value: stats.activos,     color: '#C4B5FD' },
+          { label: 'En proceso',   value: stats.activos,     color: '#F0D687' },
           { label: 'Para crear',   value: stats.aprobados,   color: '#86EFAC' },
-          { label: 'Convertidos',  value: stats.convertidos, color: '#93C5FD' },
+          { label: 'Convertidos',  value: stats.convertidos, color: '#E3A868' },
         ].map(({ label, value, color }) => (
           <div key={label} style={{ background: '#0A0D14', border: '1px solid #1E2433', borderRadius: 8, padding: '8px 12px', textAlign: 'center' }}>
             <div style={{ fontSize: 22, fontWeight: 700, color }}>{value}</div>
@@ -460,7 +460,7 @@ export default function Prospectos({ onProyectoGenerado }) {
       {/* Botón nuevo */}
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <button onClick={() => { setEditando(buildProspecto()); setShowForm(true); }}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#7C3AED', color: '#fff', border: 'none', borderRadius: 9, fontSize: 12, fontWeight: 700, padding: '8px 18px', cursor: 'pointer' }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#D4A017', color: '#fff', border: 'none', borderRadius: 9, fontSize: 12, fontWeight: 700, padding: '8px 18px', cursor: 'pointer' }}>
           <Plus size={14} /> Nuevo prospecto
         </button>
       </div>
@@ -483,7 +483,7 @@ export default function Prospectos({ onProyectoGenerado }) {
       {gruposPorArquitecta.map(({ nombre, total, subgrupos }) => (
         <div key={nombre} style={{ background: '#141824', border: '1px solid #1E2433', borderRadius: 12, padding: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #7C3AED, #7C3AED80)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #D4A017, #D4A01780)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
               {nombre === 'Sin asignar' ? '—' : nombre.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase()}
             </div>
             <div>
@@ -514,7 +514,7 @@ export default function Prospectos({ onProyectoGenerado }) {
       {/* Confirm delete */}
       {confirmDel && (
         <div style={{ position: 'fixed', inset: 0, background: '#000000A0', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div style={{ background: '#161820', border: '1px solid #1E2433', borderRadius: 16, padding: 24, maxWidth: 320, width: '100%' }}>
+          <div style={{ background: '#1B1E23', border: '1px solid #1E2433', borderRadius: 16, padding: 24, maxWidth: 320, width: '100%' }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: '#F1F5F9', marginBottom: 8 }}>¿Eliminar prospecto?</div>
             <div style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 20 }}>Esta acción no se puede deshacer.</div>
             <div style={{ display: 'flex', gap: 8 }}>
@@ -538,5 +538,5 @@ export default function Prospectos({ onProyectoGenerado }) {
 }
 
 const lbl = { fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 };
-const inp = { background: '#0F1117', border: '1px solid #374151', borderRadius: 7, color: '#E2E8F0', fontSize: 12, padding: '7px 10px', outline: 'none', width: '100%' };
+const inp = { background: '#101215', border: '1px solid #374151', borderRadius: 7, color: '#E2E8F0', fontSize: 12, padding: '7px 10px', outline: 'none', width: '100%' };
 const btn = (bg) => ({ background: bg, color: '#fff', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 600, padding: '6px 14px', cursor: 'pointer' });

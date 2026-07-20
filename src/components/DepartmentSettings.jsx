@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { ChevronDown, ChevronUp, Users } from 'lucide-react';
 
 const COLOR_OPTS = [
-  { label: 'Morado',    hex: '#7C3AED' },
-  { label: 'Azul',      hex: '#2563EB' },
+  { label: 'Morado',    hex: '#D4A017' },
+  { label: 'Azul',      hex: '#B5651D' },
   { label: 'Ámbar',     hex: '#D97706' },
-  { label: 'Naranja',   hex: '#EA580C' },
+  { label: 'Naranja',   hex: '#7A4B8C' },
   { label: 'Verde',     hex: '#16A34A' },
   { label: 'Gris',      hex: '#6B7280' },
   { label: 'Rojo',      hex: '#DC2626' },

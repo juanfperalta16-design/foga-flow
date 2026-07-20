@@ -1,9 +1,14 @@
+// Colores de departamento = colores de temple del acero: la secuencia real de
+// óxido que toma el acero al calentarse (pajizo -> bronce -> violeta -> azul)
+// mapeada a las etapas del pipeline, en vez de un arcoíris arbitrario de Tailwind.
+// Urgencias queda en rojo alarma real (una excepción deliberada: una alerta no
+// debe competir estéticamente con la paleta, debe leerse como peligro sin ambigüedad).
 export const DEPT_COLORS = {
-  'Arquitectura': { bg: 'bg-purple-600', text: 'text-purple-300', border: 'border-purple-500', light: 'bg-purple-900/40', hex: '#7C3AED' },
-  'Diseño':       { bg: 'bg-blue-600',   text: 'text-blue-300',   border: 'border-blue-500',   light: 'bg-blue-900/40',   hex: '#2563EB' },
-  'Obra':         { bg: 'bg-amber-600',  text: 'text-amber-300',  border: 'border-amber-500',  light: 'bg-amber-900/40',  hex: '#D97706' },
-  'Producción':   { bg: 'bg-orange-600', text: 'text-orange-300', border: 'border-orange-500', light: 'bg-orange-900/40', hex: '#EA580C' },
-  'Instalación':  { bg: 'bg-green-600',  text: 'text-green-300',  border: 'border-green-500',  light: 'bg-green-900/40',  hex: '#16A34A' },
+  'Arquitectura': { bg: 'bg-[#D4A017]', text: 'text-[#E8C158]', border: 'border-[#D4A017]/50', light: 'bg-[#D4A017]/10', hex: '#D4A017' },
+  'Diseño':       { bg: 'bg-[#B5651D]', text: 'text-[#D68A4C]', border: 'border-[#B5651D]/50', light: 'bg-[#B5651D]/10', hex: '#B5651D' },
+  'Obra':         { bg: 'bg-[#A67C3D]', text: 'text-[#C79F5C]', border: 'border-[#A67C3D]/50', light: 'bg-[#A67C3D]/10', hex: '#A67C3D' },
+  'Producción':   { bg: 'bg-[#7A4B8C]', text: 'text-[#A97FBC]', border: 'border-[#7A4B8C]/50', light: 'bg-[#7A4B8C]/10', hex: '#7A4B8C' },
+  'Instalación':  { bg: 'bg-[#2C6E9E]', text: 'text-[#5FA0CE]', border: 'border-[#2C6E9E]/50', light: 'bg-[#2C6E9E]/10', hex: '#2C6E9E' },
   'Urgencias':    { bg: 'bg-red-600',    text: 'text-red-300',    border: 'border-red-500',    light: 'bg-red-900/40',    hex: '#DC2626' },
 };
 
@@ -12,7 +17,7 @@ export const STATUS_COLORS = {
   'En proceso':        { bg: 'bg-blue-700',    text: 'text-blue-200',   dot: '#2563EB' },
   'En revisión':       { bg: 'bg-cyan-700',    text: 'text-cyan-200',   dot: '#0891B2' },
   'Con observaciones': { bg: 'bg-amber-700',   text: 'text-amber-200',  dot: '#D97706' },
-  'Pausado':           { bg: 'bg-slate-800',   text: 'text-slate-400',  dot: '#4B5563' },
+  'Pausado':           { bg: 'bg-slate-800',   text: 'text-steel-muted',  dot: '#4B5563' },
   'Urgente':           { bg: 'bg-red-700',     text: 'text-red-200',    dot: '#DC2626' },
   'Atrasado':          { bg: 'bg-red-900',     text: 'text-red-300',    dot: '#991B1B' },
   'Finalizado':        { bg: 'bg-green-800',   text: 'text-green-200',  dot: '#16A34A' },
@@ -84,11 +89,11 @@ export const getDeptActual = (p) => {
 
 // Style objects with hex colors (for inline styles in calendar etc.)
 const DEPT_STYLE_MAP = {
-  'Arquitectura': { bg: '#2D1B69', border: '#7C3AED', text: '#C4B5FD' },
-  'Diseño':       { bg: '#1E3A5F', border: '#2563EB', text: '#93C5FD' },
-  'Obra':         { bg: '#3D2B00', border: '#D97706', text: '#FCD34D' },
-  'Producción':   { bg: '#3D1F00', border: '#EA580C', text: '#FDBA74' },
-  'Instalación':  { bg: '#0F2D1A', border: '#16A34A', text: '#86EFAC' },
+  'Arquitectura': { bg: '#332905', border: '#D4A017', text: '#F0D687' },
+  'Diseño':       { bg: '#2E1A08', border: '#B5651D', text: '#E3A868' },
+  'Obra':         { bg: '#2A2010', border: '#A67C3D', text: '#D9BC85' },
+  'Producción':   { bg: '#241A2B', border: '#7A4B8C', text: '#C9A8D6' },
+  'Instalación':  { bg: '#0F2530', border: '#2C6E9E', text: '#8FC3E3' },
   'Urgencias':    { bg: '#3D0000', border: '#DC2626', text: '#FCA5A5' },
 };
 

@@ -165,7 +165,7 @@ export default function App() {
   };
 
   if (user === undefined) {
-    return <div className="flex items-center justify-center min-h-screen bg-[#0F1117] text-slate-500 text-sm">Cargando...</div>;
+    return <div className="flex items-center justify-center min-h-screen bg-steel-ink text-steel-muted text-sm font-stamp">Cargando...</div>;
   }
   if (user === null) {
     return <Login />;
@@ -173,7 +173,7 @@ export default function App() {
 
   return (
     <AppContext.Provider value={ctx}>
-      <div className="flex h-screen overflow-hidden bg-[#0F1117]">
+      <div className="flex h-screen overflow-hidden bg-steel-ink">
         <Sidebar page={page} setPage={setPage} urgentCount={urgentCount} atrasadosCount={atrasadosCount} currentUser={currentUser} onLogout={handleLogout} />
         <main className="flex-1 overflow-y-auto">
           {renderPage()}

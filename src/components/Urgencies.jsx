@@ -38,8 +38,8 @@ function TarjetaProyecto({ proyecto, motivo, color, goToProject }) {
           <div style={{ fontSize: 11, color, marginTop: 5, fontWeight: 600 }}>{motivo}</div>
           {/* Equipo */}
           <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
-            {proyecto.architecture?.responsible && <span style={{ fontSize: 10, color: '#C4B5FD' }}>✏️ {proyecto.architecture.responsible}</span>}
-            {designers.length > 0 && <span style={{ fontSize: 10, color: '#93C5FD' }}>🖥️ {designers.join(', ')}</span>}
+            {proyecto.architecture?.responsible && <span style={{ fontSize: 10, color: '#F0D687' }}>✏️ {proyecto.architecture.responsible}</span>}
+            {designers.length > 0 && <span style={{ fontSize: 10, color: '#E3A868' }}>🖥️ {designers.join(', ')}</span>}
             {proyecto.installations?.responsible && <span style={{ fontSize: 10, color: '#86EFAC' }}>🔧 {proyecto.installations.responsible}</span>}
           </div>
         </div>
@@ -74,7 +74,7 @@ function TarjetaModulo({ modulo, proyecto, color, motivo, goToProject }) {
             <span style={{ fontSize: 12, fontWeight: 700, color: '#F1F5F9' }}>{modulo.nombre || 'Sin nombre'}</span>
           </div>
           <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>{proyecto.nombre} · {proyecto.cliente}</div>
-          {modulo.maestro && <div style={{ fontSize: 10, color: '#FDBA74', marginTop: 3 }}>👤 {modulo.maestro}</div>}
+          {modulo.maestro && <div style={{ fontSize: 10, color: '#C9A8D6', marginTop: 3 }}>👤 {modulo.maestro}</div>}
           <div style={{ fontSize: 11, color, marginTop: 4, fontWeight: 600 }}>{motivo}</div>
           {/* Material urgente */}
           {(modulo.materialFaltante || []).filter(m => m.prioridad === '🔴 Urgente' && m.estadoCompra !== '✓ Recibido').map(mat => (
@@ -86,7 +86,7 @@ function TarjetaModulo({ modulo, proyecto, color, motivo, goToProject }) {
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
           {modulo.fechaEntrega && <SemaforoBadge fecha={modulo.fechaEntrega} />}
           {modulo.produccion?.faseActual && (
-            <div style={{ marginTop: 5, fontSize: 10, color: '#FDBA74', background: '#3D1F00', padding: '1px 6px', borderRadius: 4 }}>
+            <div style={{ marginTop: 5, fontSize: 10, color: '#C9A8D6', background: '#241A2B', padding: '1px 6px', borderRadius: 4 }}>
               {modulo.produccion.faseActual}
             </div>
           )}
@@ -110,7 +110,7 @@ function TarjetaAlerta({ alerta, goToProject, onResolver }) {
           </div>
           <div style={{ fontSize: 13, fontWeight: 700, color: '#F1F5F9' }}>{alerta.proyecto}{alerta.cliente ? ` · ${alerta.cliente}` : ''}</div>
           <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 3 }}>{alerta.motivo}</div>
-          {alerta.accionNecesaria && <div style={{ fontSize: 10, color: '#93C5FD', marginTop: 4, fontWeight: 600 }}>{alerta.accionNecesaria}</div>}
+          {alerta.accionNecesaria && <div style={{ fontSize: 10, color: '#E3A868', marginTop: 4, fontWeight: 600 }}>{alerta.accionNecesaria}</div>}
         </div>
         {alerta.auto ? (
           <span style={{ fontSize: 9, color: '#4B5563', whiteSpace: 'nowrap', flexShrink: 0 }}>se resuelve sola</span>

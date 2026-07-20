@@ -160,7 +160,7 @@ export default function CalendarioDepto({ proyectos, departamento, cfg, onGoProj
 
             return (
               <div key={dia} style={{
-                minHeight: 80, background: esHoy ? `${cfg.color}10` : '#0F1117',
+                minHeight: 80, background: esHoy ? `${cfg.color}10` : '#101215',
                 border: `1px solid ${esHoy ? cfg.color + '50' : proys.length > 0 ? cfg.color + '20' : '#1E2433'}`,
                 borderRadius: 6, padding: '5px 6px',
               }}>

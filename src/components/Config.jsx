@@ -16,30 +16,30 @@ export default function Config() {
     <div className="p-6 max-w-2xl space-y-6">
       <div>
         <h1 className="text-2xl font-black text-slate-900">Configuración</h1>
-        <p className="text-sm text-slate-400 mt-0.5">Opciones del sistema FOGA Flow</p>
+        <p className="text-sm text-steel-muted mt-0.5">Opciones del sistema FOGA Flow</p>
       </div>
 
       {/* App info */}
       <div className="bg-white rounded-2xl border border-slate-100 p-5">
         <div className="flex items-center gap-2 mb-3">
-          <Info size={16} className="text-slate-400" />
+          <Info size={16} className="text-steel-muted" />
           <h2 className="font-bold text-slate-700">Información del sistema</h2>
         </div>
-        <div className="space-y-2 text-sm text-slate-600">
+        <div className="space-y-2 text-sm text-steel-faint">
           <div className="flex justify-between py-1.5 border-b border-slate-50">
-            <span className="font-medium text-slate-500">Aplicación</span>
+            <span className="font-medium text-steel-faint">Aplicación</span>
             <span className="font-semibold">FOGA Flow v1.0</span>
           </div>
           <div className="flex justify-between py-1.5 border-b border-slate-50">
-            <span className="font-medium text-slate-500">Almacenamiento</span>
+            <span className="font-medium text-steel-faint">Almacenamiento</span>
             <span className="font-semibold">LocalStorage (prototipo)</span>
           </div>
           <div className="flex justify-between py-1.5 border-b border-slate-50">
-            <span className="font-medium text-slate-500">Usuario activo</span>
+            <span className="font-medium text-steel-faint">Usuario activo</span>
             <span className="font-semibold">Juan Peralta (Administrador)</span>
           </div>
           <div className="flex justify-between py-1.5">
-            <span className="font-medium text-slate-500">Empresa</span>
+            <span className="font-medium text-steel-faint">Empresa</span>
             <span className="font-semibold">FOGA S.A. — Equipos de cocina en acero inoxidable</span>
           </div>
         </div>
@@ -48,7 +48,7 @@ export default function Config() {
       {/* Departamentos */}
       <div className="bg-white rounded-2xl border border-slate-100 p-5">
         <div className="flex items-center gap-2 mb-3">
-          <Building2 size={16} className="text-slate-400" />
+          <Building2 size={16} className="text-steel-muted" />
           <h2 className="font-bold text-slate-700">Departamentos</h2>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -61,7 +61,7 @@ export default function Config() {
       {/* Responsables */}
       <div className="bg-white rounded-2xl border border-slate-100 p-5">
         <div className="flex items-center gap-2 mb-3">
-          <Users size={16} className="text-slate-400" />
+          <Users size={16} className="text-steel-muted" />
           <h2 className="font-bold text-slate-700">Responsables registrados</h2>
         </div>
         <div className="grid grid-cols-2 gap-2">
@@ -79,9 +79,9 @@ export default function Config() {
       {/* Migración */}
       <div className="bg-white rounded-2xl border border-slate-100 p-5">
         <h2 className="font-bold text-slate-700 mb-2">📦 Migración a Firebase / Supabase</h2>
-        <div className="text-sm text-slate-600 space-y-1.5">
+        <div className="text-sm text-steel-faint space-y-1.5">
           <p>El código está preparado para migrar. Solo debes modificar <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs font-mono">src/utils/storage.js</code>:</p>
-          <ul className="list-disc list-inside text-xs space-y-1 text-slate-500 ml-2">
+          <ul className="list-disc list-inside text-xs space-y-1 text-steel-faint ml-2">
             <li>Reemplaza <code className="bg-slate-100 px-1 rounded font-mono">localStorage.getItem</code> por llamadas a Firestore o Supabase.</li>
             <li>Las funciones <code className="bg-slate-100 px-1 rounded font-mono">getProyectos()</code>, <code className="bg-slate-100 px-1 rounded font-mono">saveProyectos()</code>, etc. son el único punto de cambio.</li>
             <li>El hook <code className="bg-slate-100 px-1 rounded font-mono">useAppState.js</code> no necesita cambios.</li>

@@ -120,7 +120,7 @@ function NuevoModuloForm({ onSave, onClose }) {
           if (!form.nombre.trim()) return alert('Ingresa el nombre del módulo');
           onSave({ ...form, id: `MOD-${Date.now()}`, creadoEn: new Date().toISOString() });
           onClose();
-        }} style={btn('#EA580C')}>Agregar módulo</button>
+        }} style={btn('#7A4B8C')}>Agregar módulo</button>
       </div>
     </div>
   );
@@ -221,14 +221,14 @@ function ModuloCard({ modulo, onUpdate, onDelete }) {
             {tieneUrgente && <span style={{ fontSize: 9, background: '#450A0A', color: '#FCA5A5', padding: '1px 5px', borderRadius: 4, fontWeight: 700 }}>MATERIAL URGENTE</span>}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 10, background: '#1E3A5F', color: '#93C5FD', padding: '1px 7px', borderRadius: 99, fontWeight: 600 }}>{modulo.faseActual}</span>
+            <span style={{ fontSize: 10, background: '#2E1A08', color: '#E3A868', padding: '1px 7px', borderRadius: 99, fontWeight: 600 }}>{modulo.faseActual}</span>
             {modulo.maestro && <span style={{ fontSize: 10, color: '#6B7280' }}>👤 {modulo.maestro}</span>}
             <span style={{ fontSize: 10, color: sem.color }}>⏱ {sem.label}</span>
             <span style={{ fontSize: 10, color: '#6B7280' }}>{dias}d en fase</span>
           </div>
           {/* Barra de progreso */}
           <div style={{ height: 3, background: '#1E2433', borderRadius: 2, overflow: 'hidden', marginTop: 6 }}>
-            <div style={{ height: '100%', width: `${pct}%`, background: pct === 100 ? '#16A34A' : '#EA580C', borderRadius: 2, transition: 'width .3s' }} />
+            <div style={{ height: '100%', width: `${pct}%`, background: pct === 100 ? '#16A34A' : '#7A4B8C', borderRadius: 2, transition: 'width .3s' }} />
           </div>
         </div>
 
@@ -258,7 +258,7 @@ function ModuloCard({ modulo, onUpdate, onDelete }) {
                 </div>
               : <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontSize: 12, color: '#E2E8F0' }}>{modulo.faseActual}</span>
-                  <button onClick={() => setEditFase(true)} style={btn('#2563EB')}>Cambiar fase</button>
+                  <button onClick={() => setEditFase(true)} style={btn('#B5651D')}>Cambiar fase</button>
                 </div>
             }
           </div>
@@ -273,9 +273,9 @@ function ModuloCard({ modulo, onUpdate, onDelete }) {
                 <div key={fase} title={fase} style={{
                   width: 22, height: 22, borderRadius: 4, fontSize: 9, fontWeight: 700,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: pasada ? '#052E16' : actual ? '#EA580C' : '#1E2433',
+                  background: pasada ? '#052E16' : actual ? '#7A4B8C' : '#1E2433',
                   color: pasada ? '#86EFAC' : actual ? '#fff' : '#374151',
-                  border: actual ? '1.5px solid #EA580C' : '1px solid transparent',
+                  border: actual ? '1.5px solid #7A4B8C' : '1px solid transparent',
                   cursor: 'default',
                 }}>{i + 1}</div>
               );
@@ -430,7 +430,7 @@ export default function SeccionProduccion({ proyecto, onUpdate }) {
           <span style={{ fontSize: 13, fontWeight: 700, color: '#F1F5F9' }}>Módulos / Muebles</span>
           <span style={{ fontSize: 11, color: '#6B7280', marginLeft: 8 }}>{modulos.length} registrados</span>
         </div>
-        <button onClick={() => setShowNuevo(v => !v)} style={btn('#EA580C')}>
+        <button onClick={() => setShowNuevo(v => !v)} style={btn('#7A4B8C')}>
           <Plus size={13} /> Agregar módulo
         </button>
       </div>
@@ -476,5 +476,5 @@ export default function SeccionProduccion({ proyecto, onUpdate }) {
 
 // ── Estilos ──
 const lbl = { fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 };
-const inp = { background: '#0F1117', border: '1px solid #374151', borderRadius: 7, color: '#E2E8F0', fontSize: 12, padding: '6px 10px', outline: 'none', width: '100%' };
+const inp = { background: '#101215', border: '1px solid #374151', borderRadius: 7, color: '#E2E8F0', fontSize: 12, padding: '6px 10px', outline: 'none', width: '100%' };
 const btn = (bg) => ({ background: bg, color: '#fff', border: 'none', borderRadius: 7, fontSize: 11, fontWeight: 600, padding: '5px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 });

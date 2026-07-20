@@ -6,10 +6,10 @@ import ResponsibleForm from './ResponsibleForm';
 import DepartmentSettings from './DepartmentSettings';
 
 const DEPT_COLORS = {
-  'Arquitectura':        '#7C3AED',
-  'Diseño':              '#2563EB',
+  'Arquitectura':        '#D4A017',
+  'Diseño':              '#B5651D',
   'Seguimiento de obra': '#D97706',
-  'Producción':          '#EA580C',
+  'Producción':          '#7A4B8C',
   'Instalación':         '#16A34A',
   'Administración':      '#6B7280',
 };
@@ -102,7 +102,7 @@ export default function Configuration() {
             </div>
             <button onClick={() => { setEditTarget(null); setFormOpen(true); }} style={{
               display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px',
-              background: '#7C3AED', color: '#fff', border: 'none', borderRadius: 9,
+              background: '#D4A017', color: '#fff', border: 'none', borderRadius: 9,
               fontSize: 13, fontWeight: 600, cursor: 'pointer',
             }}>
               <Plus size={15} /> Nueva persona

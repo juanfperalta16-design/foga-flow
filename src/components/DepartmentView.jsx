@@ -96,7 +96,7 @@ function getResponsable(p, departamento) {
 
 // ── Tarjeta de proyecto ──────────────────────────
 function ProyectoCard({ proyecto, departamento, clasificacion, onClick }) {
-  const cfg  = DEPT_CONFIG[departamento] || { color: '#7C3AED', bg: '#1F2937', text: '#C4B5FD' };
+  const cfg  = DEPT_CONFIG[departamento] || { color: '#D4A017', bg: '#1F2937', text: '#F0D687' };
   const mods = proyecto.production?.modulos || [];
   const sem  = semaforo(proyecto.fechaEntrega);
   const liberadosArq = mods.filter(m => m.arquitectura?.liberadoA3D).length;
@@ -143,9 +143,9 @@ function ProyectoCard({ proyecto, departamento, clasificacion, onClick }) {
           {mods.length > 0 ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <span style={{ fontSize: 10, color: '#9CA3AF' }}>📦 {mods.length} módulos</span>
-              {departamento === 'Arquitectura' && <span style={{ fontSize: 10, background: liberadosArq === mods.length ? '#052E16' : '#1E3A5F', color: liberadosArq === mods.length ? '#86EFAC' : '#93C5FD', padding: '1px 7px', borderRadius: 99, fontWeight: 600 }}>{liberadosArq}/{mods.length} en D3D</span>}
-              {departamento === 'Diseño 3D' && <span style={{ fontSize: 10, background: '#1E3A5F', color: '#93C5FD', padding: '1px 7px', borderRadius: 99, fontWeight: 600 }}>{liberadosD3D}/{liberadosArq} a Prod.</span>}
-              {departamento === 'Producción' && <span style={{ fontSize: 10, background: '#3D1F00', color: '#FDBA74', padding: '1px 7px', borderRadius: 99, fontWeight: 600 }}>{terminados}/{liberadosD3D} terminados</span>}
+              {departamento === 'Arquitectura' && <span style={{ fontSize: 10, background: liberadosArq === mods.length ? '#052E16' : '#2E1A08', color: liberadosArq === mods.length ? '#86EFAC' : '#E3A868', padding: '1px 7px', borderRadius: 99, fontWeight: 600 }}>{liberadosArq}/{mods.length} en D3D</span>}
+              {departamento === 'Diseño 3D' && <span style={{ fontSize: 10, background: '#2E1A08', color: '#E3A868', padding: '1px 7px', borderRadius: 99, fontWeight: 600 }}>{liberadosD3D}/{liberadosArq} a Prod.</span>}
+              {departamento === 'Producción' && <span style={{ fontSize: 10, background: '#241A2B', color: '#C9A8D6', padding: '1px 7px', borderRadius: 99, fontWeight: 600 }}>{terminados}/{liberadosD3D} terminados</span>}
             </div>
           ) : <span style={{ fontSize: 10, color: '#4B5563' }}>Sin módulos</span>}
           {mods.length > 0 && (
@@ -202,20 +202,20 @@ function ModuloArq({ mod, planLink, onUpdate }) {
     onUpdate({ ...mod, arquitectura: { ...arch, liberadoA3D: !liberado, liberadoAt: !liberado ? now : '', estado: !liberado ? 'Liberado a Diseño 3D' : 'En proceso' }, diseno3d: { ...mod.diseno3d, estado: !liberado ? 'Pendiente de modelado' : 'Bloqueado' } });
   }
   return (
-    <div style={{ background: '#141824', border: `1.5px solid ${liberado ? '#7C3AED40' : '#1E2433'}`, borderRadius: 10, marginBottom: 8 }}>
+    <div style={{ background: '#141824', border: `1.5px solid ${liberado ? '#D4A01740' : '#1E2433'}`, borderRadius: 10, marginBottom: 8 }}>
       <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div onClick={toggle} style={{ cursor: 'pointer', flexShrink: 0 }}>{liberado ? <Unlock size={15} color="#7C3AED" /> : <Lock size={15} color="#374151" />}</div>
+        <div onClick={toggle} style={{ cursor: 'pointer', flexShrink: 0 }}>{liberado ? <Unlock size={15} color="#D4A017" /> : <Lock size={15} color="#374151" />}</div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#F1F5F9' }}>{mod.nombre || 'Sin nombre'}</div>
           <div style={{ display: 'flex', gap: 6, marginTop: 3, flexWrap: 'wrap', alignItems: 'center' }}>
             <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: '#6B7280' }}>{mod.pec}</span>
-            <span style={{ fontSize: 9, background: liberado ? '#2D1B69' : '#1F2937', color: liberado ? '#C4B5FD' : '#6B7280', padding: '1px 6px', borderRadius: 4 }}>{arch.estado || 'En proceso'}</span>
+            <span style={{ fontSize: 9, background: liberado ? '#332905' : '#1F2937', color: liberado ? '#F0D687' : '#6B7280', padding: '1px 6px', borderRadius: 4 }}>{arch.estado || 'En proceso'}</span>
             {mod.maestro && <span style={{ fontSize: 10, color: '#6B7280' }}>👤 {mod.maestro}</span>}
           </div>
           {mod.codigo && <div style={{ fontSize: 9, fontFamily: 'var(--font-mono)', color: '#4B5563', marginTop: 2 }}>{mod.codigo}</div>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {liberado ? <span style={{ fontSize: 10, color: '#C4B5FD', fontWeight: 600 }}>✓ En D3D</span> : <button onClick={toggle} style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', background: '#7C3AED', color: '#fff', border: 'none', borderRadius: 7, cursor: 'pointer' }}>Liberar a D3D</button>}
+          {liberado ? <span style={{ fontSize: 10, color: '#F0D687', fontWeight: 600 }}>✓ En D3D</span> : <button onClick={toggle} style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', background: '#D4A017', color: '#fff', border: 'none', borderRadius: 7, cursor: 'pointer' }}>Liberar a D3D</button>}
           <button onClick={() => setExpanded(v => !v)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4B5563' }}>{expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>
         </div>
       </div>
@@ -293,15 +293,15 @@ function ModuloD3D({ mod, onUpdate }) {
   );
   const puedeLiberar = d3.design3DCompleted && d3.breakdownCompleted && !!d3.planCorteLink;
   return (
-    <div style={{ background: '#141824', border: `1.5px solid ${liberadoProd ? '#16A34A40' : '#2563EB40'}`, borderRadius: 10, marginBottom: 8 }}>
+    <div style={{ background: '#141824', border: `1.5px solid ${liberadoProd ? '#16A34A40' : '#B5651D40'}`, borderRadius: 10, marginBottom: 8 }}>
       <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <Unlock size={14} color="#2563EB" style={{ flexShrink: 0 }} />
+        <Unlock size={14} color="#B5651D" style={{ flexShrink: 0 }} />
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#F1F5F9' }}>{mod.nombre || 'Sin nombre'}</div>
           <div style={{ display: 'flex', gap: 6, marginTop: 3, alignItems: 'center', flexWrap: 'wrap' }}>
             <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: '#6B7280' }}>{mod.pec}</span>
             <LineaBadge linea={mod.linea} />
-            <span style={{ fontSize: 9, background: '#1E3A5F', color: '#93C5FD', padding: '1px 6px', borderRadius: 4 }}>{d3.estado || 'Pendiente'}</span>
+            <span style={{ fontSize: 9, background: '#2E1A08', color: '#E3A868', padding: '1px 6px', borderRadius: 4 }}>{d3.estado || 'Pendiente'}</span>
             {mod.maestro && <span style={{ fontSize: 10, color: '#6B7280' }}>👤 {mod.maestro}</span>}
             {dims && <span style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF' }}>📐 {dims}</span>}
           </div>
@@ -313,9 +313,9 @@ function ModuloD3D({ mod, onUpdate }) {
         <div style={{ padding: '0 14px 14px', borderTop: '1px solid #1E2433' }}>
           <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
             {ITEMS.map(item => (
-              <div key={item.key} onClick={() => toggleItem(item.key)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: d3[item.key] ? '#1E3A5F40' : '#0A0D14', border: `1px solid ${d3[item.key] ? '#2563EB40' : '#1E2433'}`, borderRadius: 8, cursor: 'pointer' }}>
-                {d3[item.key] ? <CheckCircle2 size={14} color="#2563EB" /> : <Circle size={14} color="#374151" />}
-                <span style={{ fontSize: 11, color: d3[item.key] ? '#93C5FD' : '#6B7280' }}>{item.label}</span>
+              <div key={item.key} onClick={() => toggleItem(item.key)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: d3[item.key] ? '#2E1A0840' : '#0A0D14', border: `1px solid ${d3[item.key] ? '#B5651D40' : '#1E2433'}`, borderRadius: 8, cursor: 'pointer' }}>
+                {d3[item.key] ? <CheckCircle2 size={14} color="#B5651D" /> : <Circle size={14} color="#374151" />}
+                <span style={{ fontSize: 11, color: d3[item.key] ? '#E3A868' : '#6B7280' }}>{item.label}</span>
               </div>
             ))}
           </div>
@@ -328,12 +328,12 @@ function ModuloD3D({ mod, onUpdate }) {
                 <button onClick={() => setShowPlan(true)} style={{ fontSize: 10, color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer' }}>Cambiar</button>
               </div>
             ) : !showPlan ? (
-              <button onClick={() => setShowPlan(true)} style={{ fontSize: 11, color: '#93C5FD', background: '#1E3A5F20', border: '1px solid #2563EB40', borderRadius: 6, padding: '5px 10px', cursor: 'pointer', width: '100%' }}>+ Subir plano de corte</button>
+              <button onClick={() => setShowPlan(true)} style={{ fontSize: 11, color: '#E3A868', background: '#2E1A0820', border: '1px solid #B5651D40', borderRadius: 6, padding: '5px 10px', cursor: 'pointer', width: '100%' }}>+ Subir plano de corte</button>
             ) : null}
             {showPlan && (
               <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
                 <input value={planInput} onChange={e => setPlanInput(e.target.value)} placeholder="https://drive.google.com/..." style={{ ...inp, flex: 1 }} />
-                <button onClick={subirPlan} style={{ background: '#2563EB', color: '#fff', border: 'none', borderRadius: 6, fontSize: 11, padding: '5px 10px', cursor: 'pointer' }}>✓</button>
+                <button onClick={subirPlan} style={{ background: '#B5651D', color: '#fff', border: 'none', borderRadius: 6, fontSize: 11, padding: '5px 10px', cursor: 'pointer' }}>✓</button>
                 <button onClick={() => setShowPlan(false)} style={{ background: '#374151', color: '#fff', border: 'none', borderRadius: 6, fontSize: 11, padding: '5px 10px', cursor: 'pointer' }}>✕</button>
               </div>
             )}
@@ -367,12 +367,12 @@ function ModuloD3D({ mod, onUpdate }) {
           </div>
           {!liberadoProd ? (
             <div style={{ marginTop: 10 }}>
-              <button onClick={liberar} disabled={!puedeLiberar} style={{ width: '100%', background: puedeLiberar ? '#EA580C' : '#1F2937', color: puedeLiberar ? '#fff' : '#4B5563', border: 'none', borderRadius: 8, fontSize: 11, fontWeight: 700, padding: '7px', cursor: puedeLiberar ? 'pointer' : 'not-allowed' }}>
+              <button onClick={liberar} disabled={!puedeLiberar} style={{ width: '100%', background: puedeLiberar ? '#7A4B8C' : '#1F2937', color: puedeLiberar ? '#fff' : '#4B5563', border: 'none', borderRadius: 8, fontSize: 11, fontWeight: 700, padding: '7px', cursor: puedeLiberar ? 'pointer' : 'not-allowed' }}>
                 🏭 Liberar a Producción
               </button>
               {!puedeLiberar && <div style={{ fontSize: 10, color: !d3.planCorteLink && d3.design3DCompleted && d3.breakdownCompleted ? '#FCD34D' : '#4B5563', textAlign: 'center', marginTop: 4 }}>{!d3.planCorteLink && d3.design3DCompleted && d3.breakdownCompleted ? '⚠ Sube el plano de corte para liberar' : 'Completa SolidWorks y Despiece primero'}</div>}
             </div>
-          ) : <div style={{ marginTop: 10, fontSize: 11, color: '#FDBA74', fontWeight: 600, textAlign: 'center' }}>✓ Liberado a Producción el {d3.liberadoAt?.slice(0,10)}</div>}
+          ) : <div style={{ marginTop: 10, fontSize: 11, color: '#C9A8D6', fontWeight: 600, textAlign: 'center' }}>✓ Liberado a Producción el {d3.liberadoAt?.slice(0,10)}</div>}
         </div>
       )}
     </div>
@@ -398,7 +398,7 @@ function ModuloProd({ mod, onUpdate }) {
     </div>
   );
   return (
-    <div style={{ background: '#141824', border: `1.5px solid ${prod.faseActual === '✓ Terminado' ? '#16A34A40' : '#EA580C40'}`, borderRadius: 10, marginBottom: 8 }}>
+    <div style={{ background: '#141824', border: `1.5px solid ${prod.faseActual === '✓ Terminado' ? '#16A34A40' : '#7A4B8C40'}`, borderRadius: 10, marginBottom: 8 }}>
       <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{ width: 10, height: 10, borderRadius: '50%', background: sem.color, flexShrink: 0 }} />
         <div style={{ flex: 1 }}>
@@ -406,7 +406,7 @@ function ModuloProd({ mod, onUpdate }) {
           <div style={{ display: 'flex', gap: 6, marginTop: 3, alignItems: 'center', flexWrap: 'wrap' }}>
             <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: '#6B7280' }}>{mod.pec}</span>
             <LineaBadge linea={mod.linea} />
-            <span style={{ fontSize: 9, background: '#3D1F00', color: '#FDBA74', padding: '1px 6px', borderRadius: 4 }}>{prod.faseActual || 'Pendiente'}</span>
+            <span style={{ fontSize: 9, background: '#241A2B', color: '#C9A8D6', padding: '1px 6px', borderRadius: 4 }}>{prod.faseActual || 'Pendiente'}</span>
             {prod.reproceso && <span style={{ fontSize: 9, fontWeight: 700, background: '#450A0A', color: '#FCA5A5', padding: '1px 6px', borderRadius: 4 }}>⚠ REPROCESO</span>}
             {mod.maestro && <span style={{ fontSize: 10, color: '#6B7280' }}>👤 {mod.maestro}</span>}
             <span style={{ fontSize: 10, color: sem.color }}>{sem.label}</span>
@@ -414,7 +414,7 @@ function ModuloProd({ mod, onUpdate }) {
           </div>
           {mod.codigo && <div style={{ fontSize: 9, fontFamily: 'var(--font-mono)', color: '#4B5563', marginTop: 2 }}>{mod.codigo}</div>}
           <div style={{ display: 'flex', gap: 2, marginTop: 5 }}>
-            {FASES_PRODUCCION.slice(0,10).map((_, i) => <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i < idxActual ? '#EA580C' : i === idxActual ? '#FDBA74' : '#1E2433' }} />)}
+            {FASES_PRODUCCION.slice(0,10).map((_, i) => <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i < idxActual ? '#7A4B8C' : i === idxActual ? '#C9A8D6' : '#1E2433' }} />)}
           </div>
         </div>
         <button onClick={() => setExpanded(v => !v)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4B5563' }}>{expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>
@@ -436,7 +436,7 @@ function ModuloProd({ mod, onUpdate }) {
           </div>
           <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap', marginTop: 8 }}>
             {FASES_PRODUCCION.slice(0,10).map((fase, i) => (
-              <div key={fase} onClick={() => onUpdate({ ...mod, produccion: { ...prod, faseActual: fase, fechaIngresoFase: new Date().toISOString().slice(0,10) } })} title={fase} style={{ width: 24, height: 24, borderRadius: 5, fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', background: i < idxActual ? '#052E16' : i === idxActual ? '#EA580C' : '#1E2433', color: i < idxActual ? '#86EFAC' : i === idxActual ? '#fff' : '#374151', cursor: 'pointer' }}>{i+1}</div>
+              <div key={fase} onClick={() => onUpdate({ ...mod, produccion: { ...prod, faseActual: fase, fechaIngresoFase: new Date().toISOString().slice(0,10) } })} title={fase} style={{ width: 24, height: 24, borderRadius: 5, fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', background: i < idxActual ? '#052E16' : i === idxActual ? '#7A4B8C' : '#1E2433', color: i < idxActual ? '#86EFAC' : i === idxActual ? '#fff' : '#374151', cursor: 'pointer' }}>{i+1}</div>
             ))}
           </div>
           <div style={{ marginTop: 8 }}>
@@ -452,9 +452,9 @@ function ModuloProd({ mod, onUpdate }) {
             <input type="date" value={prod.fechaValidacionJP || ''} onChange={e => onUpdate({ ...mod, produccion: { ...prod, fechaValidacionJP: e.target.value } })} style={inp} />
           </div>
           <div onClick={() => onUpdate({ ...mod, produccion: { ...prod, reproceso: !prod.reproceso } })}
-            style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', background: prod.reproceso ? '#45140320' : '#0A0D14', border: `1px solid ${prod.reproceso ? '#EA580C50' : '#1E2433'}`, borderRadius: 7, cursor: 'pointer' }}>
-            {prod.reproceso ? <CheckCircle2 size={13} color="#EA580C" /> : <Circle size={13} color="#374151" />}
-            <span style={{ fontSize: 11, color: prod.reproceso ? '#FDBA74' : '#6B7280' }}>Marcar como Reproceso</span>
+            style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', background: prod.reproceso ? '#45140320' : '#0A0D14', border: `1px solid ${prod.reproceso ? '#7A4B8C50' : '#1E2433'}`, borderRadius: 7, cursor: 'pointer' }}>
+            {prod.reproceso ? <CheckCircle2 size={13} color="#7A4B8C" /> : <Circle size={13} color="#374151" />}
+            <span style={{ fontSize: 11, color: prod.reproceso ? '#C9A8D6' : '#6B7280' }}>Marcar como Reproceso</span>
           </div>
           <div style={{ marginTop: 8 }}>
             <label style={lbl}>Observaciones</label>
@@ -469,7 +469,7 @@ function ModuloProd({ mod, onUpdate }) {
 // ── Vista detalle proyecto ───────────────────────
 function ProyectoDetalleDept({ proyecto, departamento, onUpdate, onBack }) {
   const { saveAlertas } = useApp();
-  const cfg = DEPT_CONFIG[departamento] || { color: '#7C3AED', bg: '#1F2937', text: '#C4B5FD', icon: '📋' };
+  const cfg = DEPT_CONFIG[departamento] || { color: '#D4A017', bg: '#1F2937', text: '#F0D687', icon: '📋' };
   const modulos = proyecto.production?.modulos || [];
   const proyectoActualRef = proyecto;
 
@@ -556,7 +556,7 @@ function ProyectoDetalleDept({ proyecto, departamento, onUpdate, onBack }) {
             <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap', alignItems: 'center' }}>
               <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 99, background: cfg.bg, color: cfg.text }}>{departamento}</span>
               <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 99, background: '#1F2937', color: '#9CA3AF' }}>📦 {modulos.length} módulos</span>
-              {departamento === 'Arquitectura' && modulos.length > 0 && <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 99, background: '#1E3A5F', color: '#93C5FD' }}>{liberados}/{modulos.length} en D3D</span>}
+              {departamento === 'Arquitectura' && modulos.length > 0 && <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 99, background: '#2E1A08', color: '#E3A868' }}>{liberados}/{modulos.length} en D3D</span>}
               {resp && <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 10px', borderRadius: 99, background: cfg.bg, color: cfg.text }}>👤 {resp}</span>}
             </div>
           </div>
@@ -621,7 +621,7 @@ export default function DepartmentView({ departamento, proyectos = [] }) {
   const [vista, setVista] = useState('proyectos');
   const [filtroPersona, setFiltroPersona] = useState('');
   const [filtroMes, setFiltroMes] = useState('');
-  const cfg = DEPT_CONFIG[departamento] || { color: '#7C3AED', bg: '#1F2937', text: '#C4B5FD', icon: '📋' };
+  const cfg = DEPT_CONFIG[departamento] || { color: '#D4A017', bg: '#1F2937', text: '#F0D687', icon: '📋' };
 
   const safeProys = Array.isArray(proyectos) ? proyectos : [];
   const deptProys = safeProys.filter(p => proyectoEnDept(p, departamento));
@@ -761,7 +761,7 @@ export default function DepartmentView({ departamento, proyectos = [] }) {
                   </div>
                 </div>
                 <GrupoProyectos titulo="Urgentes y atrasados" proyectos={urgentesP}    departamento={departamento} dotColor="#EF4444" onSelect={setSeleccionado} />
-                <GrupoProyectos titulo="En proceso"            proyectos={enProcesoP}   departamento={departamento} dotColor="#2563EB" onSelect={setSeleccionado} />
+                <GrupoProyectos titulo="En proceso"            proyectos={enProcesoP}   departamento={departamento} dotColor="#B5651D" onSelect={setSeleccionado} />
                 <GrupoProyectos titulo="Pendientes"            proyectos={pendientesP}  departamento={departamento} dotColor="#6B7280" onSelect={setSeleccionado} />
                 <GrupoProyectos titulo="Completados"           proyectos={completadosP} departamento={departamento} dotColor="#16A34A" onSelect={setSeleccionado} />
               </div>
@@ -774,4 +774,4 @@ export default function DepartmentView({ departamento, proyectos = [] }) {
 }
 
 const lbl = { fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 };
-const inp = { background: '#0F1117', border: '1px solid #374151', borderRadius: 7, color: '#E2E8F0', fontSize: 12, padding: '6px 10px', outline: 'none', width: '100%' };
+const inp = { background: '#101215', border: '1px solid #374151', borderRadius: 7, color: '#E2E8F0', fontSize: 12, padding: '6px 10px', outline: 'none', width: '100%' };

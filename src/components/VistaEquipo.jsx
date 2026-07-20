@@ -106,11 +106,11 @@ export default function VistaEquipo() {
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <select value={filtroDepto} onChange={e => setFiltroDepto(e.target.value)}
-            style={{ fontSize: 13, fontWeight: 600, padding: '9px 16px', background: filtroDepto !== 'todos' ? '#2563EB' : '#141824', color: filtroDepto !== 'todos' ? '#fff' : '#9CA3AF', border: '1.5px solid #2563EB40', borderRadius: 9, cursor: 'pointer' }}>
+            style={{ fontSize: 13, fontWeight: 600, padding: '9px 16px', background: filtroDepto !== 'todos' ? '#B5651D' : '#141824', color: filtroDepto !== 'todos' ? '#fff' : '#9CA3AF', border: '1.5px solid #B5651D40', borderRadius: 9, cursor: 'pointer' }}>
             {DEPTOS_FILTRO.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}
           </select>
           <select value={filtroPersona} onChange={e => setFiltroPersona(e.target.value)}
-            style={{ fontSize: 13, fontWeight: 600, padding: '9px 16px', background: filtroPersona !== 'todos' ? '#2563EB' : '#141824', color: filtroPersona !== 'todos' ? '#fff' : '#9CA3AF', border: '1.5px solid #2563EB40', borderRadius: 9, cursor: 'pointer' }}>
+            style={{ fontSize: 13, fontWeight: 600, padding: '9px 16px', background: filtroPersona !== 'todos' ? '#B5651D' : '#141824', color: filtroPersona !== 'todos' ? '#fff' : '#9CA3AF', border: '1.5px solid #B5651D40', borderRadius: 9, cursor: 'pointer' }}>
             <option value="todos">Todas las personas</option>
             {listaPersonas.map(p => <option key={p.nombre} value={p.nombre}>{p.nombre}</option>)}
           </select>
@@ -145,7 +145,7 @@ export default function VistaEquipo() {
             <div key={persona.nombre} style={{ background: '#141824', border: '1px solid #1E2433', borderRadius: 14, overflow: 'hidden' }}>
               {/* Header persona */}
               <div style={{ padding: '14px 18px', background: '#0A0D14', borderBottom: '1px solid #1E2433', display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'linear-gradient(135deg, #2563EB, #7C3AED)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'linear-gradient(135deg, #B5651D, #D4A017)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
                   {persona.nombre.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase()}
                 </div>
                 <div style={{ flex: 1 }}>
@@ -157,10 +157,10 @@ export default function VistaEquipo() {
                 </div>
                 {/* Badges de departamentos */}
                 <div style={{ display: 'flex', gap: 5 }}>
-                  {persona.arquitectura.length  > 0 && <span style={{ fontSize: 9, fontWeight: 700, background: '#2D1B69', color: '#C4B5FD', padding: '2px 7px', borderRadius: 99 }}>✏️ Arq ({persona.arquitectura.length})</span>}
-                  {persona.diseno3d.length       > 0 && <span style={{ fontSize: 9, fontWeight: 700, background: '#1E3A5F', color: '#93C5FD', padding: '2px 7px', borderRadius: 99 }}>🖥️ D3D ({persona.diseno3d.length})</span>}
+                  {persona.arquitectura.length  > 0 && <span style={{ fontSize: 9, fontWeight: 700, background: '#332905', color: '#F0D687', padding: '2px 7px', borderRadius: 99 }}>✏️ Arq ({persona.arquitectura.length})</span>}
+                  {persona.diseno3d.length       > 0 && <span style={{ fontSize: 9, fontWeight: 700, background: '#2E1A08', color: '#E3A868', padding: '2px 7px', borderRadius: 99 }}>🖥️ D3D ({persona.diseno3d.length})</span>}
                   {persona.instalaciones.length  > 0 && <span style={{ fontSize: 9, fontWeight: 700, background: '#0F2D1A', color: '#86EFAC', padding: '2px 7px', borderRadius: 99 }}>🔧 Inst ({persona.instalaciones.length})</span>}
-                  {persona.produccion.length     > 0 && <span style={{ fontSize: 9, fontWeight: 700, background: '#3D1F00', color: '#FDBA74', padding: '2px 7px', borderRadius: 99 }}>🏭 Prod ({persona.produccion.length})</span>}
+                  {persona.produccion.length     > 0 && <span style={{ fontSize: 9, fontWeight: 700, background: '#241A2B', color: '#C9A8D6', padding: '2px 7px', borderRadius: 99 }}>🏭 Prod ({persona.produccion.length})</span>}
                 </div>
               </div>
 
@@ -169,28 +169,28 @@ export default function VistaEquipo() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {(filtroDepto === 'todos' || filtroDepto === 'arquitectura') && persona.arquitectura.map((t, i) => (
                     <div key={i} onClick={() => goToProject(t.proyecto.id)}
-                      style={{ background: '#2D1B6915', border: '1px solid #7C3AED25', borderRadius: 8, padding: '8px 12px', cursor: 'pointer' }}>
+                      style={{ background: '#33290515', border: '1px solid #D4A01725', borderRadius: 8, padding: '8px 12px', cursor: 'pointer' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontSize: 10, color: '#7C3AED' }}>✏️</span>
+                        <span style={{ fontSize: 10, color: '#D4A017' }}>✏️</span>
                         <span style={{ fontSize: 12, fontWeight: 600, color: '#E2E8F0' }}>{t.proyecto.nombre}</span>
                       </div>
                       <div style={{ fontSize: 10, color: '#6B7280', marginTop: 3 }}>{t.proyecto.cliente} · {t.proyecto.numeroContrato || '—'}</div>
                       <div style={{ display: 'flex', gap: 5, marginTop: 5 }}>
-                        <span style={{ fontSize: 9, background: '#2D1B69', color: '#C4B5FD', padding: '1px 6px', borderRadius: 4 }}>{t.estado}</span>
+                        <span style={{ fontSize: 9, background: '#332905', color: '#F0D687', padding: '1px 6px', borderRadius: 4 }}>{t.estado}</span>
                         {t.totalModulos > 0 && <span style={{ fontSize: 9, color: '#6B7280' }}>{t.modulosLiberados}/{t.totalModulos} en D3D</span>}
                       </div>
                     </div>
                   ))}
                   {(filtroDepto === 'todos' || filtroDepto === 'diseno3d') && persona.diseno3d.map((t, i) => (
                     <div key={i} onClick={() => goToProject(t.proyecto.id)}
-                      style={{ background: '#1E3A5F15', border: '1px solid #2563EB25', borderRadius: 8, padding: '8px 12px', cursor: 'pointer' }}>
+                      style={{ background: '#2E1A0815', border: '1px solid #B5651D25', borderRadius: 8, padding: '8px 12px', cursor: 'pointer' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontSize: 10, color: '#2563EB' }}>🖥️</span>
+                        <span style={{ fontSize: 10, color: '#B5651D' }}>🖥️</span>
                         <span style={{ fontSize: 12, fontWeight: 600, color: '#E2E8F0' }}>{t.proyecto.nombre}</span>
                       </div>
                       <div style={{ fontSize: 10, color: '#6B7280', marginTop: 3 }}>{t.proyecto.cliente}</div>
                       <div style={{ marginTop: 5 }}>
-                        <span style={{ fontSize: 9, background: '#1E3A5F', color: '#93C5FD', padding: '1px 6px', borderRadius: 4 }}>{t.estado}</span>
+                        <span style={{ fontSize: 9, background: '#2E1A08', color: '#E3A868', padding: '1px 6px', borderRadius: 4 }}>{t.estado}</span>
                       </div>
                     </div>
                   ))}
@@ -213,7 +213,7 @@ export default function VistaEquipo() {
                 {/* Derecha: Producción — agrupado por proyecto, no por módulo suelto */}
                 {(filtroDepto === 'todos' || filtroDepto === 'produccion') && persona.produccion.length > 0 && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 4 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: '#7A4B8C', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 4 }}>
                       🏭 Producción
                     </div>
                     {(() => {
@@ -225,7 +225,7 @@ export default function VistaEquipo() {
                       });
                       return Object.values(porProyecto).map(({ proyecto: proy, items }) => (
                         <div key={proy.id} onClick={() => goToProject(proy.id)}
-                          style={{ background: '#3D1F0015', border: '1px solid #EA580C25', borderRadius: 8, padding: '8px 10px', cursor: 'pointer' }}>
+                          style={{ background: '#241A2B15', border: '1px solid #7A4B8C25', borderRadius: 8, padding: '8px 10px', cursor: 'pointer' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                             <div style={{ fontSize: 11, fontWeight: 700, color: '#E2E8F0' }}>Proyecto: {proy.nombre}</div>
                             <span style={{ fontSize: 9, color: '#6B7280', flexShrink: 0 }}>{items.length} módulo{items.length !== 1 ? 's' : ''}</span>
@@ -238,7 +238,7 @@ export default function VistaEquipo() {
                                   <span style={{ fontSize: 10, color: '#9CA3AF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {t.modulo} <span style={{ color: '#6B7280', fontFamily: 'var(--font-mono)', fontSize: 9 }}>({t.pec})</span>
                                   </span>
-                                  <span style={{ fontSize: 9, background: '#3D1F00', color: '#FDBA74', padding: '1px 6px', borderRadius: 4, flexShrink: 0 }}>{t.fase}</span>
+                                  <span style={{ fontSize: 9, background: '#241A2B', color: '#C9A8D6', padding: '1px 6px', borderRadius: 4, flexShrink: 0 }}>{t.fase}</span>
                                 </div>
                               );
                             })}

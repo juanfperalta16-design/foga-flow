@@ -15,7 +15,7 @@ export default function ActivityCard({ actividad, onClick, compact = false }) {
         style={{ background: dept.bg, borderLeft: `3px solid ${dept.border}` }}
       >
         <div className="font-semibold truncate" style={{ color: dept.text }}>{actividad.actividad}</div>
-        <div className="text-slate-500 truncate">{actividad.responsable}</div>
+        <div className="text-steel-faint truncate">{actividad.responsable}</div>
         <div className="mt-1 flex items-center gap-1">
           <span className="rounded-full px-1.5 py-0.5 text-[10px] font-semibold" style={{ background: st.bg, color: st.text }}>{status}</span>
         </div>
@@ -33,8 +33,8 @@ export default function ActivityCard({ actividad, onClick, compact = false }) {
         <div className="font-semibold text-sm text-slate-800 leading-tight">{actividad.actividad}</div>
         <span className="rounded-full px-2 py-0.5 text-[10px] font-bold whitespace-nowrap" style={{ background: st.bg, color: st.text }}>{status}</span>
       </div>
-      <div className="text-xs text-slate-500 mb-1 font-medium">{actividad.proyecto}</div>
-      <div className="flex items-center justify-between text-xs text-slate-500">
+      <div className="text-xs text-steel-faint mb-1 font-medium">{actividad.proyecto}</div>
+      <div className="flex items-center justify-between text-xs text-steel-faint">
         <span>👤 {actividad.responsable}</span>
         <span>{formatShortDate(actividad.fechaLimite)}</span>
       </div>

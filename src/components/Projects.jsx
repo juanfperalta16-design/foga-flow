@@ -29,10 +29,10 @@ function etapaActual(p) {
 
   // ── Instalaciones activa ──
   if (p.releasedToInstallations || inst.firstVisitDate) {
-    if (inst.siteReady) return { texto: 'Instalaciones — Obra lista', color: '#86EFAC' };
-    if (inst.secondVisitDate) return { texto: 'Instalaciones — 2ª visita realizada', color: '#86EFAC' };
-    if (inst.initialTechnicalReportLink) return { texto: 'Instalaciones — Informe técnico cargado', color: '#86EFAC' };
-    if (inst.firstVisitDate) return { texto: 'Instalaciones — 1ª visita realizada', color: '#86EFAC' };
+    if (inst.siteReady) return { texto: 'Instalaciones — Obra lista', color: '#8FC3E3' };
+    if (inst.secondVisitDate) return { texto: 'Instalaciones — 2ª visita realizada', color: '#8FC3E3' };
+    if (inst.initialTechnicalReportLink) return { texto: 'Instalaciones — Informe técnico cargado', color: '#8FC3E3' };
+    if (inst.firstVisitDate) return { texto: 'Instalaciones — 1ª visita realizada', color: '#8FC3E3' };
   }
 
   // ── Producción ──
@@ -50,9 +50,9 @@ function etapaActual(p) {
     const modActivo = modulos
       .filter(m => m.produccion?.faseActual && m.produccion.faseActual !== '✓ Terminado' && faseIndex(m.produccion.faseActual) >= 0)
       .sort((a,b) => faseIndex(b.produccion.faseActual) - faseIndex(a.produccion.faseActual))[0];
-    if (modActivo) return { texto: `Producción — ${modActivo.produccion.faseActual}`, color: '#FDBA74' };
-    if (prod.partialProduction) return { texto: 'Producción — En proceso', color: '#FDBA74' };
-    return { texto: 'Producción — Pendiente inicio', color: '#FDBA74' };
+    if (modActivo) return { texto: `Producción — ${modActivo.produccion.faseActual}`, color: '#C9A8D6' };
+    if (prod.partialProduction) return { texto: 'Producción — En proceso', color: '#C9A8D6' };
+    return { texto: 'Producción — Pendiente inicio', color: '#C9A8D6' };
   }
 
   // ── Diseño 3D ──
@@ -75,23 +75,23 @@ function etapaActual(p) {
     const planCorte = tienePlanCorte     || !!d3.planCorteLink;
     const libProd   = tieneLibProd       || !!d3.releasedToProduction;
 
-    if (libProd)   return { texto: 'Diseño 3D — Liberado a Producción', color: '#93C5FD' };
-    if (planCorte && dcFin) return { texto: 'Diseño 3D — Plano de corte listo', color: '#93C5FD' };
-    if (dcFin)     return { texto: 'Diseño 3D — Despiece terminado', color: '#93C5FD' };
-    if (dcInicio)  return { texto: 'Diseño 3D — Despiece AutoCAD en proceso', color: '#93C5FD' };
-    if (swFin)     return { texto: 'Diseño 3D — SolidWorks terminado', color: '#93C5FD' };
-    if (swInicio)  return { texto: 'Diseño 3D — Modelado SolidWorks en proceso', color: '#93C5FD' };
-    return { texto: 'Diseño 3D — Pendiente de inicio', color: '#93C5FD' };
+    if (libProd)   return { texto: 'Diseño 3D — Liberado a Producción', color: '#E3A868' };
+    if (planCorte && dcFin) return { texto: 'Diseño 3D — Plano de corte listo', color: '#E3A868' };
+    if (dcFin)     return { texto: 'Diseño 3D — Despiece terminado', color: '#E3A868' };
+    if (dcInicio)  return { texto: 'Diseño 3D — Despiece AutoCAD en proceso', color: '#E3A868' };
+    if (swFin)     return { texto: 'Diseño 3D — SolidWorks terminado', color: '#E3A868' };
+    if (swInicio)  return { texto: 'Diseño 3D — Modelado SolidWorks en proceso', color: '#E3A868' };
+    return { texto: 'Diseño 3D — Pendiente de inicio', color: '#E3A868' };
   }
 
   // ── Arquitectura ──
   const checklist = arch.checklist || {};
-  if (checklist.planosAprobados)    return { texto: 'Arquitectura — Planos aprobados', color: '#C4B5FD' };
-  if (checklist.ajustesRealizados)  return { texto: 'Arquitectura — Ajustes realizados', color: '#C4B5FD' };
-  if (checklist.enviadoAVentas)     return { texto: 'Arquitectura — Enviado a Ventas', color: '#C4B5FD' };
-  if (checklist.borradorConceptual) return { texto: 'Arquitectura — Borrador plano', color: '#C4B5FD' };
-  if (checklist.propuestaInicial)   return { texto: 'Arquitectura — Propuesta inicial', color: '#C4B5FD' };
-  if (arch.status && arch.status !== 'En propuesta') return { texto: `Arquitectura — ${arch.status}`, color: '#C4B5FD' };
+  if (checklist.planosAprobados)    return { texto: 'Arquitectura — Planos aprobados', color: '#F0D687' };
+  if (checklist.ajustesRealizados)  return { texto: 'Arquitectura — Ajustes realizados', color: '#F0D687' };
+  if (checklist.enviadoAVentas)     return { texto: 'Arquitectura — Enviado a Ventas', color: '#F0D687' };
+  if (checklist.borradorConceptual) return { texto: 'Arquitectura — Borrador plano', color: '#F0D687' };
+  if (checklist.propuestaInicial)   return { texto: 'Arquitectura — Propuesta inicial', color: '#F0D687' };
+  if (arch.status && arch.status !== 'En propuesta') return { texto: `Arquitectura — ${arch.status}`, color: '#F0D687' };
 
   return { texto: 'En propuesta', color: '#9CA3AF' };
 }
@@ -163,10 +163,10 @@ export default function Projects() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-display font-bold text-white">Proyectos</h1>
-          <p className="text-slate-400 text-sm">{filtered.length} de {(proyectos||[]).length} proyectos</p>
+          <p className="text-steel-muted text-sm">{filtered.length} de {(proyectos||[]).length} proyectos</p>
         </div>
         <button onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-sm px-4 py-2 rounded-lg transition-colors font-medium">
+          className="flex items-center gap-2 bg-flame hover:bg-flame-dim text-white text-sm px-4 py-2 rounded-lg transition-colors font-medium">
           <Plus size={14} /> Nuevo proyecto
         </button>
       </div>
@@ -175,10 +175,10 @@ export default function Projects() {
       <div className="flex gap-1 border-b border-white/10">
         {[['proyectos','📋 Proyectos'],['prospectos','✏️ Prospectos'],['alertas','⚠️ Alertas']].map(([id, label]) => (
           <button key={id} onClick={() => setTab(id)}
-            className={`text-sm px-5 py-2 rounded-t-lg transition-colors font-medium ${tab === id ? 'bg-white/10 text-white border-b-2 border-purple-500' : 'text-slate-400 hover:text-white'}`}>
+            className={`text-sm px-5 py-2 rounded-t-lg transition-colors font-medium ${tab === id ? 'bg-white/10 text-white border-b-2 border-flame' : 'text-steel-muted hover:text-white'}`}>
             {label}
             {id === 'prospectos' && prospectos.length > 0 && (
-              <span className="ml-2 text-[10px] bg-purple-600 text-white px-1.5 py-0.5 rounded-full">{prospectos.length}</span>
+              <span className="ml-2 text-[10px] bg-flame text-white px-1.5 py-0.5 rounded-full font-stamp">{prospectos.length}</span>
             )}
             {id === 'alertas' && alertasPendientes.length > 0 && (
               <span className="ml-2 text-[10px] bg-red-600 text-white px-1.5 py-0.5 rounded-full">{alertasPendientes.length}</span>
@@ -202,7 +202,7 @@ export default function Projects() {
           </div>
 
           {prospectos.length === 0 && (
-            <div className="bg-[#161820] border border-white/5 rounded-xl py-12 text-center text-slate-500 text-sm">
+            <div className="bg-[#1B1E23] border border-steel-line rounded-xl py-12 text-center text-steel-faint text-sm">
               No hay prospectos activos. Arquitectura los gestiona desde su departamento.
             </div>
           )}
@@ -224,33 +224,33 @@ export default function Projects() {
               grupos[nombre].push(p);
             });
             return Object.entries(grupos).sort(([a],[b]) => a === 'Sin asignar' ? 1 : b === 'Sin asignar' ? -1 : a.localeCompare(b)).map(([nombre, lista]) => (
-              <div key={nombre} className="bg-[#161820] border border-white/5 rounded-xl overflow-hidden">
-                <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5 bg-white/3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-purple-800 flex items-center justify-center text-[11px] font-bold text-white shrink-0">
+              <div key={nombre} className="bg-[#1B1E23] border border-steel-line rounded-xl overflow-hidden">
+                <div className="flex items-center gap-3 px-4 py-3 border-b border-steel-line bg-white/3">
+                  <div className="w-8 h-8 rounded-full bg-flame flex items-center justify-center text-[11px] font-bold text-white shrink-0">
                     {nombre === 'Sin asignar' ? '—' : nombre.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase()}
                   </div>
                   <div>
                     <div className="text-sm font-semibold text-white">{nombre}</div>
-                    <div className="text-[11px] text-slate-500">{lista.length} prospecto{lista.length !== 1 ? 's' : ''}</div>
+                    <div className="text-[11px] text-steel-faint">{lista.length} prospecto{lista.length !== 1 ? 's' : ''}</div>
                   </div>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-white/5">
+                      <tr className="border-b border-steel-line">
                         {['Cliente','Vendedor','Línea','Estado','Última actualización','Cambios','Observación'].map(h => (
-                          <th key={h} className="text-left text-[10px] font-bold text-slate-500 uppercase px-3 py-3 whitespace-nowrap">{h}</th>
+                          <th key={h} className="text-left text-[10px] font-bold text-steel-faint uppercase px-3 py-3 whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/5">
+                    <tbody className="divide-y divide-steel-line">
                       {lista.map(p => (
                         <tr key={p.id} className="hover:bg-white/3 transition-colors">
                           <td className="px-3 py-3">
                             <div className="font-medium text-white text-xs">{p.cliente}</div>
                             {p.convertido && <div className="text-[10px] text-green-400 mt-0.5">✓ Convertido a proyecto</div>}
                           </td>
-                          <td className="px-3 py-3 text-[11px] text-slate-400">{p.vendedor || '—'}</td>
+                          <td className="px-3 py-3 text-[11px] text-steel-muted">{p.vendedor || '—'}</td>
                           <td className="px-3 py-3">
                             <span className={`text-[9px] px-1.5 py-0.5 rounded font-medium ${p.linea === 'Element' ? 'bg-purple-900/50 text-purple-300' : p.linea === 'Equifrigo' ? 'bg-yellow-900/50 text-yellow-300' : 'bg-blue-900/50 text-blue-300'}`}>
                               {p.linea || '—'}
@@ -261,9 +261,9 @@ export default function Projects() {
                               {p.estado}
                             </span>
                           </td>
-                          <td className="px-3 py-3 text-[11px] text-slate-400">{ultimaActualizacion(p) || '—'}</td>
-                          <td className="px-3 py-3 text-[11px] text-slate-400 text-center">{p.nCambios || 0}</td>
-                          <td className="px-3 py-3 text-[10px] text-slate-500 max-w-48 truncate">{p.observacion || '—'}</td>
+                          <td className="px-3 py-3 text-[11px] text-steel-muted">{ultimaActualizacion(p) || '—'}</td>
+                          <td className="px-3 py-3 text-[11px] text-steel-muted text-center">{p.nCambios || 0}</td>
+                          <td className="px-3 py-3 text-[10px] text-steel-faint max-w-48 truncate">{p.observacion || '—'}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -279,26 +279,26 @@ export default function Projects() {
       {tab === 'alertas' && (
         <div className="space-y-2">
           {alertasPendientes.length === 0 && (
-            <div className="bg-[#161820] border border-white/5 rounded-xl py-12 text-center text-slate-500 text-sm">
+            <div className="bg-[#1B1E23] border border-steel-line rounded-xl py-12 text-center text-steel-faint text-sm">
               ✓ Sin alertas pendientes.
             </div>
           )}
           {alertasPendientes.map(al => (
-            <div key={al.id} className="bg-[#161820] border border-white/5 rounded-xl px-4 py-3 flex items-start gap-3">
+            <div key={al.id} className="bg-[#1B1E23] border border-steel-line rounded-xl px-4 py-3 flex items-start gap-3">
               <div className="flex-1 min-w-0 cursor-pointer" onClick={() => al.proyectoId && goToProject(al.proyectoId)}>
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${al.prioridad === 'Urgente' ? 'bg-red-900 text-red-300' : 'bg-amber-900 text-amber-300'}`}>{al.tipo}</span>
-                  {al.departamentoOrigen && <span className="text-[10px] text-slate-400">{al.departamentoOrigen}{al.departamentoDestino ? ` → ${al.departamentoDestino}` : ''}</span>}
-                  {al.auto && <span className="text-[9px] text-slate-600">· automática</span>}
+                  {al.departamentoOrigen && <span className="text-[10px] text-steel-muted">{al.departamentoOrigen}{al.departamentoDestino ? ` → ${al.departamentoDestino}` : ''}</span>}
+                  {al.auto && <span className="text-[9px] text-steel-faint">· automática</span>}
                 </div>
                 <div className="text-sm text-white font-medium">{al.proyecto}{al.cliente ? ` · ${al.cliente}` : ''}</div>
-                <div className="text-[11px] text-slate-400 mt-0.5">{al.motivo}</div>
+                <div className="text-[11px] text-steel-muted mt-0.5">{al.motivo}</div>
                 {al.accionNecesaria && <div className="text-[10px] text-blue-400 mt-1 font-medium">{al.accionNecesaria}</div>}
               </div>
               <div className="flex flex-col items-end gap-2 shrink-0">
                 <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${al.prioridad === 'Urgente' ? 'bg-red-600 text-white' : 'bg-amber-700 text-amber-200'}`}>{al.prioridad}</span>
                 {!al.auto && (
-                  <button onClick={() => resolverAlerta(al)} className="text-[10px] text-slate-400 hover:text-green-400 border border-white/10 hover:border-green-700 rounded px-2 py-1 transition-colors whitespace-nowrap">
+                  <button onClick={() => resolverAlerta(al)} className="text-[10px] text-steel-muted hover:text-green-400 border border-white/10 hover:border-green-700 rounded px-2 py-1 transition-colors whitespace-nowrap">
                     ✓ Marcar resuelta
                   </button>
                 )}
@@ -314,24 +314,24 @@ export default function Projects() {
           {/* Filtros */}
           <div className="flex gap-2 flex-wrap">
             <div className="relative flex-1 min-w-48">
-              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-steel-faint" />
               <input value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Buscar proyecto o cliente..."
-                className="w-full bg-[#161820] border border-white/10 rounded-lg text-sm text-white pl-8 pr-3 py-2 placeholder-slate-600 focus:outline-none focus:border-purple-500" />
+                className="w-full bg-[#1B1E23] border border-white/10 rounded-lg text-sm text-white pl-8 pr-3 py-2 placeholder-slate-600 focus:outline-none focus:border-flame" />
             </div>
             <select value={filterEstado} onChange={e => setFilterEstado(e.target.value)}
-              className="bg-[#161820] border border-white/10 rounded-lg text-sm text-slate-300 px-3 py-2 focus:outline-none focus:border-purple-500">
+              className="bg-[#1B1E23] border border-white/10 rounded-lg text-sm text-slate-300 px-3 py-2 focus:outline-none focus:border-flame">
               <option value="">Todos los estados</option>
               {estadosUnicos.map(e => <option key={e} value={e}>{e}</option>)}
             </select>
             <select value={filterPrioridad} onChange={e => setFilterPrioridad(e.target.value)}
-              className="bg-[#161820] border border-white/10 rounded-lg text-sm text-slate-300 px-3 py-2 focus:outline-none focus:border-purple-500">
+              className="bg-[#1B1E23] border border-white/10 rounded-lg text-sm text-slate-300 px-3 py-2 focus:outline-none focus:border-flame">
               <option value="">Todas las prioridades</option>
               {['Baja','Normal','Alta','Urgente'].map(p => <option key={p} value={p}>{p}</option>)}
             </select>
             {mesesUnicos.length > 0 && (
               <select value={filterMes} onChange={e => setFilterMes(e.target.value)}
-                className="bg-[#161820] border border-white/10 rounded-lg text-sm text-slate-300 px-3 py-2 focus:outline-none focus:border-purple-500">
+                className="bg-[#1B1E23] border border-white/10 rounded-lg text-sm text-slate-300 px-3 py-2 focus:outline-none focus:border-flame">
                 <option value="">Todos los meses (entrega)</option>
                 {mesesUnicos.map(m => <option key={m} value={m}>{labelMes(m)}</option>)}
               </select>
@@ -339,17 +339,17 @@ export default function Projects() {
           </div>
 
           {/* Tabla */}
-          <div className="bg-[#161820] border border-white/5 rounded-xl overflow-hidden">
+          <div className="bg-[#1B1E23] border border-steel-line rounded-xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-white/5">
+                  <tr className="border-b border-steel-line">
                     {['Proyecto / Cliente','PEC','Módulos','Línea','Vendedor','Diseñador 3D','Etapa actual','Maestro','Entrega','Días',''].map(h => (
-                      <th key={h} className="text-left text-[10px] font-bold text-slate-500 uppercase px-3 py-3 whitespace-nowrap">{h}</th>
+                      <th key={h} className="text-left text-[10px] font-bold text-steel-faint uppercase px-3 py-3 whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-steel-line">
                   {filtered.map(p => {
                     const atrasado = isAtrasado(p.fechaEntrega, p.estadoGeneral);
                     const bloqueado = bloqueadoD3D(p);
@@ -367,13 +367,13 @@ export default function Projects() {
                             {atrasado && <span className="w-1.5 h-1.5 bg-red-500 rounded-full shrink-0" />}
                             <div>
                               <div className="font-medium text-white text-xs">{p.nombre}</div>
-                              <div className="text-slate-500 text-[10px]">{p.cliente}</div>
+                              <div className="text-steel-faint text-[10px]">{p.cliente}</div>
                             </div>
                           </div>
                         </td>
                         {/* PEC */}
                         <td className="px-3 py-3">
-                          <span className="text-[10px] font-mono text-slate-400">{p.numeroContrato || '—'}</span>
+                          <span className="text-[10px] font-mono text-steel-muted">{p.numeroContrato || '—'}</span>
                         </td>
                         {/* Módulos */}
                         <td className="px-3 py-3">
@@ -386,7 +386,7 @@ export default function Projects() {
                               {mods.equifrigo > 0 && <span className="text-[9px] bg-yellow-900/50 text-yellow-300 px-1 py-0.5 rounded">Q:{mods.equifrigo}</span>}
                               {mods.atrasados > 0 && <span className="text-[9px] bg-red-900/60 text-red-300 px-1 py-0.5 rounded">⚠{mods.atrasados}</span>}
                             </div>
-                          ) : <span className="text-[10px] text-slate-600">Sin módulos</span>}
+                          ) : <span className="text-[10px] text-steel-faint">Sin módulos</span>}
                         </td>
                         {/* Línea */}
                         <td className="px-3 py-3">
@@ -394,10 +394,10 @@ export default function Projects() {
                             ? <span className={`text-[9px] px-1.5 py-0.5 rounded font-medium ${p.lineaProyecto === 'Element' ? 'bg-purple-900/50 text-purple-300' : p.lineaProyecto === 'Equifrigo' ? 'bg-yellow-900/50 text-yellow-300' : 'bg-blue-900/50 text-blue-300'}`}>
                                 {p.lineaProyecto}
                               </span>
-                            : <span className="text-[10px] text-slate-600">—</span>}
+                            : <span className="text-[10px] text-steel-faint">—</span>}
                         </td>
                         {/* Vendedor */}
-                        <td className="px-3 py-3 text-[11px] text-slate-400">{p.responsableGeneral || '—'}</td>
+                        <td className="px-3 py-3 text-[11px] text-steel-muted">{p.responsableGeneral || '—'}</td>
                         {/* Diseñador 3D */}
                         <td className="px-3 py-3">
                           <span className="text-[10px] font-medium text-slate-300">{disenador3D(p)}</span>
@@ -413,10 +413,10 @@ export default function Projects() {
                           )}
                         </td>
                         {/* Maestro */}
-                        <td className="px-3 py-3 text-[11px] text-slate-400">{getMaestros(p)}</td>
+                        <td className="px-3 py-3 text-[11px] text-steel-muted">{getMaestros(p)}</td>
                         {/* Entrega */}
                         <td className="px-3 py-3">
-                          <div className="text-[10px] text-slate-500">{p.fechaEntrega || '—'}</div>
+                          <div className="text-[10px] text-steel-faint">{p.fechaEntrega || '—'}</div>
                         </td>
                         {/* Días */}
                         <td className="px-3 py-3">
@@ -424,16 +424,16 @@ export default function Projects() {
                             ? <span style={{ fontSize: 10, fontWeight: 700, color: dColor, background: dBg, padding: '2px 7px', borderRadius: 99 }}>
                                 {dias < 0 ? `${Math.abs(dias)}d atr.` : `${dias}d`}
                               </span>
-                            : <span className="text-[10px] text-slate-600">—</span>}
+                            : <span className="text-[10px] text-steel-faint">—</span>}
                         </td>
                         {/* Acciones */}
                         <td className="px-3 py-3">
                           <div className="flex items-center gap-2">
-                            <button onClick={() => goToProject(p.id)} className="text-slate-600 hover:text-white transition-colors">
+                            <button onClick={() => goToProject(p.id)} className="text-steel-faint hover:text-white transition-colors">
                               <ChevronRight size={14} />
                             </button>
                             <button onClick={e => { e.stopPropagation(); setConfirmDelete(p.id); }}
-                              className="text-slate-600 hover:text-red-400 transition-colors">
+                              className="text-steel-faint hover:text-red-400 transition-colors">
                               <Trash2 size={13} />
                             </button>
                           </div>
@@ -444,7 +444,7 @@ export default function Projects() {
                 </tbody>
               </table>
               {filtered.length === 0 && (
-                <div className="py-12 text-center text-slate-500">
+                <div className="py-12 text-center text-steel-faint">
                   {(proyectos||[]).length === 0 ? 'No hay proyectos. Crea el primero.' : 'No se encontraron proyectos.'}
                 </div>
               )}
@@ -456,12 +456,12 @@ export default function Projects() {
       {/* Modal eliminar */}
       {confirmDelete && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-          <div className="bg-[#161820] border border-white/10 rounded-2xl p-6 w-full max-w-sm">
+          <div className="bg-[#1B1E23] border border-white/10 rounded-2xl p-6 w-full max-w-sm">
             <h3 className="text-white font-bold text-lg mb-2">¿Eliminar proyecto?</h3>
-            <p className="text-slate-400 text-sm mb-6">Esta acción no se puede deshacer.</p>
+            <p className="text-steel-muted text-sm mb-6">Esta acción no se puede deshacer.</p>
             <div className="flex gap-3">
               <button onClick={() => setConfirmDelete(null)}
-                className="flex-1 text-slate-400 hover:text-white text-sm py-2 rounded-lg border border-white/10 hover:bg-white/5 transition-colors">
+                className="flex-1 text-steel-muted hover:text-white text-sm py-2 rounded-lg border border-white/10 hover:bg-white/5 transition-colors">
                 Cancelar
               </button>
               <button onClick={() => eliminarProyecto(confirmDelete)}

@@ -616,7 +616,7 @@ export default function ExportExcel() {
       {showMenu && (
         <div style={{
           position: 'fixed', bottom: 86, right: 24, zIndex: 1000,
-          background: '#161820', border: '1px solid #1E2433',
+          background: '#1B1E23', border: '1px solid #1E2433',
           borderRadius: 14, padding: '16px 18px', minWidth: 260,
           boxShadow: '0 8px 40px #00000060',
         }}>

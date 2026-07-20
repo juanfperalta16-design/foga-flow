@@ -1,12 +1,15 @@
 // ─── Color & Status Utilities ────────────────────────
 
+// Misma paleta de temple del acero que src/utils/statusHelpers.js (un solo
+// sistema de color conceptual para todo el pipeline, aquí en versión "light chip"
+// para Badge.jsx). Ver esa constante para la lógica detrás de estos colores.
 export const DEPT_COLORS = {
-  "Diseño": { bg: "bg-blue-500", text: "text-blue-700", light: "bg-blue-50", border: "border-blue-300", hex: "#3B82F6" },
-  "Arquitectura": { bg: "bg-purple-500", text: "text-purple-700", light: "bg-purple-50", border: "border-purple-300", hex: "#8B5CF6" },
-  "Producción": { bg: "bg-orange-500", text: "text-orange-700", light: "bg-orange-50", border: "border-orange-300", hex: "#F97316" },
-  "Instalación": { bg: "bg-green-500", text: "text-green-700", light: "bg-green-50", border: "border-green-300", hex: "#22C55E" },
-  "Toma de medidas": { bg: "bg-yellow-500", text: "text-yellow-700", light: "bg-yellow-50", border: "border-yellow-300", hex: "#EAB308" },
-  "Finalizado": { bg: "bg-gray-500", text: "text-gray-700", light: "bg-gray-50", border: "border-gray-300", hex: "#6B7280" },
+  "Diseño": { bg: "bg-[#B5651D]", text: "text-[#E3A868]", light: "bg-[#B5651D]/10", border: "border-[#B5651D]/40", hex: "#B5651D" },
+  "Arquitectura": { bg: "bg-[#D4A017]", text: "text-[#F0D687]", light: "bg-[#D4A017]/10", border: "border-[#D4A017]/40", hex: "#D4A017" },
+  "Producción": { bg: "bg-[#7A4B8C]", text: "text-[#C9A8D6]", light: "bg-[#7A4B8C]/10", border: "border-[#7A4B8C]/40", hex: "#7A4B8C" },
+  "Instalación": { bg: "bg-[#2C6E9E]", text: "text-[#8FC3E3]", light: "bg-[#2C6E9E]/10", border: "border-[#2C6E9E]/40", hex: "#2C6E9E" },
+  "Toma de medidas": { bg: "bg-[#A67C3D]", text: "text-[#D9BC85]", light: "bg-[#A67C3D]/10", border: "border-[#A67C3D]/40", hex: "#A67C3D" },
+  "Finalizado": { bg: "bg-gray-500", text: "text-gray-300", light: "bg-gray-500/10", border: "border-gray-500/40", hex: "#6B7280" },
 };
 
 export const STATUS_COLORS = {

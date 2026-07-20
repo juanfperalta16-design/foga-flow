@@ -25,7 +25,7 @@ function semaforo(fecha) {
 function prioridadColor(p) {
   if (p === 'Urgente') return '#EF4444';
   if (p === 'Alta')    return '#D97706';
-  return '#2563EB';
+  return '#B5651D';
 }
 
 export default function MonthlyCalendar() {
@@ -70,7 +70,7 @@ export default function MonthlyCalendar() {
   const hoyStr     = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}`;
 
   return (
-    <div style={{ display: 'flex', height: '100%', minHeight: '100vh', background: '#0F1117' }}>
+    <div style={{ display: 'flex', height: '100%', minHeight: '100vh', background: '#101215' }}>
 
       {/* ── Panel lateral izquierdo ── */}
       <div style={{ width: 280, flexShrink: 0, borderRight: '1px solid #1E2433', padding: '20px 16px', overflowY: 'auto' }}>
@@ -101,7 +101,7 @@ export default function MonthlyCalendar() {
         {/* Proyectos del mes */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#2563EB' }} />
+            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#B5651D' }} />
             <span style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px' }}>
               Este mes — {proyectosMes.length}
             </span>
@@ -114,7 +114,7 @@ export default function MonthlyCalendar() {
             const dia = parseInt(p.fechaEntrega.split('-')[2]);
             return (
               <div key={p.id} onClick={() => goToProject(p.id)}
-                style={{ background: '#141824', border: `1px solid ${sem?.dot || '#1E2433'}25`, borderLeft: `3px solid ${sem?.dot || '#2563EB'}`, borderRadius: '0 8px 8px 0', padding: '8px 10px', marginBottom: 5, cursor: 'pointer', transition: 'background .15s' }}
+                style={{ background: '#141824', border: `1px solid ${sem?.dot || '#1E2433'}25`, borderLeft: `3px solid ${sem?.dot || '#B5651D'}`, borderRadius: '0 8px 8px 0', padding: '8px 10px', marginBottom: 5, cursor: 'pointer', transition: 'background .15s' }}
                 onMouseEnter={e => e.currentTarget.style.background = '#1a1f2e'}
                 onMouseLeave={e => e.currentTarget.style.background = '#141824'}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
@@ -163,7 +163,7 @@ export default function MonthlyCalendar() {
               <ChevronRight size={16} />
             </button>
             <button onClick={() => { setMonth(hoy.getMonth()); setYear(hoy.getFullYear()); }}
-              style={{ background: '#2563EB20', border: '1px solid #2563EB40', borderRadius: 8, color: '#93C5FD', cursor: 'pointer', padding: '6px 14px', fontSize: 12, fontWeight: 600 }}>
+              style={{ background: '#B5651D20', border: '1px solid #B5651D40', borderRadius: 8, color: '#E3A868', cursor: 'pointer', padding: '6px 14px', fontSize: 12, fontWeight: 600 }}>
               Hoy
             </button>
           </div>
@@ -198,15 +198,15 @@ export default function MonthlyCalendar() {
                 onMouseEnter={() => setHoveredDay(dia)}
                 onMouseLeave={() => setHoveredDay(null)}
                 style={{
-                  minHeight: 90, background: esHoy ? '#1E3A5F20' : hoveredDay === dia ? '#141824' : '#0F1117',
-                  border: `1px solid ${esHoy ? '#2563EB40' : hayAtrasados ? '#EF444420' : '#1E2433'}`,
+                  minHeight: 90, background: esHoy ? '#2E1A0820' : hoveredDay === dia ? '#141824' : '#101215',
+                  border: `1px solid ${esHoy ? '#B5651D40' : hayAtrasados ? '#EF444420' : '#1E2433'}`,
                   borderRadius: 8, padding: '6px 8px', transition: 'all .1s', position: 'relative',
                 }}>
                 {/* Número del día */}
                 <div style={{
                   fontSize: 12, fontWeight: esHoy ? 700 : 500,
                   color: esHoy ? '#fff' : '#9CA3AF',
-                  background: esHoy ? '#2563EB' : 'transparent',
+                  background: esHoy ? '#B5651D' : 'transparent',
                   width: esHoy ? 24 : 'auto', height: esHoy ? 24 : 'auto',
                   borderRadius: esHoy ? '50%' : 0,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',

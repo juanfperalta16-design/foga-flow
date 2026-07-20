@@ -17,8 +17,8 @@ export default function SelectGrupo({ value, onChange, grupos, placeholder = 'Se
     : agrupados;
 
   const baseStyle = {
-    background: '#0F1117',
-    border: '1px solid #374151',
+    background: '#101215',
+    border: '1px solid #2B2F36',
     borderRadius: 7,
     color: value ? '#E2E8F0' : '#6B7280',
     fontSize: 12,
@@ -53,7 +53,7 @@ export function SelectGrupoTailwind({ value, onChange, grupos, placeholder = 'Se
 
   return (
     <select value={value || ''} onChange={e => onChange(e.target.value)}
-      className="w-full bg-[#0F1117] border border-white/10 rounded-lg text-sm text-white px-3 py-2 focus:outline-none focus:border-purple-500">
+      className="w-full bg-[#101215] border border-white/10 rounded-lg text-sm text-white px-3 py-2 focus:outline-none focus:border-flame">
       <option value="">{placeholder}</option>
       {Object.entries(gruposFiltrados).map(([grupo, nombres]) => (
         <optgroup key={grupo} label={`── ${grupo} ──`}>

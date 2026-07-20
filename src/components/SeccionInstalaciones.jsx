@@ -172,4 +172,4 @@ export default function SeccionInstalaciones({ proyecto, onUpdate }) {
 }
 
 const lbl = { fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 };
-const inp = { background: '#0F1117', border: '1px solid #374151', borderRadius: 7, color: '#E2E8F0', fontSize: 12, padding: '6px 10px', outline: 'none', width: '100%' };
+const inp = { background: '#101215', border: '1px solid #374151', borderRadius: 7, color: '#E2E8F0', fontSize: 12, padding: '6px 10px', outline: 'none', width: '100%' };

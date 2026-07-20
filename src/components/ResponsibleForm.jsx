@@ -57,7 +57,7 @@ export default function ResponsibleForm({ responsable, onSave, onClose }) {
 
         {/* Avatar preview */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, padding: '12px 14px', background: '#F8FAFC', borderRadius: 10 }}>
-          <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#7C3AED', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 15, color: '#fff', flexShrink: 0 }}>
+          <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#D4A017', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 15, color: '#fff', flexShrink: 0 }}>
             {form.iniciales || '?'}
           </div>
           <div>
@@ -105,7 +105,7 @@ export default function ResponsibleForm({ responsable, onSave, onClose }) {
           <button onClick={onClose} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #E2E8F0', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#475569', fontWeight: 500 }}>
             Cancelar
           </button>
-          <button onClick={handleSubmit} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: '#7C3AED', color: '#fff', fontSize: 13, cursor: 'pointer', fontWeight: 600 }}>
+          <button onClick={handleSubmit} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: '#D4A017', color: '#fff', fontSize: 13, cursor: 'pointer', fontWeight: 600 }}>
             {editando ? 'Guardar cambios' : 'Crear persona'}
           </button>
         </div>

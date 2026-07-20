@@ -70,19 +70,19 @@ export default function Contabilidad() {
     <div className="p-6 space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="w-11 h-11 rounded-xl bg-yellow-900/30 flex items-center justify-center shrink-0">
-          <DollarSign size={22} className="text-yellow-400" />
+        <div className="w-11 h-11 rounded-xl bg-[#A67C3D]/15 flex items-center justify-center shrink-0">
+          <DollarSign size={22} className="text-[#A67C3D]" />
         </div>
         <div>
           <h1 className="text-2xl font-display font-bold text-white">Contabilidad</h1>
-          <p className="text-slate-400 text-sm">Todos los proyectos activos — control de pase para instalación</p>
+          <p className="text-steel-muted text-sm">Todos los proyectos activos — control de pase para instalación</p>
         </div>
       </div>
 
       {/* Regla */}
-      <div className="bg-[#161820] border-l-4 border-yellow-600 rounded-r-xl px-4 py-3">
+      <div className="bg-[#1B1E23] border-l-4 border-[#A67C3D] rounded-r-xl px-4 py-3">
         <p className="text-xs text-slate-300">
-          <strong className="text-yellow-400">Regla de despacho:</strong> Instalaciones solo puede proceder con <strong className="text-white">Pase Abierto</strong>. El pase se abre cuando Producción termina todos los módulos en fábrica <strong className="text-white">y</strong> Contabilidad autoriza.
+          <strong className="text-[#A67C3D]">Regla de despacho:</strong> Instalaciones solo puede proceder con <strong className="text-white">Pase Abierto</strong>. El pase se abre cuando Producción termina todos los módulos en fábrica <strong className="text-white">y</strong> Contabilidad autoriza.
         </p>
       </div>
 
@@ -94,9 +94,9 @@ export default function Contabilidad() {
           { label: 'En riesgo — ≤7 días sin pase',    value: enRiesgo.length,  color: 'text-red-400' },
           { label: 'Sin pase (total)',                value: sinPase.length,   color: 'text-amber-400' },
         ].map(({ label, value, color }) => (
-          <div key={label} className="bg-[#161820] border border-white/5 rounded-xl px-4 py-3">
-            <div className={`text-2xl font-bold ${color}`}>{value}</div>
-            <div className="text-[11px] text-slate-500 mt-1">{label}</div>
+          <div key={label} className="bg-[#1B1E23] border border-steel-line rounded-xl px-4 py-3">
+            <div className={`text-2xl font-bold font-stamp ${color}`}>{value}</div>
+            <div className="text-[11px] text-steel-faint mt-1">{label}</div>
           </div>
         ))}
       </div>
@@ -105,7 +105,7 @@ export default function Contabilidad() {
       <div className="flex gap-1 border-b border-white/10">
         {[['todas','Todas'],['semana','Esta semana'],['riesgo','En riesgo'],['sinpase','Sin pase']].map(([id, label]) => (
           <button key={id} onClick={() => setFiltro(id)}
-            className={`text-sm px-4 py-2 rounded-t-lg transition-colors font-medium ${filtro === id ? 'bg-white/10 text-white border-b-2 border-yellow-500' : 'text-slate-400 hover:text-white'}`}>
+            className={`text-sm px-4 py-2 rounded-t-lg transition-colors font-medium ${filtro === id ? 'bg-white/10 text-white border-b-2 border-[#A67C3D]' : 'text-steel-muted hover:text-white'}`}>
             {label}
           </button>
         ))}
@@ -113,21 +113,21 @@ export default function Contabilidad() {
 
       {/* Tabla */}
       {lista.length === 0 ? (
-        <div className="bg-[#161820] border border-white/5 rounded-xl py-12 text-center text-slate-500 text-sm">
+        <div className="bg-[#1B1E23] border border-steel-line rounded-xl py-12 text-center text-steel-faint text-sm">
           No hay proyectos en este filtro.
         </div>
       ) : (
-        <div className="bg-[#161820] border border-white/5 rounded-xl overflow-hidden">
+        <div className="bg-[#1B1E23] border border-steel-line rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-white/5">
+                <tr className="border-b border-steel-line">
                   {['Cliente','PEC','Instalación','T-','Fábrica','Autoriz.','Pase'].map(h => (
-                    <th key={h} className="text-left text-[10px] font-bold text-slate-500 uppercase px-3 py-3 whitespace-nowrap">{h}</th>
+                    <th key={h} className="text-left text-[10px] font-bold text-steel-faint uppercase px-3 py-3 whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-steel-line">
                 {lista.map(p => {
                   const dias = diasPara(p.fechaEntrega);
                   const fab  = fabricaTerminada(p);
@@ -138,9 +138,9 @@ export default function Contabilidad() {
                     <tr key={p.id} className="hover:bg-white/3 transition-colors">
                       <td className="px-3 py-3 cursor-pointer" onClick={() => goToProject(p.id)}>
                         <div className="font-medium text-white text-xs">{p.nombre}</div>
-                        <div className="text-slate-500 text-[10px]">{p.cliente}</div>
+                        <div className="text-steel-faint text-[10px]">{p.cliente}</div>
                       </td>
-                      <td className="px-3 py-3 text-[11px] font-mono text-slate-400">{p.numeroContrato || '—'}</td>
+                      <td className="px-3 py-3 text-[11px] font-mono text-steel-muted">{p.numeroContrato || '—'}</td>
                       <td className="px-3 py-3 text-[11px] text-slate-300">{p.fechaEntrega || '—'}</td>
                       <td className="px-3 py-3">
                         <span style={{ fontSize: 10, fontWeight: 700, color: dColor, background: dColor + '20', border: `1px solid ${dColor}40`, padding: '2px 8px', borderRadius: 6 }}>
@@ -148,12 +148,12 @@ export default function Contabilidad() {
                         </span>
                       </td>
                       <td className="px-3 py-3">
-                        {fab ? <CheckCircle2 size={16} className="text-green-500" /> : <Circle size={16} className="text-slate-600" />}
+                        {fab ? <CheckCircle2 size={16} className="text-green-500" /> : <Circle size={16} className="text-steel-faint" />}
                       </td>
                       <td className="px-3 py-3">
                         <button onClick={() => toggleAutorizado(p)}
                           title={aut ? `Autorizado por ${p.contabilidad?.autorizadoPor || '—'} el ${p.contabilidad?.autorizadoAt?.slice(0,10) || ''}` : 'Marcar como autorizado'}>
-                          {aut ? <CheckCircle2 size={16} className="text-green-500" /> : <Circle size={16} className="text-slate-600 hover:text-slate-400" />}
+                          {aut ? <CheckCircle2 size={16} className="text-green-500" /> : <Circle size={16} className="text-steel-faint hover:text-steel-muted" />}
                         </button>
                       </td>
                       <td className="px-3 py-3">

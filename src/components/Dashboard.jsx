@@ -58,22 +58,26 @@ export default function Dashboard() {
     (p.production?.modulos || []).forEach(m => sumarCarga(m.maestro));
   });
 
+  // Color de cada métrica: alarmas reales (atrasado/urgente) quedan en rojo/ámbar
+  // sin ambigüedad; el resto usa el color de temple del departamento al que
+  // pertenece (ver src/utils/statusHelpers.js), y el indicador principal usa
+  // el acento "llama" — el único color reservado para lo interactivo/protagonista.
   const stats = [
-    { label: 'Proyectos activos', value: activos.length, icon: TrendingUp, color: 'text-blue-400', bg: 'bg-blue-900/30' },
-    { label: 'Atrasados', value: atrasados.length, icon: Clock, color: 'text-red-400', bg: 'bg-red-900/30' },
-    { label: 'Urgencias', value: urgentes.length, icon: AlertTriangle, color: 'text-orange-400', bg: 'bg-orange-900/30' },
-    { label: 'Finalizados', value: finalizados.length, icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-900/30' },
-    { label: 'Material urgente', value: materialUrgente.length, icon: FileWarning, color: 'text-amber-400', bg: 'bg-amber-900/30' },
-    { label: 'Pendiente instalar', value: pendienteInstalar.length, icon: Zap, color: 'text-purple-400', bg: 'bg-purple-900/30' },
-    { label: 'Obra pendiente', value: obraPendiente.length, icon: Building2, color: 'text-amber-400', bg: 'bg-amber-900/30' },
-    { label: 'Listos producción', value: listosProd.length, icon: Package, color: 'text-orange-400', bg: 'bg-orange-900/30' },
+    { label: 'Proyectos activos', value: activos.length, icon: TrendingUp, hex: '#FF5A1F' },
+    { label: 'Atrasados', value: atrasados.length, icon: Clock, hex: '#EF4444' },
+    { label: 'Urgencias', value: urgentes.length, icon: AlertTriangle, hex: '#F59E0B' },
+    { label: 'Finalizados', value: finalizados.length, icon: CheckCircle, hex: '#22C55E' },
+    { label: 'Material urgente', value: materialUrgente.length, icon: FileWarning, hex: '#F59E0B' },
+    { label: 'Pendiente instalar', value: pendienteInstalar.length, icon: Zap, hex: '#2C6E9E' },
+    { label: 'Obra pendiente', value: obraPendiente.length, icon: Building2, hex: '#A67C3D' },
+    { label: 'Listos producción', value: listosProd.length, icon: Package, hex: '#7A4B8C' },
   ];
 
   return (
     <div className="p-6 space-y-6">
       <div>
         <h1 className="text-2xl font-display font-bold text-white">Dashboard</h1>
-        <p className="text-slate-400 text-sm mt-1">Resumen operativo · {formatFecha(hoy)}</p>
+        <p className="text-steel-muted text-sm mt-1 font-stamp">Resumen operativo · {formatFecha(hoy)}</p>
       </div>
 
       {/* Stats */}
@@ -81,12 +85,12 @@ export default function Dashboard() {
         {stats.map((s, i) => {
           const Icon = s.icon;
           return (
-            <div key={i} className={`${s.bg} border border-white/5 rounded-xl p-4`}>
+            <div key={i} className="corner-brackets bg-steel-panel border border-steel-line rounded-xl p-4" style={{ color: s.hex }}>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-slate-400 text-xs">{s.label}</span>
-                <Icon size={14} className={s.color} />
+                <span className="text-steel-muted text-xs font-stamp">{s.label}</span>
+                <Icon size={14} style={{ color: s.hex }} />
               </div>
-              <div className={`text-3xl font-bold ${s.color}`}>{s.value}</div>
+              <div className="text-3xl font-bold font-stamp" style={{ color: s.hex }}>{s.value}</div>
             </div>
           );
         })}
@@ -94,37 +98,37 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-3 gap-4">
         {/* Alertas */}
-        <div className="col-span-2 bg-[#161820] border border-white/5 rounded-xl">
-          <div className="px-4 py-3 border-b border-white/5 flex items-center justify-between">
+        <div className="col-span-2 bg-steel-panel border border-steel-line rounded-xl">
+          <div className="px-4 py-3 border-b border-steel-line flex items-center justify-between">
             <h2 className="text-sm font-semibold text-white flex items-center gap-2"><AlertTriangle size={14} className="text-red-400" /> Alertas activas</h2>
-            <span className="text-xs text-slate-500">{alertas.filter(a=>a.estado==='Pendiente').length} pendientes</span>
+            <span className="text-xs text-steel-muted font-stamp">{alertas.filter(a=>a.estado==='Pendiente').length} pendientes</span>
           </div>
-          <div className="divide-y divide-white/5 max-h-72 overflow-y-auto">
+          <div className="divide-y divide-steel-line max-h-72 overflow-y-auto">
             {alertas.filter(a => a.estado === 'Pendiente').slice(0, 8).map(al => (
               <div key={al.id} className="px-4 py-3 hover:bg-white/3 cursor-pointer" onClick={() => goToProject(al.proyectoId)}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${al.prioridad === 'Urgente' ? 'bg-red-900 text-red-300' : 'bg-amber-900 text-amber-300'}`}>{al.tipo}</span>
-                      <span className="text-[10px] text-slate-400">{al.departamentoOrigen} → {al.departamentoDestino}</span>
+                      <span className="text-[10px] text-steel-muted">{al.departamentoOrigen} → {al.departamentoDestino}</span>
                     </div>
                     <div className="text-xs text-white font-medium truncate">{al.proyecto}</div>
-                    <div className="text-[11px] text-slate-400 mt-0.5">{al.motivo}</div>
-                    <div className="text-[10px] text-blue-400 mt-1 font-medium">{al.accionNecesaria}</div>
+                    <div className="text-[11px] text-steel-muted mt-0.5">{al.motivo}</div>
+                    <div className="text-[10px] text-flame mt-1 font-medium">{al.accionNecesaria}</div>
                   </div>
-                  <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 ${al.prioridad === 'Urgente' ? 'bg-red-600 text-white' : 'bg-amber-700 text-amber-200'}`}>{al.prioridad}</span>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 font-stamp ${al.prioridad === 'Urgente' ? 'bg-red-600 text-white' : 'bg-amber-700 text-amber-200'}`}>{al.prioridad}</span>
                 </div>
               </div>
             ))}
             {alertas.filter(a => a.estado === 'Pendiente').length === 0 && (
-              <div className="px-4 py-8 text-center text-slate-500 text-sm">Sin alertas pendientes</div>
+              <div className="px-4 py-8 text-center text-steel-faint text-sm">Sin alertas pendientes</div>
             )}
           </div>
         </div>
 
         {/* Carga por departamento */}
         <div className="space-y-3">
-          <div className="bg-[#161820] border border-white/5 rounded-xl p-4">
+          <div className="bg-steel-panel border border-steel-line rounded-xl p-4">
             <h2 className="text-sm font-semibold text-white mb-3">Carga por departamento</h2>
             <div className="space-y-2">
               {cargaDept.map(({ dept, count }) => {
@@ -134,9 +138,9 @@ export default function Dashboard() {
                   <div key={dept}>
                     <div className="flex justify-between text-xs mb-1">
                       <span className={c.text}>{dept}</span>
-                      <span className="text-slate-400">{count}</span>
+                      <span className="text-steel-muted font-stamp">{count}</span>
                     </div>
-                    <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-steel-line rounded-full overflow-hidden">
                       <div className={`h-full ${c.bg} rounded-full transition-all`} style={{ width: `${(count / max) * 100}%` }} />
                     </div>
                   </div>
@@ -144,13 +148,13 @@ export default function Dashboard() {
               })}
             </div>
           </div>
-          <div className="bg-[#161820] border border-white/5 rounded-xl p-4">
+          <div className="bg-steel-panel border border-steel-line rounded-xl p-4">
             <h2 className="text-sm font-semibold text-white mb-3">Carga por responsable</h2>
             <div className="space-y-1.5">
               {Object.entries(cargaResp).sort((a,b) => b[1]-a[1]).map(([resp, n]) => (
                 <div key={resp} className="flex justify-between items-center">
-                  <span className="text-xs text-slate-400 truncate flex-1 mr-2">{resp}</span>
-                  <span className="text-xs font-bold text-white bg-white/10 px-2 py-0.5 rounded">{n}</span>
+                  <span className="text-xs text-steel-muted truncate flex-1 mr-2">{resp}</span>
+                  <span className="text-xs font-bold text-white bg-white/10 px-2 py-0.5 rounded font-stamp">{n}</span>
                 </div>
               ))}
             </div>
@@ -159,25 +163,25 @@ export default function Dashboard() {
       </div>
 
       {/* Proyectos activos recientes */}
-      <div className="bg-[#161820] border border-white/5 rounded-xl">
-        <div className="px-4 py-3 border-b border-white/5">
+      <div className="bg-steel-panel border border-steel-line rounded-xl">
+        <div className="px-4 py-3 border-b border-steel-line">
           <h2 className="text-sm font-semibold text-white">Proyectos en curso</h2>
         </div>
-        <div className="divide-y divide-white/5">
+        <div className="divide-y divide-steel-line">
           {activos.slice(0, 6).map(p => {
             const atrasado = isAtrasado(p.fechaEntrega, p.estadoGeneral);
             return (
-              <div key={p.id} className="px-4 py-3 flex items-center gap-4 hover:bg-white/3 cursor-pointer" onClick={() => goToProject(p.id)}>
+              <div key={p.id} className="px-4 py-3 flex items-center gap-4 hover:bg-white/5 cursor-pointer" onClick={() => goToProject(p.id)}>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-medium text-white truncate">{p.nombre}</span>
-                    {atrasado && <span className="text-[9px] bg-red-900 text-red-300 px-1.5 py-0.5 rounded font-bold">ATRASADO</span>}
+                    {atrasado && <span className="text-[9px] bg-red-900 text-red-300 px-1.5 py-0.5 rounded font-bold font-stamp">ATRASADO</span>}
                   </div>
-                  <div className="text-xs text-slate-400">{p.cliente} · Entrega: {formatFecha(p.fechaEntrega)}</div>
+                  <div className="text-xs text-steel-muted font-stamp">{p.cliente} · Entrega: {formatFecha(p.fechaEntrega)}</div>
                 </div>
                 <DeptChip dept={getDeptActual(p)} />
                 <StatusChip estado={p.estadoGeneral} />
-                <span className="text-xs text-slate-500 hidden lg:block">{p.responsableGeneral}</span>
+                <span className="text-xs text-steel-faint hidden lg:block font-stamp">{p.responsableGeneral}</span>
               </div>
             );
           })}

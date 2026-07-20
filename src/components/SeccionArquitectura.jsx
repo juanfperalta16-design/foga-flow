@@ -34,17 +34,17 @@ function ModuloArqCard({ mod, planLink, onUpdateModulo }) {
   }
 
   return (
-    <div style={{ background: '#141824', border: `1.5px solid ${liberado ? '#7C3AED40' : '#1E2433'}`, borderRadius: 10, marginBottom: 8 }}>
+    <div style={{ background: '#141824', border: `1.5px solid ${liberado ? '#D4A01740' : '#1E2433'}`, borderRadius: 10, marginBottom: 8 }}>
       <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
         <div onClick={toggle} style={{ cursor: 'pointer', flexShrink: 0 }}>
-          {liberado ? <Unlock size={15} color="#7C3AED" /> : <Lock size={15} color="#374151" />}
+          {liberado ? <Unlock size={15} color="#D4A017" /> : <Lock size={15} color="#374151" />}
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#F1F5F9' }}>{mod.nombre || 'Sin nombre'}</div>
           <div style={{ display: 'flex', gap: 6, marginTop: 3, flexWrap: 'wrap', alignItems: 'center' }}>
             <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: '#6B7280' }}>{mod.pec}</span>
             <LineaBadge linea={mod.linea} />
-            <span style={{ fontSize: 9, background: liberado ? '#2D1B69' : '#1F2937', color: liberado ? '#C4B5FD' : '#6B7280', padding: '1px 6px', borderRadius: 4 }}>
+            <span style={{ fontSize: 9, background: liberado ? '#332905' : '#1F2937', color: liberado ? '#F0D687' : '#6B7280', padding: '1px 6px', borderRadius: 4 }}>
               {arch.estado || 'En proceso'}
             </span>
             {mod.maestro && <span style={{ fontSize: 10, color: '#6B7280' }}>👤 {mod.maestro}</span>}
@@ -54,8 +54,8 @@ function ModuloArqCard({ mod, planLink, onUpdateModulo }) {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {liberado
-            ? <span style={{ fontSize: 10, color: '#C4B5FD', fontWeight: 600 }}>✓ En Diseño 3D</span>
-            : <button onClick={toggle} style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', background: '#7C3AED', color: '#fff', border: 'none', borderRadius: 7, cursor: 'pointer' }}>
+            ? <span style={{ fontSize: 10, color: '#F0D687', fontWeight: 600 }}>✓ En Diseño 3D</span>
+            : <button onClick={toggle} style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', background: '#D4A017', color: '#fff', border: 'none', borderRadius: 7, cursor: 'pointer' }}>
                 Liberar a D3D
               </button>
           }
@@ -69,7 +69,7 @@ function ModuloArqCard({ mod, planLink, onUpdateModulo }) {
           <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             <div>
               <label style={lbl}>Estado</label>
-              <div style={{ ...inp, display: 'flex', alignItems: 'center', color: liberado ? '#C4B5FD' : '#9CA3AF' }}>
+              <div style={{ ...inp, display: 'flex', alignItems: 'center', color: liberado ? '#F0D687' : '#9CA3AF' }}>
                 {liberado ? '✓ Liberado a Diseño 3D' : 'En proceso'}
               </div>
             </div>
@@ -202,7 +202,7 @@ export default function SeccionArquitectura({ proyecto, onUpdate }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       {/* ── 1. CHECKLIST DE PROCESO ── */}
-      <div style={{ background: '#0A0D14', border: '1.5px solid #7C3AED30', borderRadius: 12, padding: '16px 18px' }}>
+      <div style={{ background: '#0A0D14', border: '1.5px solid #D4A01730', borderRadius: 12, padding: '16px 18px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#F1F5F9' }}>Proceso de Diseño Conceptual</div>
@@ -211,9 +211,9 @@ export default function SeccionArquitectura({ proyecto, onUpdate }) {
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 22, fontWeight: 700, color: pct === 100 ? '#86EFAC' : '#C4B5FD' }}>{pct}%</div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: pct === 100 ? '#86EFAC' : '#F0D687' }}>{pct}%</div>
             <div style={{ width: 80, height: 4, background: '#1E2433', borderRadius: 2, overflow: 'hidden', marginTop: 4 }}>
-              <div style={{ height: '100%', width: `${pct}%`, background: pct === 100 ? '#16A34A' : '#7C3AED', borderRadius: 2, transition: 'width .3s' }} />
+              <div style={{ height: '100%', width: `${pct}%`, background: pct === 100 ? '#16A34A' : '#D4A017', borderRadius: 2, transition: 'width .3s' }} />
             </div>
           </div>
         </div>
@@ -226,8 +226,8 @@ export default function SeccionArquitectura({ proyecto, onUpdate }) {
 
             return (
               <div key={paso.id} style={{
-                background: checked ? '#2D1B6925' : bloqueado ? '#0A0D14' : '#141824',
-                border: `1px solid ${checked ? '#7C3AED50' : bloqueado ? '#1E2433' : '#374151'}`,
+                background: checked ? '#33290525' : bloqueado ? '#0A0D14' : '#141824',
+                border: `1px solid ${checked ? '#D4A01750' : bloqueado ? '#1E2433' : '#374151'}`,
                 borderRadius: 10, padding: '12px 14px',
                 opacity: bloqueado ? 0.5 : 1,
                 transition: 'all .15s',
@@ -239,8 +239,8 @@ export default function SeccionArquitectura({ proyecto, onUpdate }) {
                     style={{
                       width: 22, height: 22,
                       borderRadius: paso.esFinal ? 6 : '50%',
-                      border: `2px solid ${checked ? '#7C3AED' : '#374151'}`,
-                      background: checked ? '#7C3AED' : 'transparent',
+                      border: `2px solid ${checked ? '#D4A017' : '#374151'}`,
+                      background: checked ? '#D4A017' : 'transparent',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       cursor: paso.esEmail || bloqueado ? 'default' : 'pointer',
                       flexShrink: 0, transition: 'all .15s',
@@ -250,7 +250,7 @@ export default function SeccionArquitectura({ proyecto, onUpdate }) {
 
                   {/* Info */}
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: checked ? '#C4B5FD' : bloqueado ? '#4B5563' : '#E2E8F0', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: checked ? '#F0D687' : bloqueado ? '#4B5563' : '#E2E8F0', display: 'flex', alignItems: 'center', gap: 6 }}>
                       {i + 1}. {paso.label}
                       {paso.opcional && <span style={{ fontSize: 9, color: '#6B7280', fontWeight: 400 }}>(opcional)</span>}
                     </div>
@@ -291,8 +291,8 @@ export default function SeccionArquitectura({ proyecto, onUpdate }) {
 
         {/* Botón liberar cuando checklist completo */}
         {puedeLiberar && modulos.length > 0 && !todosLiberados && (
-          <div style={{ marginTop: 14, padding: '12px 14px', background: '#2D1B6920', border: '1px dashed #7C3AED60', borderRadius: 10, textAlign: 'center' }}>
-            <div style={{ fontSize: 12, color: '#C4B5FD', marginBottom: 8 }}>
+          <div style={{ marginTop: 14, padding: '12px 14px', background: '#33290520', border: '1px dashed #D4A01760', borderRadius: 10, textAlign: 'center' }}>
+            <div style={{ fontSize: 12, color: '#F0D687', marginBottom: 8 }}>
               ✓ Planos aprobados y contrato cargado — puedes liberar a Diseño 3D
             </div>
             <div style={{ textAlign: 'left', marginBottom: 10 }}>
@@ -300,7 +300,7 @@ export default function SeccionArquitectura({ proyecto, onUpdate }) {
               <input type="date" value={proyecto.fechaEntrega || ''} onChange={e => onUpdate({ ...proyecto, fechaEntrega: e.target.value })} style={inp} />
             </div>
             <button onClick={liberarTodos}
-              style={{ background: confirmLibAll ? '#DC2626' : '#7C3AED', color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, padding: '8px 20px', cursor: 'pointer' }}>
+              style={{ background: confirmLibAll ? '#DC2626' : '#D4A017', color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, padding: '8px 20px', cursor: 'pointer' }}>
               {confirmLibAll ? '¿Confirmar? Liberar todos a Diseño 3D' : '🖥️ Liberar todos los módulos a Diseño 3D'}
             </button>
           </div>
@@ -337,7 +337,7 @@ export default function SeccionArquitectura({ proyecto, onUpdate }) {
                 placeholder="https://drive.google.com/..." style={{ ...inp, flex: 1 }} />
               {arch[field] && (
                 <a href={arch[field]} target="_blank" rel="noopener noreferrer"
-                  style={{ padding: '5px 8px', background: '#1E3A5F', border: '1px solid #2563EB40', borderRadius: 7, color: '#93C5FD', display: 'flex', alignItems: 'center' }}>
+                  style={{ padding: '5px 8px', background: '#2E1A08', border: '1px solid #B5651D40', borderRadius: 7, color: '#E3A868', display: 'flex', alignItems: 'center' }}>
                   <ExternalLink size={12} />
                 </a>
               )}
@@ -363,7 +363,7 @@ export default function SeccionArquitectura({ proyecto, onUpdate }) {
             </div>
             {!todosLiberados && (
               <button onClick={liberarTodos}
-                style={{ fontSize: 11, fontWeight: 700, padding: '6px 14px', background: confirmLibAll ? '#DC2626' : '#2563EB20', color: confirmLibAll ? '#fff' : '#93C5FD', border: `1px solid ${confirmLibAll ? '#DC2626' : '#2563EB40'}`, borderRadius: 8, cursor: 'pointer' }}>
+                style={{ fontSize: 11, fontWeight: 700, padding: '6px 14px', background: confirmLibAll ? '#DC2626' : '#B5651D20', color: confirmLibAll ? '#fff' : '#E3A868', border: `1px solid ${confirmLibAll ? '#DC2626' : '#B5651D40'}`, borderRadius: 8, cursor: 'pointer' }}>
                 {confirmLibAll ? '¿Confirmar?' : 'Liberar todos a D3D'}
               </button>
             )}
@@ -379,7 +379,7 @@ export default function SeccionArquitectura({ proyecto, onUpdate }) {
             </div>
           )}
           <div style={{ height: 4, background: '#1E2433', borderRadius: 2, overflow: 'hidden', marginBottom: 12 }}>
-            <div style={{ height: '100%', width: `${modulos.length > 0 ? (modulosLiberados.length / modulos.length) * 100 : 0}%`, background: '#7C3AED', borderRadius: 2, transition: 'width .3s' }} />
+            <div style={{ height: '100%', width: `${modulos.length > 0 ? (modulosLiberados.length / modulos.length) * 100 : 0}%`, background: '#D4A017', borderRadius: 2, transition: 'width .3s' }} />
           </div>
           {modulos.map(mod => (
             <ModuloArqCard
@@ -401,4 +401,4 @@ export default function SeccionArquitectura({ proyecto, onUpdate }) {
 }
 
 const lbl = { fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 };
-const inp = { background: '#0F1117', border: '1px solid #374151', borderRadius: 7, color: '#E2E8F0', fontSize: 12, padding: '6px 10px', outline: 'none', width: '100%' };
+const inp = { background: '#101215', border: '1px solid #374151', borderRadius: 7, color: '#E2E8F0', fontSize: 12, padding: '6px 10px', outline: 'none', width: '100%' };

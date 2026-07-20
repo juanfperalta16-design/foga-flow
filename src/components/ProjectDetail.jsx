@@ -10,7 +10,7 @@ import { crearEntradaHistorial } from '../utils/historyHelpers';
 import { calcularEstadoGeneral } from '../utils/processRules';
 
 // ── Select de responsable limpio ──────────────────
-function ResponsableSelect({ label, value, onChange, color = '#7C3AED', bg = '#2D1B69', textColor = '#C4B5FD', grupos, responsables }) {
+function ResponsableSelect({ label, value, onChange, color = '#D4A017', bg = '#332905', textColor = '#F0D687', grupos, responsables }) {
   const agrupados = getResponsablesAgrupados(responsables);
   const filtrados = grupos
     ? Object.fromEntries(Object.entries(agrupados).filter(([g]) => grupos.includes(g)))
@@ -21,7 +21,7 @@ function ResponsableSelect({ label, value, onChange, color = '#7C3AED', bg = '#2
         👤 {label}
       </div>
       <select value={value || ''} onChange={e => onChange(e.target.value)}
-        style={{ width: '100%', background: '#0F1117', border: `1px solid ${color}40`, borderRadius: 8, color: value ? '#F1F5F9' : '#6B7280', fontSize: 13, fontWeight: value ? 600 : 400, padding: '8px 12px', outline: 'none' }}>
+        style={{ width: '100%', background: '#101215', border: `1px solid ${color}40`, borderRadius: 8, color: value ? '#F1F5F9' : '#6B7280', fontSize: 13, fontWeight: value ? 600 : 400, padding: '8px 12px', outline: 'none' }}>
         <option value="">Sin asignar...</option>
         {Object.entries(filtrados).map(([grupo, nombres]) => (
           <optgroup key={grupo} label={`── ${grupo} ──`}>
@@ -40,7 +40,7 @@ function ResponsableSelect({ label, value, onChange, color = '#7C3AED', bg = '#2
 }
 
 // ── Multi-select para Diseño 3D ───────────────────
-function MultiResponsableSelect({ label, values = [], onChange, color = '#2563EB', bg = '#1E3A5F', textColor = '#93C5FD', grupos, responsables, itemLabel = 'diseñador' }) {
+function MultiResponsableSelect({ label, values = [], onChange, color = '#B5651D', bg = '#2E1A08', textColor = '#E3A868', grupos, responsables, itemLabel = 'diseñador' }) {
   const [showAdd, setShowAdd] = useState(false);
   const [selected, setSelected] = useState('');
   const agrupados = getResponsablesAgrupados(responsables);
@@ -79,7 +79,7 @@ function MultiResponsableSelect({ label, values = [], onChange, color = '#2563EB
       {showAdd
         ? <div style={{ display: 'flex', gap: 6 }}>
             <select value={selected} onChange={e => setSelected(e.target.value)}
-              style={{ flex: 1, background: '#0F1117', border: `1px solid ${color}40`, borderRadius: 7, color: '#E2E8F0', fontSize: 12, padding: '6px 10px', outline: 'none' }}>
+              style={{ flex: 1, background: '#101215', border: `1px solid ${color}40`, borderRadius: 7, color: '#E2E8F0', fontSize: 12, padding: '6px 10px', outline: 'none' }}>
               <option value="">Seleccionar...</option>
               {Object.entries(filtrados).map(([grupo, nombres]) => (
                 <optgroup key={grupo} label={`── ${grupo} ──`}>
@@ -166,8 +166,8 @@ function PestanaEquipo({ proyecto, onUpdate, responsables }) {
           Estas fechas aparecen en el calendario de cada departamento y son independientes de la fecha general del proyecto.
         </div>
         {[
-          { key: 'diseno3d',      label: 'Diseño 3D',     color: '#2563EB', bg: '#1E3A5F' },
-          { key: 'produccion',    label: 'Producción',    color: '#EA580C', bg: '#3D1F00' },
+          { key: 'diseno3d',      label: 'Diseño 3D',     color: '#B5651D', bg: '#2E1A08' },
+          { key: 'produccion',    label: 'Producción',    color: '#7A4B8C', bg: '#241A2B' },
         ].map(({ key, label, color, bg }) => {
           const fechasDepto = proyecto.fechasDepto || {};
           const val  = fechasDepto[key] || '';
@@ -185,7 +185,7 @@ function PestanaEquipo({ proyecto, onUpdate, responsables }) {
                     if (nueva && new Date(nueva).getFullYear() > 2100) return;
                     onUpdate({ ...proyecto, fechasDepto: { ...fechasDepto, [key]: nueva } });
                   }}
-                  style={{ background: '#0F1117', border: `1.5px solid ${val ? color + '60' : '#374151'}`, borderRadius: 8, color: '#E2E8F0', fontSize: 12, padding: '6px 10px', outline: 'none', flex: 1 }} />
+                  style={{ background: '#101215', border: `1.5px solid ${val ? color + '60' : '#374151'}`, borderRadius: 8, color: '#E2E8F0', fontSize: 12, padding: '6px 10px', outline: 'none', flex: 1 }} />
                 {val && (
                   <button
                     onClick={() => onUpdate({ ...proyecto, fechasDepto: { ...fechasDepto, [key]: '' } })}
@@ -210,7 +210,7 @@ function PestanaEquipo({ proyecto, onUpdate, responsables }) {
           const semaforoColor = dnum === null ? '#6B7280' : dnum < 0 ? '#EF4444' : dnum <= 5 ? '#F97316' : '#16A34A';
           return (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0' }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#16A34A', flexShrink: 0 }} />
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#2C6E9E', flexShrink: 0 }} />
               <span style={{ fontSize: 12, color: '#CBD5E1', width: 110, flexShrink: 0, fontWeight: 500 }}>Instalaciones</span>
               <div style={{ flex: 1, fontSize: 12, color: val ? '#E2E8F0' : '#4B5563' }}>
                 {val || 'Sin fecha del cliente'} <span style={{ color: '#6B7280', fontSize: 10 }}>(fecha de instalación del proyecto)</span>
@@ -230,7 +230,7 @@ function PestanaEquipo({ proyecto, onUpdate, responsables }) {
         label="Arquitectura"
         value={arch.responsible}
         onChange={val => setResp('architecture', 'responsible', val)}
-        color="#7C3AED" bg="#2D1B69" textColor="#C4B5FD"
+        color="#D4A017" bg="#332905" textColor="#F0D687"
         grupos={['Arquitectas']}
         responsables={responsables}
       />
@@ -240,15 +240,15 @@ function PestanaEquipo({ proyecto, onUpdate, responsables }) {
         label="Diseño 3D"
         values={d3Designers}
         onChange={setD3Designers}
-        color="#2563EB" bg="#1E3A5F" textColor="#93C5FD"
+        color="#B5651D" bg="#2E1A08" textColor="#E3A868"
         grupos={['Diseñadores Producto']}
         responsables={responsables}
       />
 
       {/* Diseño 3D — detalle por módulo (diseñador, fechas, reproceso) */}
       {modulos.length > 0 && (
-        <div style={{ background: '#1E3A5F20', border: '1.5px solid #2563EB40', borderRadius: 10, padding: '12px 14px' }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8 }}>
+        <div style={{ background: '#2E1A0820', border: '1.5px solid #B5651D40', borderRadius: 10, padding: '12px 14px' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: '#B5651D', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8 }}>
             🖥️ Diseño 3D — Registro por módulo
           </div>
           {modulos.filter(m => m.arquitectura?.liberadoA3D).length === 0
@@ -262,7 +262,7 @@ function PestanaEquipo({ proyecto, onUpdate, responsables }) {
                       <span style={{ fontSize: 10, color: '#6B7280', marginLeft: 6 }}>{d3.disenador || 'Sin diseñador asignado'}</span>
                     </div>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
-                      {d3.fechaDiseno && <span style={{ fontSize: 10, color: '#93C5FD' }}>Diseño: {d3.fechaDiseno}</span>}
+                      {d3.fechaDiseno && <span style={{ fontSize: 10, color: '#E3A868' }}>Diseño: {d3.fechaDiseno}</span>}
                       {mod.produccion?.fechaValidacionJP && <span style={{ fontSize: 10, color: '#86EFAC' }}>Validado: {mod.produccion.fechaValidacionJP}</span>}
                       {mod.produccion?.reproceso && <span style={{ fontSize: 9, fontWeight: 700, background: '#450A0A', color: '#FCA5A5', padding: '1px 6px', borderRadius: 4 }}>⚠ Reproceso</span>}
                     </div>
@@ -279,7 +279,7 @@ function PestanaEquipo({ proyecto, onUpdate, responsables }) {
         label="Instalaciones / Obra"
         value={inst.responsible}
         onChange={val => setResp('installations', 'responsible', val)}
-        color="#16A34A" bg="#0F2D1A" textColor="#86EFAC"
+        color="#2C6E9E" bg="#0F2530" textColor="#8FC3E3"
         grupos={['Maestros']}
         responsables={responsables}
       />
@@ -289,15 +289,15 @@ function PestanaEquipo({ proyecto, onUpdate, responsables }) {
         label="Producción — Maestros"
         values={maestrosAsignados}
         onChange={setMaestros}
-        color="#EA580C" bg="#3D1F00" textColor="#FDBA74"
+        color="#7A4B8C" bg="#241A2B" textColor="#C9A8D6"
         grupos={['Maestros']}
         responsables={responsables}
         itemLabel="maestro"
       />
 
       {/* Producción — detalle real por módulo (lo que cada módulo tiene asignado) */}
-      <div style={{ background: '#3D1F0020', border: '1.5px solid #EA580C40', borderRadius: 10, padding: '12px 14px' }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8 }}>
+      <div style={{ background: '#241A2B20', border: '1.5px solid #7A4B8C40', borderRadius: 10, padding: '12px 14px' }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: '#7A4B8C', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8 }}>
           🏭 Asignación real por módulo
         </div>
         {maestrosProd.length === 0
@@ -306,8 +306,8 @@ function PestanaEquipo({ proyecto, onUpdate, responsables }) {
               const n = modulos.filter(mod => mod.maestro === m).length;
               return (
                 <div key={m} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#EA580C' }} />
-                  <span style={{ fontSize: 12, color: '#FDBA74', fontWeight: 600 }}>{m}</span>
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#7A4B8C' }} />
+                  <span style={{ fontSize: 12, color: '#C9A8D6', fontWeight: 600 }}>{m}</span>
                   <span style={{ fontSize: 10, color: '#6B7280' }}>
                     — trabajando en este proyecto ({n} módulo{n !== 1 ? 's' : ''} en Producción)
                   </span>
@@ -325,10 +325,10 @@ function PestanaEquipo({ proyecto, onUpdate, responsables }) {
         </div>
         {[
           { label: 'Vendedor',       value: proyecto.responsableGeneral, color: '#9CA3AF' },
-          { label: 'Arquitectura',   value: arch.responsible,            color: '#C4B5FD' },
-          { label: 'Diseño 3D',      value: d3Designers.join(', ') || null, color: '#93C5FD' },
-          { label: 'Instalaciones',  value: inst.responsible,            color: '#86EFAC' },
-          { label: 'Producción',     value: maestrosProd.join(', ') || null, color: '#FDBA74' },
+          { label: 'Arquitectura',   value: arch.responsible,            color: '#F0D687' },
+          { label: 'Diseño 3D',      value: d3Designers.join(', ') || null, color: '#E3A868' },
+          { label: 'Instalaciones',  value: inst.responsible,            color: '#8FC3E3' },
+          { label: 'Producción',     value: maestrosProd.join(', ') || null, color: '#C9A8D6' },
         ].map(({ label, value, color }) => (
           <div key={label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #1E2433' }}>
             <span style={{ fontSize: 11, color: '#6B7280' }}>{label}</span>
@@ -375,19 +375,19 @@ export default function ProjectDetail({ proyectoId }) {
   return (
     <div className="p-6 space-y-4">
       {/* Volver */}
-      <button onClick={() => setPage('proyectos')} className="text-slate-400 hover:text-white flex items-center gap-1.5 text-sm transition-colors">
+      <button onClick={() => setPage('proyectos')} className="text-steel-muted hover:text-white flex items-center gap-1.5 text-sm transition-colors">
         <ArrowLeft size={15} /> Proyectos
       </button>
 
       {/* Header */}
-      <div className={`bg-[#161820] border rounded-xl p-4 ${atrasado ? 'border-red-800/70' : 'border-white/5'}`}>
+      <div className={`bg-[#1B1E23] border rounded-xl p-4 ${atrasado ? 'border-red-800/70' : 'border-steel-line'}`}>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               <h1 className="text-xl font-display font-bold text-white">{proyecto.nombre}</h1>
               {atrasado && <span className="text-[9px] bg-red-600 text-white px-2 py-0.5 rounded font-bold">ATRASADO</span>}
             </div>
-            <div className="text-slate-400 text-sm">{proyecto.cliente} · {proyecto.numeroContrato || 'Sin PEC'}</div>
+            <div className="text-steel-muted text-sm">{proyecto.cliente} · {proyecto.numeroContrato || 'Sin PEC'}</div>
 
             {/* Chips de estado */}
             <div className="flex items-center gap-2 mt-2 flex-wrap">
@@ -403,28 +403,28 @@ export default function ProjectDetail({ proyectoId }) {
             {/* Equipo rápido */}
             <div className="flex items-center gap-3 mt-3 flex-wrap">
               {proyecto.responsableGeneral && (
-                <span className="text-[10px] text-slate-400">💼 <strong className="text-slate-300">{proyecto.responsableGeneral}</strong></span>
+                <span className="text-[10px] text-steel-muted">💼 <strong className="text-slate-300">{proyecto.responsableGeneral}</strong></span>
               )}
               {arch.responsible && (
-                <span className="text-[10px] text-slate-400">✏️ <strong className="text-purple-300">{arch.responsible}</strong></span>
+                <span className="text-[10px] text-steel-muted">✏️ <strong className="text-[#F0D687]">{arch.responsible}</strong></span>
               )}
               {d3Designers.length > 0 && (
-                <span className="text-[10px] text-slate-400">🖥️ <strong className="text-blue-300">{d3Designers.join(', ')}</strong></span>
+                <span className="text-[10px] text-steel-muted">🖥️ <strong className="text-[#E3A868]">{d3Designers.join(', ')}</strong></span>
               )}
               {inst.responsible && (
-                <span className="text-[10px] text-slate-400">🔧 <strong className="text-green-300">{inst.responsible}</strong></span>
+                <span className="text-[10px] text-steel-muted">🔧 <strong className="text-[#8FC3E3]">{inst.responsible}</strong></span>
               )}
             </div>
           </div>
 
           {/* Fecha y días */}
           <div className="text-right shrink-0">
-            <div className="text-xs text-slate-500">Entrega estimada</div>
+            <div className="text-xs text-steel-faint">Entrega estimada</div>
             <div className={`text-sm font-bold ${atrasado ? 'text-red-400' : 'text-white'}`}>
               {formatFecha(proyecto.fechaEntrega) || '—'}
             </div>
             {diasRestantes !== null && (
-              <div style={{
+              <div className="font-stamp" style={{
                 marginTop: 4,
                 fontSize: 11, fontWeight: 700,
                 color: diasRestantes < 0 ? '#EF4444' : diasRestantes <= 7 ? '#F97316' : '#86EFAC',
@@ -434,7 +434,7 @@ export default function ProjectDetail({ proyectoId }) {
                 {diasRestantes < 0 ? `Vencido hace ${Math.abs(diasRestantes)}d` : `${diasRestantes}d restantes`}
               </div>
             )}
-            <button onClick={() => setShowEditForm(true)} className="mt-2 text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 ml-auto">
+            <button onClick={() => setShowEditForm(true)} className="mt-2 text-xs text-flame hover:brightness-110 flex items-center gap-1 ml-auto">
               <Edit size={11} /> Editar
             </button>
           </div>
@@ -463,41 +463,41 @@ export default function ProjectDetail({ proyectoId }) {
         })()}
 
         {proyecto.proximaAccion && (
-          <div className="mt-3 bg-blue-900/20 border border-blue-800/50 rounded-lg px-3 py-2 flex items-center gap-2">
-            <Clock size={12} className="text-blue-400 shrink-0" />
-            <span className="text-xs text-blue-300 font-medium">{proyecto.proximaAccion}</span>
+          <div className="mt-3 bg-flame/10 border border-flame/30 rounded-lg px-3 py-2 flex items-center gap-2">
+            <Clock size={12} className="text-flame shrink-0" />
+            <span className="text-xs text-flame font-medium">{proyecto.proximaAccion}</span>
           </div>
         )}
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-white/5 overflow-x-auto">
+      <div className="flex gap-1 border-b border-steel-line overflow-x-auto">
         {TABS.map(t => (
           <button key={t.id} onClick={() => setActiveTab(t.id)}
-            className={`text-xs px-4 py-2 rounded-t-lg transition-colors whitespace-nowrap ${activeTab === t.id ? 'bg-white/10 text-white font-medium' : 'text-slate-400 hover:text-white'}`}>
+            className={`text-xs px-4 py-2 rounded-t-lg transition-colors whitespace-nowrap ${activeTab === t.id ? 'bg-white/10 text-white font-medium' : 'text-steel-muted hover:text-white'}`}>
             {t.label}
           </button>
         ))}
       </div>
 
       {/* Contenido */}
-      <div className="bg-[#161820] border border-white/5 rounded-xl p-5">
+      <div className="bg-[#1B1E23] border border-steel-line rounded-xl p-5">
         {activeTab === 'flujo'    && <ProjectFlow proyecto={proyecto} onUpdateProyecto={handleUpdate} />}
         {activeTab === 'equipo'   && <PestanaEquipo proyecto={proyecto} onUpdate={handleUpdate} responsables={responsables} />}
         {activeTab === 'historial' && (
-          <div className="divide-y divide-white/5">
-            {pHistorial.length === 0 && <div className="py-8 text-center text-slate-500 text-sm">Sin historial registrado</div>}
+          <div className="divide-y divide-steel-line">
+            {pHistorial.length === 0 && <div className="py-8 text-center text-steel-faint text-sm">Sin historial registrado</div>}
             {pHistorial.map((h, i) => (
               <div key={h.id || i} className="py-3">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] font-mono text-slate-500">{h.fecha} {h.hora}</span>
+                  <span className="text-[10px] font-mono text-steel-faint">{h.fecha} {h.hora}</span>
                   <span className="text-[10px] text-white font-medium">{h.usuario || h.user}</span>
-                  <span className="text-[10px] text-slate-500">·</span>
-                  <span className="text-[10px] text-slate-400">{h.departamento}</span>
+                  <span className="text-[10px] text-steel-faint">·</span>
+                  <span className="text-[10px] text-steel-muted">{h.departamento}</span>
                 </div>
                 <div className="text-xs text-white">{h.accion || h.action}</div>
                 {(h.valorAnterior || h.previousStatus) && (
-                  <div className="text-[10px] text-slate-500 mt-0.5">
+                  <div className="text-[10px] text-steel-faint mt-0.5">
                     {h.valorAnterior || h.previousStatus} → <span className="text-green-400">{h.valorNuevo || h.newStatus}</span>
                   </div>
                 )}
@@ -687,5 +687,5 @@ function FallbackDiseno3D({ proyecto, onUpdate }) {
 }
 
 const lbl    = { fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 };
-const inp    = { background: '#0F1117', border: '1px solid #374151', borderRadius: 7, color: '#E2E8F0', fontSize: 12, padding: '6px 10px', outline: 'none', width: '100%' };
+const inp    = { background: '#101215', border: '1px solid #374151', borderRadius: 7, color: '#E2E8F0', fontSize: 12, padding: '6px 10px', outline: 'none', width: '100%' };
 const btnSm  = (bg) => ({ background: bg, color: '#fff', border: 'none', borderRadius: 6, fontSize: 11, padding: '5px 10px', cursor: 'pointer' });
