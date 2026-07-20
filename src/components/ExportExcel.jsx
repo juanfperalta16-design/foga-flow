@@ -95,19 +95,18 @@ function negritaFila(sheet, rowNumber, numCols) {
   for (let i = 1; i <= numCols; i++) row.getCell(i).font = { bold: true };
 }
 
-// Bordes finos + franjas alternas en las filas de datos, para que cada hoja
-// se vea como una tabla real y no como valores sueltos. Se llama ANTES de
-// pintarColumna: el color de semáforo pisa el relleno de la franja en esas
-// celdas puntuales, pero el borde se conserva siempre.
+// Bordes finos en las filas de datos, para que cada hoja se vea como una
+// tabla real y no como valores sueltos. Sin relleno de fondo: antes había
+// una franja oscura alterna, pero esas celdas nunca tenían un color de
+// letra definido, así que el texto (negro por defecto) quedaba invisible
+// sobre el fondo casi negro. Se llama ANTES de pintarColumna: el color de
+// semáforo se aplica encima en esas celdas puntuales, el borde se conserva siempre.
 function bordearDatos(sheet, rowHeader, numCols) {
   const borde = { style: 'thin', color: { argb: 'FF2B2F36' } };
   for (let r = rowHeader.number + 1; r <= sheet.rowCount; r++) {
     const row = sheet.getRow(r);
-    const banda = (r - rowHeader.number) % 2 === 0;
     for (let c = 1; c <= numCols; c++) {
-      const cell = row.getCell(c);
-      cell.border = { top: borde, bottom: borde, left: borde, right: borde };
-      if (banda) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF161A22' } };
+      row.getCell(c).border = { top: borde, bottom: borde, left: borde, right: borde };
     }
   }
 }
