@@ -355,9 +355,9 @@ function ModuloD3D({ mod, onUpdate }) {
               </div>
             </div>
             <div>
-              <label style={{ ...lbl, fontSize: 10 }}>Fecha diseño</label>
+              <label style={{ ...lbl, fontSize: 10 }}>Fecha en que se subió el plano de corte</label>
               <div style={{ ...inp, display: 'flex', alignItems: 'center', color: d3.fechaDiseno ? '#E2E8F0' : '#4B5563' }}>
-                {d3.fechaDiseno || 'Se guarda sola al subir el plano de corte'}
+                {d3.fechaDiseno || 'Todavía no se sube el plano de corte de este módulo'}
               </div>
             </div>
           </div>
@@ -577,12 +577,18 @@ function ProyectoDetalleDept({ proyecto, departamento, onUpdate, onBack }) {
       {departamento !== 'Instalaciones' && modulos.length === 0 && <div style={{ textAlign: 'center', padding: '30px', color: '#4B5563', fontSize: 12 }}>Sin módulos. Edita el proyecto desde "Proyectos".</div>}
       {departamento === 'Diseño 3D' && modulos.length > 0 && modulos.every(m => !!m.diseno3d?.planCorteLink) && (() => {
         const entregada = !!proyecto.diseno3d?.carpetaFisicaEntregada;
+        // Fecha en que quedó listo el último módulo del proyecto — distinta
+        // de cuándo se marca la carpeta como entregada (eso es un paso
+        // físico aparte, que puede pasar días después). Se calcula sola a
+        // partir de la fecha que cada módulo ya guarda al subir su plano.
+        const fechaProyectoCompleto = modulos.map(m => m.diseno3d?.fechaDespachoPlano).filter(Boolean).sort().at(-1);
         return (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, background: entregada ? '#052E1660' : '#451A0360', border: `1px solid ${entregada ? '#16653480' : '#B4530980'}`, borderRadius: 10, padding: '10px 14px', marginBottom: 14 }}>
             <span style={{ fontSize: 12, color: entregada ? '#86EFAC' : '#FCD34D', fontWeight: 600 }}>
               {entregada
                 ? `✓ Carpeta física entregada al Jefe de Producción${proyecto.diseno3d?.carpetaFisicaEntregadaAt ? ` — ${proyecto.diseno3d.carpetaFisicaEntregadaAt}` : ''}`
                 : '⚠ Todos los planos de corte están listos — no olvides entregar la carpeta física completa al Jefe de Producción.'}
+              {fechaProyectoCompleto && <span style={{ display: 'block', fontSize: 10, fontWeight: 400, color: '#9CA3AF', marginTop: 2 }}>Proyecto completo (todos los planos subidos) desde el {fechaProyectoCompleto}</span>}
             </span>
             {!entregada && (
               <button
