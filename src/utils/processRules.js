@@ -92,14 +92,25 @@ export const generarAlertasAutomaticas = (proyectos) => {
     }
     // Por módulo, no por proyecto — antes bastaba con que UN módulo terminara diseño
     // para que la alerta dijera que "el proyecto" estaba listo, aunque el resto siguiera en proceso.
-    const modsListosParaProduccion = (p.production?.modulos || []).filter(m => {
+    // Separado en dos: uno realmente listo para liberar, y otro que le falta
+    // específicamente el plano de corte (que es justo lo que bloquea el botón
+    // "Liberar a Producción" en Diseño 3D) — antes ambos casos decían lo
+    // mismo ("liberar a Producción") aunque el segundo en realidad no se
+    // podía liberar todavía, lo cual confundía más de lo que ayudaba.
+    const modulosD3D = p.production?.modulos || [];
+    const disenoYDespieceListos = (m) => {
       const md3 = m.diseno3d || {};
-      const disenoListo = md3.design3DCompleted || md3.solidworksFinished;
+      const disenoListo   = md3.design3DCompleted || md3.solidworksFinished;
       const despieceListo = md3.breakdownCompleted || md3.autocadBreakdownFinished;
-      return disenoListo && despieceListo && !md3.liberadoProduccion;
-    });
+      return disenoListo && despieceListo;
+    };
+    const modsListosParaProduccion = modulosD3D.filter(m => disenoYDespieceListos(m) && !!m.diseno3d?.planCorteLink && !m.diseno3d?.liberadoProduccion);
+    const modsFaltaPlanoCorte      = modulosD3D.filter(m => disenoYDespieceListos(m) && !m.diseno3d?.planCorteLink && !m.diseno3d?.liberadoProduccion);
     if (modsListosParaProduccion.length > 0) {
-      alertas.push({ id: `AUTO_${p.id}_d3listo`, proyectoId: p.id, proyecto: p.nombre, cliente: p.cliente, departamentoOrigen: 'Diseño 3D', tipo: 'Listo para producción', motivo: `${modsListosParaProduccion.length} módulo${modsListosParaProduccion.length !== 1 ? 's' : ''} con modelado y despiece terminados.`, accionNecesaria: 'Diseño 3D: liberar el/los módulo(s) listos a Producción.', prioridad: 'Urgente', estado: 'Pendiente', fecha: hoy, auto: true });
+      alertas.push({ id: `AUTO_${p.id}_d3listo`, proyectoId: p.id, proyecto: p.nombre, cliente: p.cliente, departamentoOrigen: 'Diseño 3D', tipo: 'Listo para producción', motivo: `${modsListosParaProduccion.length} módulo${modsListosParaProduccion.length !== 1 ? 's' : ''} con modelado, despiece y plano de corte listos.`, accionNecesaria: 'Diseño 3D: liberar el/los módulo(s) listos a Producción.', prioridad: 'Urgente', estado: 'Pendiente', fecha: hoy, auto: true });
+    }
+    if (modsFaltaPlanoCorte.length > 0) {
+      alertas.push({ id: `AUTO_${p.id}_d3faltaplano`, proyectoId: p.id, proyecto: p.nombre, cliente: p.cliente, departamentoOrigen: 'Diseño 3D', tipo: 'Falta plano de corte', motivo: `${modsFaltaPlanoCorte.length} módulo${modsFaltaPlanoCorte.length !== 1 ? 's' : ''} con modelado y despiece terminados pero sin plano de corte — no se puede liberar a Producción todavía.`, accionNecesaria: 'Diseño 3D: subir el plano de corte antes de liberar.', prioridad: 'Urgente', estado: 'Pendiente', fecha: hoy, auto: true });
     }
     // Todos los planos de corte del proyecto ya están subidos, pero la
     // carpeta física (se entrega por proyecto completo, no por módulo)

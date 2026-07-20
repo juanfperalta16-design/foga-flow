@@ -149,8 +149,8 @@ export default function MonthlyCalendar() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: '#F1F5F9', margin: 0, fontFamily: 'var(--font-display)' }}>Calendario de entregas</h1>
-            <p style={{ fontSize: 12, color: '#6B7280', margin: '4px 0 0' }}>Fechas de entrega estimadas por proyecto</p>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: '#F1F5F9', margin: 0, fontFamily: 'var(--font-display)' }}>🏠 Calendario de instalaciones</h1>
+            <p style={{ fontSize: 12, color: '#6B7280', margin: '4px 0 0' }}>Fecha de instalación estimada de cada proyecto — cada departamento tiene su propio calendario con sus propias fechas</p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button onClick={() => navMes(-1)} style={{ background: '#141824', border: '1px solid #1E2433', borderRadius: 8, color: '#9CA3AF', cursor: 'pointer', padding: '6px 10px', display: 'flex', alignItems: 'center' }}>

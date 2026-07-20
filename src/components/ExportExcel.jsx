@@ -329,9 +329,12 @@ export default function ExportExcel() {
 
       (proyectos || []).forEach(p => {
         const modulos = p.production?.modulos || [];
+        const fechaDeptoProd = p.fechasDepto?.produccion;
         modulos.forEach(mod => {
           const matFaltante = (mod.materialFaltante || []).filter(m => m.estadoCompra !== '✓ Recibido');
-          const fecha = mod.fechaEntrega || p.fechaEntrega;
+          // Prioridad: fecha propia del módulo > fecha que Producción planificó
+          // en su calendario de departamento > fecha de instalación general.
+          const fecha = mod.fechaEntrega || fechaDeptoProd || p.fechaEntrega;
           const dias  = fecha ? Math.floor((new Date(fecha) - new Date()) / 86400000) : null;
           ws3.addRow([
             p.nombre || '—',
@@ -391,8 +394,11 @@ export default function ExportExcel() {
       pintarColumna(ws4, hdr4, 'DÍAS SIN AVANZAR', claseDiasSinAvanzar);
 
       // ── HOJA 5: ARQUITECTURA DETALLADA ───────────
-      const headers5 = ['PROYECTO', 'CLIENTE', 'PEC', 'RESPONSABLE', 'ESTADO', 'CHECKLIST', 'MÓDULOS LIBERADOS A D3D', 'OBSERVACIONES'];
-      const { sheet: ws5 } = nuevaHoja(wb, 'Arquitectura Detallada', 'FOGA FLOW — ARQUITECTURA DETALLADA', headers5, [28,20,12,18,26,12,20,30]);
+      // FECHA OBJETIVO = la que el Jefe de Producción planificó para
+      // Arquitectura en el calendario de ese departamento (Equipo →
+      // fechasDepto.arquitectura), o la de instalación si no hay una propia.
+      const headers5 = ['PROYECTO', 'CLIENTE', 'PEC', 'RESPONSABLE', 'ESTADO', 'CHECKLIST', 'MÓDULOS LIBERADOS A D3D', 'FECHA OBJETIVO', 'SEMÁFORO', 'OBSERVACIONES'];
+      const { sheet: ws5, rowHeader: hdr5 } = nuevaHoja(wb, 'Arquitectura Detallada', 'FOGA FLOW — ARQUITECTURA DETALLADA', headers5, [28,20,12,18,26,12,20,14,12,30]);
 
       (proyectos || []).filter(p => p.estadoGeneral !== 'Finalizado').forEach(p => {
         const arch = p.architecture || {};
@@ -401,22 +407,27 @@ export default function ExportExcel() {
         const pasosOk = pasos.filter(k => checklist[k]).length;
         const modulos = p.production?.modulos || [];
         const liberados = modulos.filter(m => m.arquitectura?.liberadoA3D).length;
+        const fechaObjetivo = p.fechasDepto?.arquitectura || p.fechaEntrega;
         ws5.addRow([
           p.nombre || '—', p.cliente || '—', p.numeroContrato || '—',
           arch.responsible || 'Sin asignar', arch.status || '—',
           `${pasosOk}/${pasos.length}`,
           modulos.length > 0 ? `${liberados}/${modulos.length}` : '—',
+          fechaObjetivo || 'Sin fecha',
+          fechaObjetivo ? estado(fechaObjetivo) : '—',
           arch.observations || '—',
         ]);
       });
+      pintarColumna(ws5, hdr5, 'SEMÁFORO', claseSemaforoTexto);
 
       // ── HOJA 6: DISEÑO 3D DETALLADA ──────────────
-      const headers6 = ['PROYECTO', 'CLIENTE', 'PEC MÓDULO', 'MÓDULO', 'DISEÑADOR(ES)', 'SOLIDWORKS', 'DESPIECE', 'PLAN DE CORTE', 'LIBERADO A PRODUCCIÓN'];
-      const { sheet: ws6, rowHeader: hdr6 } = nuevaHoja(wb, 'Diseño 3D Detallada', 'FOGA FLOW — DISEÑO 3D DETALLADA', headers6, [28,20,14,20,20,14,14,14,20]);
+      const headers6 = ['PROYECTO', 'CLIENTE', 'PEC MÓDULO', 'MÓDULO', 'DISEÑADOR(ES)', 'SOLIDWORKS', 'DESPIECE', 'PLAN DE CORTE', 'LIBERADO A PRODUCCIÓN', 'FECHA OBJETIVO', 'SEMÁFORO'];
+      const { sheet: ws6, rowHeader: hdr6 } = nuevaHoja(wb, 'Diseño 3D Detallada', 'FOGA FLOW — DISEÑO 3D DETALLADA', headers6, [28,20,14,20,20,14,14,14,20,14,12]);
 
       (proyectos || []).forEach(p => {
         const d3 = p.design3d || {};
         const designers = (d3.responsables || (d3.responsible ? [d3.responsible] : [])).join(', ') || 'Sin asignar';
+        const fechaObjetivo = p.fechasDepto?.diseno3d || p.fechaEntrega;
         (p.production?.modulos || []).filter(m => m.arquitectura?.liberadoA3D).forEach(mod => {
           const md3 = mod.diseno3d || {};
           ws6.addRow([
@@ -425,6 +436,8 @@ export default function ExportExcel() {
             md3.autocadBreakdownFinished ? 'Terminado' : md3.autocadBreakdownStarted ? 'En proceso' : 'Pendiente',
             md3.planCorteLink ? 'Cargado' : 'Pendiente',
             md3.liberadoProduccion ? 'Sí' : 'No',
+            fechaObjetivo || 'Sin fecha',
+            fechaObjetivo ? estado(fechaObjetivo) : '—',
           ]);
         });
       });
@@ -432,6 +445,7 @@ export default function ExportExcel() {
       pintarColumna(ws6, hdr6, 'DESPIECE', claseProgreso);
       pintarColumna(ws6, hdr6, 'PLAN DE CORTE', claseProgreso);
       pintarColumna(ws6, hdr6, 'LIBERADO A PRODUCCIÓN', claseSiNo);
+      pintarColumna(ws6, hdr6, 'SEMÁFORO', claseSemaforoTexto);
 
       // ── HOJA 7: INSTALACIONES DETALLADA ──────────
       const headers7 = ['PROYECTO', 'CLIENTE', 'RESPONSABLE', '1ª VISITA', 'INFORME TÉCNICO / MEDIDAS', '2ª VISITA', 'OBRA LISTA', 'INSTALACIÓN REALIZADA', 'FECHA INSTALACIÓN'];

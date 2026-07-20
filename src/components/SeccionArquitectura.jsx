@@ -23,7 +23,6 @@ function ModuloArqCard({ mod, planLink, onUpdateModulo }) {
   const arch     = mod.arquitectura || {};
   const liberado = !!arch.liberadoA3D;
   const dims     = formatDimensiones(mod);
-  const ESTADOS  = ['En proceso','En Diseño','En Revisión Cliente','Cambios Solicitados','Aprobado Cliente','Listo','Liberado a Diseño 3D'];
 
   function toggle() {
     const now = new Date().toISOString();
@@ -70,11 +69,9 @@ function ModuloArqCard({ mod, planLink, onUpdateModulo }) {
           <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             <div>
               <label style={lbl}>Estado</label>
-              <select value={arch.estado || 'En proceso'}
-                onChange={e => onUpdateModulo({ ...mod, arquitectura: { ...arch, estado: e.target.value } })}
-                style={inp}>
-                {ESTADOS.map(s => <option key={s}>{s}</option>)}
-              </select>
+              <div style={{ ...inp, display: 'flex', alignItems: 'center', color: liberado ? '#C4B5FD' : '#9CA3AF' }}>
+                {liberado ? '✓ Liberado a Diseño 3D' : 'En proceso'}
+              </div>
             </div>
             <div>
               <label style={lbl}>Plano conceptual</label>
