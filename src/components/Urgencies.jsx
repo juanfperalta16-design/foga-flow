@@ -152,7 +152,11 @@ function Seccion({ titulo, subtitulo, items, color, icon, children }) {
   );
 }
 
-export default function Urgencies() {
+// Toda la lógica de detección de urgencias en un solo lugar — la usan tanto
+// esta página completa como la pestaña "Alertas" de Proyectos, para que
+// nunca más se vuelvan a desincronizar (antes esa pestaña solo mostraba las
+// alertas del sistema y le faltaban las otras 5 categorías de acá).
+export function useUrgenciasData() {
   const { proyectos, alertas, saveAlertas, goToProject } = useApp();
   const safeProys = (proyectos || []);
 
@@ -217,7 +221,56 @@ export default function Urgencies() {
     });
   });
 
-  const totalAlertas = alertasReportadas.length + proyAtrasados.length + proyUrgentes.length + sinResponsable.length + modMaterial.length + modAtrasados.length;
+  const total = alertasReportadas.length + proyAtrasados.length + proyUrgentes.length + sinResponsable.length + modMaterial.length + modAtrasados.length;
+
+  return { alertasReportadas, proyAtrasados, proyUrgentes, sinResponsable, modMaterial, modAtrasados, total, resolverAlerta, goToProject };
+}
+
+// Las 6 secciones, sin título de página ni padding propio — para poder
+// incrustarlas dentro de otra pantalla (la pestaña "Alertas" de Proyectos)
+// además de usarlas en la página completa de Urgencias más abajo.
+export function UrgenciasResumen() {
+  const { alertasReportadas, proyAtrasados, proyUrgentes, sinResponsable, modMaterial, modAtrasados, resolverAlerta, goToProject } = useUrgenciasData();
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+      {/* Todas las alertas pendientes — manuales y automáticas, cualquier tipo */}
+      <Seccion titulo="Alertas del sistema" subtitulo="Reportadas por un departamento o generadas automáticamente (ej. módulo listo para liberar)" items={alertasReportadas.length} color="#DC2626" icon="🔔">
+        {alertasReportadas.map(al => <TarjetaAlerta key={al.id} alerta={al} goToProject={goToProject} onResolver={resolverAlerta} />)}
+      </Seccion>
+
+      {/* Proyectos atrasados */}
+      <Seccion titulo="Proyectos atrasados" subtitulo="Fecha de entrega general vencida" items={proyAtrasados.length} color="#EF4444" icon="🔴">
+        {proyAtrasados.map(p => <TarjetaProyecto key={p.id} proyecto={p} motivo="Fecha de entrega vencida" color="#EF4444" goToProject={goToProject} />)}
+      </Seccion>
+
+      {/* Proyectos urgentes */}
+      <Seccion titulo="Entregas próximas" subtitulo="Menos de 5 días para la entrega" items={proyUrgentes.length} color="#F97316" icon="⚡">
+        {proyUrgentes.map(p => <TarjetaProyecto key={p.id} proyecto={p} motivo="Entrega en menos de 5 días" color="#F97316" goToProject={goToProject} />)}
+      </Seccion>
+
+      {/* Sin responsable */}
+      <Seccion titulo="Sin responsable asignado" subtitulo="Proyectos activos sin encargado en algún departamento" items={sinResponsable.length} color="#D97706" icon="👤">
+        {sinResponsable.map((item, i) => <TarjetaProyecto key={i} proyecto={item.proyecto} motivo={item.motivo} color="#D97706" goToProject={goToProject} />)}
+      </Seccion>
+
+      {/* Material urgente */}
+      <Seccion titulo="Material urgente faltante" subtitulo="Módulos bloqueados por falta de material" items={modMaterial.length} color="#DC2626" icon="📦">
+        {modMaterial.map((item, i) => <TarjetaModulo key={i} modulo={item.modulo} proyecto={item.proyecto} motivo={item.motivo} color="#DC2626" goToProject={goToProject} />)}
+      </Seccion>
+
+      {/* Módulos atrasados */}
+      <Seccion titulo="Módulos atrasados en producción" subtitulo="Fecha de entrega de módulo vencida" items={modAtrasados.length} color="#EF4444" icon="🏭">
+        {modAtrasados.map((item, i) => <TarjetaModulo key={i} modulo={item.modulo} proyecto={item.proyecto} motivo={item.motivo} color="#EF4444" goToProject={goToProject} />)}
+      </Seccion>
+
+    </div>
+  );
+}
+
+export default function Urgencies() {
+  const { total } = useUrgenciasData();
 
   return (
     <div style={{ padding: 24, maxWidth: 900, margin: '0 auto' }}>
@@ -225,43 +278,11 @@ export default function Urgencies() {
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, color: '#F1F5F9', margin: 0, fontFamily: 'var(--font-display)' }}>Urgencias y alertas</h1>
         <p style={{ fontSize: 12, color: '#6B7280', margin: '4px 0 0' }}>
-          {totalAlertas === 0 ? '✓ Todo en orden' : `${totalAlertas} situaciones requieren atención`}
+          {total === 0 ? '✓ Todo en orden' : `${total} situaciones requieren atención`}
         </p>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-        {/* Todas las alertas pendientes — manuales y automáticas, cualquier tipo */}
-        <Seccion titulo="Alertas del sistema" subtitulo="Reportadas por un departamento o generadas automáticamente (ej. módulo listo para liberar)" items={alertasReportadas.length} color="#DC2626" icon="🔔">
-          {alertasReportadas.map(al => <TarjetaAlerta key={al.id} alerta={al} goToProject={goToProject} onResolver={resolverAlerta} />)}
-        </Seccion>
-
-        {/* Proyectos atrasados */}
-        <Seccion titulo="Proyectos atrasados" subtitulo="Fecha de entrega general vencida" items={proyAtrasados.length} color="#EF4444" icon="🔴">
-          {proyAtrasados.map(p => <TarjetaProyecto key={p.id} proyecto={p} motivo="Fecha de entrega vencida" color="#EF4444" goToProject={goToProject} />)}
-        </Seccion>
-
-        {/* Proyectos urgentes */}
-        <Seccion titulo="Entregas próximas" subtitulo="Menos de 5 días para la entrega" items={proyUrgentes.length} color="#F97316" icon="⚡">
-          {proyUrgentes.map(p => <TarjetaProyecto key={p.id} proyecto={p} motivo="Entrega en menos de 5 días" color="#F97316" goToProject={goToProject} />)}
-        </Seccion>
-
-        {/* Sin responsable */}
-        <Seccion titulo="Sin responsable asignado" subtitulo="Proyectos activos sin encargado en algún departamento" items={sinResponsable.length} color="#D97706" icon="👤">
-          {sinResponsable.map((item, i) => <TarjetaProyecto key={i} proyecto={item.proyecto} motivo={item.motivo} color="#D97706" goToProject={goToProject} />)}
-        </Seccion>
-
-        {/* Material urgente */}
-        <Seccion titulo="Material urgente faltante" subtitulo="Módulos bloqueados por falta de material" items={modMaterial.length} color="#DC2626" icon="📦">
-          {modMaterial.map((item, i) => <TarjetaModulo key={i} modulo={item.modulo} proyecto={item.proyecto} motivo={item.motivo} color="#DC2626" goToProject={goToProject} />)}
-        </Seccion>
-
-        {/* Módulos atrasados */}
-        <Seccion titulo="Módulos atrasados en producción" subtitulo="Fecha de entrega de módulo vencida" items={modAtrasados.length} color="#EF4444" icon="🏭">
-          {modAtrasados.map((item, i) => <TarjetaModulo key={i} modulo={item.modulo} proyecto={item.proyecto} motivo={item.motivo} color="#EF4444" goToProject={goToProject} />)}
-        </Seccion>
-
-      </div>
+      <UrgenciasResumen />
     </div>
   );
 }

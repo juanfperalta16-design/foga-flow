@@ -111,32 +111,12 @@ function ModuloArqCard({ mod, planLink, onUpdateModulo }) {
 }
 
 export default function SeccionArquitectura({ proyecto, onUpdate }) {
-  const { responsables, saveAlertas, currentUser } = useApp();
+  const { responsables } = useApp();
   const arch      = proyecto.architecture || {};
   const modulos   = proyecto.production?.modulos || [];
   const checklist = arch.checklist || {};
 
   const [confirmLibAll, setConfirmLibAll]       = useState(false);
-  const [alertaEnviada, setAlertaEnviada]       = useState(false);
-
-  function enviarAlertaBloqueo() {
-    saveAlertas([{
-      id: `ALERTA_${proyecto.id}_${Date.now()}`,
-      proyectoId: proyecto.id,
-      proyecto: proyecto.nombre,
-      cliente: proyecto.cliente,
-      departamentoOrigen: 'Arquitectura',
-      departamentoDestino: 'Diseño 3D',
-      tipo: 'Bloqueo Diseño 3D',
-      motivo: `Los módulos ya fueron generados pero no se pueden liberar a Diseño 3D (ej. faltan medidas del cliente).${currentUser ? ` Reportado por ${currentUser}.` : ''}`,
-      accionNecesaria: 'Revisar con Arquitectura qué falta para liberar a Diseño 3D.',
-      prioridad: 'Urgente',
-      estado: 'Pendiente',
-      fecha: new Date().toISOString().slice(0,10),
-      auto: false,
-    }]);
-    setAlertaEnviada(true);
-  }
 
   const respAgrupados = getResponsablesAgrupados(responsables);
 
@@ -371,11 +351,7 @@ export default function SeccionArquitectura({ proyecto, onUpdate }) {
           </div>
           {modulosLiberados.length === 0 && (
             <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10, background: '#451A0320', border: '1px solid #D9770640', borderRadius: 8, padding: '8px 12px' }}>
-              <span style={{ fontSize: 11, color: '#FCD34D', flex: 1 }}>⚠ Ningún módulo se puede liberar a Diseño 3D todavía (ej. faltan medidas del cliente)</span>
-              <button onClick={enviarAlertaBloqueo} disabled={alertaEnviada}
-                style={{ fontSize: 11, fontWeight: 700, padding: '6px 12px', background: alertaEnviada ? '#052E16' : '#D97706', color: alertaEnviada ? '#86EFAC' : '#fff', border: 'none', borderRadius: 7, cursor: alertaEnviada ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
-                {alertaEnviada ? '✓ Alerta enviada' : '🔔 Enviar alerta'}
-              </button>
+              <span style={{ fontSize: 11, color: '#FCD34D', flex: 1 }}>⚠ Ningún módulo se puede liberar a Diseño 3D todavía (ej. faltan medidas del cliente) — Instalaciones ya fue avisado automáticamente para ayudar a verificar las medidas.</span>
             </div>
           )}
           <div style={{ height: 4, background: '#1E2433', borderRadius: 2, overflow: 'hidden', marginBottom: 12 }}>

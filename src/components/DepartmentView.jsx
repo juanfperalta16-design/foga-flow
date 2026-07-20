@@ -102,7 +102,8 @@ function ProyectoCard({ proyecto, departamento, clasificacion, onClick }) {
   const liberadosArq = mods.filter(m => m.arquitectura?.liberadoA3D).length;
   const liberadosD3D = mods.filter(m => m.diseno3d?.liberadoProduccion).length;
   const terminados   = mods.filter(m => m.produccion?.faseActual === '✓ Terminado').length;
-  const borderColor  = clasificacion === 'atrasado' || clasificacion === 'urgente' ? '#EF4444' : clasificacion === 'completado' ? '#16A34A' : cfg.color;
+  const enReproceso  = mods.filter(m => m.produccion?.reproceso).length;
+  const borderColor  = enReproceso > 0 && departamento === 'Diseño 3D' ? '#EF4444' : clasificacion === 'atrasado' || clasificacion === 'urgente' ? '#EF4444' : clasificacion === 'completado' ? '#16A34A' : cfg.color;
 
   const progreso = mods.length === 0 ? 0 : (() => {
     switch (departamento) {
@@ -131,6 +132,9 @@ function ProyectoCard({ proyecto, departamento, clasificacion, onClick }) {
               </span>
             )}
             {clasificacion === 'completado' && <span style={{ fontSize: 9, fontWeight: 700, background: '#052E16', color: '#86EFAC', padding: '1px 6px', borderRadius: 4 }}>✓ LISTO</span>}
+            {departamento === 'Diseño 3D' && enReproceso > 0 && (
+              <span style={{ fontSize: 9, fontWeight: 700, background: '#450A0A', color: '#FCA5A5', padding: '1px 6px', borderRadius: 4 }}>⚠ REPROCESO ({enReproceso})</span>
+            )}
             {departamento === 'Instalaciones' && proyecto.fechaEntrega && (() => {
               return paseInstalacionAbierto(proyecto)
                 ? <span style={{ fontSize: 9, fontWeight: 700, background: '#052E16', color: '#86EFAC', padding: '1px 6px', borderRadius: 4 }}>✓ PASE ABIERTO</span>

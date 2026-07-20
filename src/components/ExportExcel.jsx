@@ -255,8 +255,8 @@ export default function ExportExcel() {
       // columna "ETAPA ACTUAL" con el resumen de dónde está parado hoy
       // (ej. "Producción — 3. Plegado") — para ver todo el panorama sin
       // tener que cruzar las 4 hojas detalladas por departamento.
-      const headers1B = ['PROYECTO', 'CLIENTE', 'PEC MÓDULO', 'MÓDULO', 'CÓDIGO', 'LÍNEA', 'ARQUITECTURA', 'DISEÑO 3D', 'PRODUCCIÓN', 'INSTALACIONES', 'ETAPA ACTUAL'];
-      const { sheet: ws1B, rowHeader: hdr1B } = nuevaHoja(wb, 'Flujo General', 'FOGA FLOW — FLUJO GENERAL POR MÓDULO', headers1B, [28,20,14,20,20,12,20,20,20,20,26]);
+      const headers1B = ['PROYECTO', 'CLIENTE', 'PEC MÓDULO', 'MÓDULO', 'CÓDIGO', 'DIMENSIONES (LxPxA cm)', 'LÍNEA', 'ARQUITECTURA', 'DISEÑO 3D', 'PRODUCCIÓN', 'INSTALACIONES', 'ETAPA ACTUAL'];
+      const { sheet: ws1B, rowHeader: hdr1B } = nuevaHoja(wb, 'Flujo General', 'FOGA FLOW — FLUJO GENERAL POR MÓDULO', headers1B, [28,20,14,20,20,20,12,20,20,20,20,26]);
 
       (proyectos || []).filter(p => p.estadoGeneral !== 'Finalizado').forEach(p => {
         const inst = p.installations || {};
@@ -289,8 +289,12 @@ export default function ExportExcel() {
             : liberadoA3D            ? `Diseño 3D — ${d3Estado}`
             : `Arquitectura — ${arqEstado}`;
 
+          const dimensiones = (mod.largo || mod.profundidad || mod.alto)
+            ? `${mod.largo || '—'}×${mod.profundidad || '—'}×${mod.alto || '—'}`
+            : '—';
+
           ws1B.addRow([
-            p.nombre || '—', p.cliente || '—', mod.pec || '—', mod.nombre || '—', mod.codigo || '—', mod.linea || p.lineaProyecto || '—',
+            p.nombre || '—', p.cliente || '—', mod.pec || '—', mod.nombre || '—', mod.codigo || '—', dimensiones, mod.linea || p.lineaProyecto || '—',
             arqEstado, d3Estado, prodEstado, instEstado, etapaActual,
           ]);
         });

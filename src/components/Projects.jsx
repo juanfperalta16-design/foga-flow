@@ -4,6 +4,7 @@ import { isAtrasado, formatFecha } from '../utils/dateHelpers';
 import { StatusChip, PrioridadChip } from './StatusChip';
 import { Search, Plus, ChevronRight, Trash2, Package, AlertTriangle } from 'lucide-react';
 import ProjectForm from './ProjectForm';
+import { UrgenciasResumen, useUrgenciasData } from './Urgencies';
 
 function disenador3D(p) {
   const d3 = p.design3d || {};
@@ -97,7 +98,7 @@ function etapaActual(p) {
 }
 
 export default function Projects() {
-  const { proyectos, prospectos, alertas, saveAlertas, goToProject, deleteProyecto } = useApp();
+  const { proyectos, prospectos, goToProject, deleteProyecto } = useApp();
   const [tab, setTab]                         = useState('proyectos');
   const [search, setSearch]                   = useState('');
   const [filterEstado, setFilterEstado]       = useState('');
@@ -150,12 +151,7 @@ export default function Projects() {
     return [...fechas].sort().slice(-1)[0];
   }
 
-  const alertasPendientes = (alertas || []).filter(a => a.estado === 'Pendiente');
-
-  function resolverAlerta(al) {
-    if (al.auto) return;
-    saveAlertas([{ ...al, estado: 'Resuelta' }]);
-  }
+  const { total: totalUrgencias } = useUrgenciasData();
 
   return (
     <div className="p-6 space-y-4">
@@ -180,8 +176,8 @@ export default function Projects() {
             {id === 'prospectos' && prospectos.length > 0 && (
               <span className="ml-2 text-[10px] bg-flame text-white px-1.5 py-0.5 rounded-full font-stamp">{prospectos.length}</span>
             )}
-            {id === 'alertas' && alertasPendientes.length > 0 && (
-              <span className="ml-2 text-[10px] bg-red-600 text-white px-1.5 py-0.5 rounded-full">{alertasPendientes.length}</span>
+            {id === 'alertas' && totalUrgencias > 0 && (
+              <span className="ml-2 text-[10px] bg-red-600 text-white px-1.5 py-0.5 rounded-full">{totalUrgencias}</span>
             )}
           </button>
         ))}
@@ -276,37 +272,12 @@ export default function Projects() {
       )}
 
       {/* ── TAB ALERTAS ── */}
-      {tab === 'alertas' && (
-        <div className="space-y-2">
-          {alertasPendientes.length === 0 && (
-            <div className="bg-[#1B1E23] border border-steel-line rounded-xl py-12 text-center text-steel-faint text-sm">
-              ✓ Sin alertas pendientes.
-            </div>
-          )}
-          {alertasPendientes.map(al => (
-            <div key={al.id} className="bg-[#1B1E23] border border-steel-line rounded-xl px-4 py-3 flex items-start gap-3">
-              <div className="flex-1 min-w-0 cursor-pointer" onClick={() => al.proyectoId && goToProject(al.proyectoId)}>
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${al.prioridad === 'Urgente' ? 'bg-red-900 text-red-300' : 'bg-amber-900 text-amber-300'}`}>{al.tipo}</span>
-                  {al.departamentoOrigen && <span className="text-[10px] text-steel-muted">{al.departamentoOrigen}{al.departamentoDestino ? ` → ${al.departamentoDestino}` : ''}</span>}
-                  {al.auto && <span className="text-[9px] text-steel-faint">· automática</span>}
-                </div>
-                <div className="text-sm text-white font-medium">{al.proyecto}{al.cliente ? ` · ${al.cliente}` : ''}</div>
-                <div className="text-[11px] text-steel-muted mt-0.5">{al.motivo}</div>
-                {al.accionNecesaria && <div className="text-[10px] text-blue-400 mt-1 font-medium">{al.accionNecesaria}</div>}
-              </div>
-              <div className="flex flex-col items-end gap-2 shrink-0">
-                <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${al.prioridad === 'Urgente' ? 'bg-red-600 text-white' : 'bg-amber-700 text-amber-200'}`}>{al.prioridad}</span>
-                {!al.auto && (
-                  <button onClick={() => resolverAlerta(al)} className="text-[10px] text-steel-muted hover:text-green-400 border border-white/10 hover:border-green-700 rounded px-2 py-1 transition-colors whitespace-nowrap">
-                    ✓ Marcar resuelta
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Mismo contenido que la página Urgencias (src/components/Urgencies.jsx) —
+          antes esta pestaña solo mostraba las alertas del sistema y le faltaban
+          las otras 5 categorías (atrasados, próximos, sin responsable, material
+          urgente, módulos atrasados), así que parecía que había menos pendiente
+          de lo que realmente había. */}
+      {tab === 'alertas' && <UrgenciasResumen />}
 
       {/* ── TAB PROYECTOS ── */}
       {tab === 'proyectos' && (

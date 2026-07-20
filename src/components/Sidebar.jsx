@@ -1,4 +1,4 @@
-import { LayoutDashboard, FolderKanban, Calendar, Columns, AlertTriangle, Settings, Building2, Monitor, Factory, Wrench, Users, LogOut, DollarSign } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Calendar, Columns, AlertTriangle, Settings, Building2, Monitor, Factory, Wrench, Users, LogOut, DollarSign, HelpCircle } from 'lucide-react';
 import logoFoga from '../assets/LOGO_FOGA.png';
 
 // Color por departamento = su posición en la escala de temple del acero
@@ -8,7 +8,7 @@ const NAV = [
   { id: 'proyectos',    label: 'Proyectos',    icon: FolderKanban },
   { type: 'divider',    label: 'DEPARTAMENTOS' },
   { id: 'arquitectura', label: 'Arquitectura', icon: Building2, color: 'text-[#D4A017]' },
-  { id: 'diseno3d',     label: 'Diseño 3D',    icon: Monitor,   color: 'text-[#B5651D]' },
+  { id: 'diseno3d',     label: 'Diseño 3D',    icon: Monitor,   color: 'text-[#B5651D]', badge: 'reproceso' },
   { id: 'produccion',   label: 'Producción',   icon: Factory,   color: 'text-[#7A4B8C]' },
   { id: 'instalaciones',label: 'Instalaciones',icon: Wrench,    color: 'text-[#2C6E9E]' },
   { id: 'contabilidad', label: 'Contabilidad', icon: DollarSign, color: 'text-[#A67C3D]' },
@@ -17,11 +17,12 @@ const NAV = [
   { id: 'kanban',       label: 'Kanban',       icon: Columns },
   { id: 'equipo',       label: 'Equipo',       icon: Users },
   { type: 'divider',    label: 'CONTROL' },
-  { id: 'urgencias',    label: 'Urgencias',    icon: AlertTriangle, color: 'text-red-400', badge: true },
+  { id: 'urgencias',    label: 'Urgencias',    icon: AlertTriangle, color: 'text-red-400', badge: 'urgencias' },
   { id: 'configuracion',label: 'Configuración',icon: Settings },
+  { id: 'ayuda',        label: 'Ayuda',        icon: HelpCircle },
 ];
 
-export default function Sidebar({ page, setPage, urgentCount, atrasadosCount, currentUser, onLogout }) {
+export default function Sidebar({ page, setPage, urgentCount, atrasadosCount, reprocesoCount, currentUser, onLogout }) {
   const nombre = currentUser || 'Usuario';
   const iniciales = nombre.split(/[@.]/)[0].slice(0, 2).toUpperCase();
   return (
@@ -44,7 +45,7 @@ export default function Sidebar({ page, setPage, urgentCount, atrasadosCount, cu
           );
           const Icon   = item.icon;
           const active = page === item.id;
-          const total  = item.badge ? (urgentCount + atrasadosCount) : 0;
+          const total  = item.badge === 'urgencias' ? (urgentCount + atrasadosCount) : item.badge === 'reproceso' ? reprocesoCount : 0;
           return (
             <button key={item.id} onClick={() => setPage(item.id)}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-all mb-0.5 border-l-2 ${active ? 'bg-flame/10 border-flame text-white' : 'border-transparent text-steel-muted hover:text-slate-200 hover:bg-white/5'}`}>

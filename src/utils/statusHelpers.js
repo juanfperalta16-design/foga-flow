@@ -46,6 +46,21 @@ export const STATUS_COLORS = {
   'Visita pendiente':          { bg: 'bg-slate-700',   text: 'text-slate-300',  dot: '#6B7280' },
   'Diseño conceptual en proceso': { bg: 'bg-blue-700', text: 'text-blue-200',   dot: '#2563EB' },
   'Finalizado':                { bg: 'bg-green-800',   text: 'text-green-200',  dot: '#16A34A' },
+  // Estados reales que devuelve calcularEstadoGeneral() (processRules.js) — antes no
+  // estaban acá, así que el chip de estado caía al gris genérico la mayor parte del tiempo.
+  'En propuesta':                             { bg: 'bg-slate-700',   text: 'text-slate-300',   dot: '#6B7280' },
+  'Proyecto confirmado':                      { bg: 'bg-blue-700',    text: 'text-blue-200',    dot: '#2563EB' },
+  'En revisión con cliente':                  { bg: 'bg-cyan-700',    text: 'text-cyan-200',    dot: '#0891B2' },
+  'Propuesta aprobada':                       { bg: 'bg-emerald-700', text: 'text-emerald-200', dot: '#15803D' },
+  'Plano listo — Pendiente Diseño 3D':        { bg: 'bg-amber-700',   text: 'text-amber-200',   dot: '#D97706' },
+  'Listo para Diseño 3D':                     { bg: 'bg-emerald-700', text: 'text-emerald-200', dot: '#15803D' },
+  'En Diseño 3D':                             { bg: 'bg-blue-700',    text: 'text-blue-200',    dot: '#2563EB' },
+  'En Diseño 3D — SolidWorks':                { bg: 'bg-blue-700',    text: 'text-blue-200',    dot: '#2563EB' },
+  'En Diseño 3D — Despiece':                  { bg: 'bg-blue-700',    text: 'text-blue-200',    dot: '#2563EB' },
+  'Información técnica recibida':             { bg: 'bg-cyan-700',    text: 'text-cyan-200',    dot: '#0891B2' },
+  'Liberado a Instalaciones':                 { bg: 'bg-emerald-700', text: 'text-emerald-200', dot: '#15803D' },
+  'En producción':                            { bg: 'bg-orange-700',  text: 'text-orange-200',  dot: '#EA580C' },
+  'Producción terminada — Pendiente instalación': { bg: 'bg-amber-700', text: 'text-amber-200', dot: '#D97706' },
 };
 
 export const PRIORIDAD_COLORS = {

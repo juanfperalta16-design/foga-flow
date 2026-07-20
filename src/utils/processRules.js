@@ -120,6 +120,16 @@ export const generarAlertasAutomaticas = (proyectos) => {
     if (todosPlanosSubidos && !p.diseno3d?.carpetaFisicaEntregada) {
       alertas.push({ id: `AUTO_${p.id}_carpeta`, proyectoId: p.id, proyecto: p.nombre, cliente: p.cliente, departamentoOrigen: 'Diseño 3D', tipo: 'Carpeta física pendiente', motivo: 'Todos los planos de corte están listos.', accionNecesaria: 'Diseño 3D: entregar la carpeta física completa al Jefe de Producción.', prioridad: 'Alta', estado: 'Pendiente', fecha: hoy, auto: true });
     }
+    // Arquitectura generó módulos pero no pudo liberar ninguno a Diseño 3D —
+    // la causa más común es que faltan medidas confirmadas del cliente/obra.
+    // Antes esto solo se veía si alguien entraba manualmente al proyecto en
+    // Arquitectura y hacía clic en "Enviar alerta"; ahora se avisa solo, y se
+    // le pide ayuda a Instalaciones (puede agendar una visita para verificar
+    // o tomar las medidas), no a Diseño 3D (que no puede hacer nada al respecto).
+    const modulosArq = p.production?.modulos || [];
+    if (modulosArq.length > 0 && !modulosArq.some(m => m.arquitectura?.liberadoA3D) && p.estadoGeneral !== 'Finalizado') {
+      alertas.push({ id: `AUTO_${p.id}_bloqueoarq`, proyectoId: p.id, proyecto: p.nombre, cliente: p.cliente, departamentoOrigen: 'Arquitectura', departamentoDestino: 'Instalaciones', tipo: 'Bloqueo Diseño 3D', motivo: 'Los módulos ya fueron generados pero ninguno se pudo liberar a Diseño 3D — probablemente faltan medidas del cliente confirmadas en obra.', accionNecesaria: 'Instalaciones: agendar una visita para verificar o tomar las medidas y ayudar a Arquitectura a confirmar o corregir el plano.', prioridad: 'Alta', estado: 'Pendiente', fecha: hoy, auto: true });
+    }
     // Reproceso: Producción encontró un problema de diseño en un módulo ya
     // liberado y lo marcó como reproceso — hay que avisarle a Diseño 3D (al
     // diseñador asignado, si lo hay) para que revise y suba el archivo

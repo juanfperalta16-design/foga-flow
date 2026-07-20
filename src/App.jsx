@@ -17,6 +17,7 @@ import VistaEquipo from './components/VistaEquipo';
 import ExportExcel from './components/ExportExcel';
 import Configuration from './components/Configuration';
 import Contabilidad from './components/Contabilidad';
+import Ayuda from './components/Ayuda';
 
 export const AppContext = createContext(null);
 export const useApp = () => useContext(AppContext);
@@ -134,6 +135,10 @@ export default function App() {
 
   const urgentCount    = alertas.filter(a => a.estado === 'Pendiente' && a.prioridad === 'Urgente').length;
   const atrasadosCount = proyectos.filter(p => isAtrasado(p.fechaEntrega, p.estadoGeneral)).length;
+  // Módulos en reproceso (Producción encontró un problema y Diseño 3D todavía no
+  // resolvió) — se muestra como badge en "Diseño 3D" del menú para que no dependa
+  // de que alguien entre a revisar cada proyecto para notarlo.
+  const reprocesoCount = proyectos.reduce((acc, p) => acc + (p.production?.modulos || []).filter(m => m.produccion?.reproceso).length, 0);
 
   const deptProps = {
     actividades,
@@ -160,6 +165,7 @@ export default function App() {
       case 'urgencias':      return <Urgencias />;
       case 'equipo':         return <VistaEquipo />;
       case 'configuracion':  return <Configuration />;
+      case 'ayuda':          return <Ayuda />;
       default:               return <Dashboard />;
     }
   };
@@ -174,7 +180,7 @@ export default function App() {
   return (
     <AppContext.Provider value={ctx}>
       <div className="flex h-screen overflow-hidden bg-steel-ink">
-        <Sidebar page={page} setPage={setPage} urgentCount={urgentCount} atrasadosCount={atrasadosCount} currentUser={currentUser} onLogout={handleLogout} />
+        <Sidebar page={page} setPage={setPage} urgentCount={urgentCount} atrasadosCount={atrasadosCount} reprocesoCount={reprocesoCount} currentUser={currentUser} onLogout={handleLogout} />
         <main className="flex-1 overflow-y-auto">
           {renderPage()}
         </main>
